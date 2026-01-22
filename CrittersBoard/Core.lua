@@ -36,9 +36,13 @@ local function SafeInitUI()
     CB.UI.frame:Hide()
   end
 
-  CB.UI:ApplyMainAlpha()
-  CB.UI:UpdateLock()
-  CB.UI:Refresh()
+  if CB.UI.UpdateLock then
+    CB.UI:UpdateLock()
+  end
+
+  if CB.UI.Refresh then
+    CB.UI:Refresh()
+  end
 
   return true
 end
@@ -55,15 +59,18 @@ frame:SetScript("OnEvent", function(self, event, name, ...)
       CB:InitDB()
     end
 
-    -- wir initialisieren UI NICHT hier, weil Reihenfolge nicht garantiert ist
-    -- UI kommt sicher bei PLAYER_LOGIN
-
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
+    -- Register prefix (needed for live sync + manual sync)
+    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix and CB.PREFIX then
       C_ChatInfo.RegisterAddonMessagePrefix(CB.PREFIX)
     end
 
   elseif event == "PLAYER_LOGIN" then
     SafeInitUI()
+
+    -- Start AutoSync once after login
+    if CB.AutoSync then
+      CB:AutoSync()
+    end
 
   elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
     if CB.OnCombatLog then

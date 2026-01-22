@@ -19,26 +19,6 @@ local function GetRangedName()
   return nil
 end
 
-local function MakeEventId(player, spell, amount, ts, isCrit, classFile)
-  return CB:SafeStr(player) .. "|" .. CB:SafeStr(spell) .. "|" .. tostring(amount) .. "|" .. tostring(ts) .. "|" ..
-    tostring(isCrit and 1 or 0) .. "|" .. CB:SafeStr(classFile or "")
-end
-
-local function DecorateById(tbl, id, destName, region, weapon, overkill)
-  if not tbl or not tbl.records or not id then return false end
-  for i = 1, #tbl.records do
-    local rec = tbl.records[i]
-    if rec and rec.id == id then
-      rec.target = destName
-      rec.region = region
-      rec.weapon = weapon
-      rec.overkill = overkill
-      return true
-    end
-  end
-  return false
-end
-
 local function RefreshUI()
   if CB.UI and CB.UI.Refresh then
     CB.UI:Refresh()
@@ -47,13 +27,15 @@ end
 
 local function SendRecord(kind, rec)
   if not CB.SendEvent then return end
-  -- NEW signature: SendEvent(kind, recTable)
   CB:SendEvent(kind, rec)
 end
 
 function CB:OnCombatLog()
   local _, subevent, _, sourceGUID, sourceName, _, _, _, destName = CombatLogGetCurrentEventInfo()
   if sourceGUID ~= UnitGUID("player") then return end
+
+  if not CB.DB then return end
+  if not CB.DB.damage or not CB.DB.heal or not CB.DB.overkill then return end
 
   local ts = time()
   local _, classFile = UnitClass("player")
@@ -72,48 +54,42 @@ function CB:OnCombatLog()
     local spell = "Melee"
 
     if amount and amount > 0 then
-      if CB:AddRecord(CB.DB.damage, sourceName, spell, amount, ts, isCrit, classFile, "local") then
-        local id = MakeEventId(sourceName, spell, amount, ts, isCrit, classFile)
+      local added, rec = CB:AddRecord(CB.DB.damage, sourceName, spell, amount, ts, isCrit, classFile, "local")
+      if added and rec then
+        -- decorate the REAL record in DB
+        rec.target = destName
+        rec.region = region
+        rec.weapon = weaponMain
+        rec.overkill = ok
 
-        local rec = {
-          player = sourceName,
-          class = classFile,
-          spell = spell,
-          amount = amount,
-          ts = ts,
-          isCrit = isCrit,
-          target = destName,
-          region = region,
-          weapon = weaponMain,
-          overkill = ok,
-        }
-
-        DecorateById(CB.DB.damage, id, destName, region, weaponMain, ok)
-        RefreshUI()
+        -- send normal damage event
         SendRecord("D", rec)
+
+        -- SpellBest
+        local changed = false
+        if CB.AddSpellBest then
+          changed = CB:AddSpellBest(sourceName, spell, amount, ts, isCrit, classFile, "local") and true or false
+        end
+
+        if changed then
+          SendRecord("S", rec)
+        end
+
+        RefreshUI()
       end
     end
 
+    -- Overkill list
     if ok and ok > 0 then
-      if CB:AddRecord(CB.DB.overkill, sourceName, spell, ok, ts, isCrit, classFile, "local") then
-        local id = MakeEventId(sourceName, spell, ok, ts, isCrit, classFile)
+      local added, rec = CB:AddRecord(CB.DB.overkill, sourceName, spell, ok, ts, isCrit, classFile, "local")
+      if added and rec then
+        rec.target = destName
+        rec.region = region
+        rec.weapon = weaponMain
+        rec.overkill = ok
 
-        local rec = {
-          player = sourceName,
-          class = classFile,
-          spell = spell,
-          amount = ok,
-          ts = ts,
-          isCrit = isCrit,
-          target = destName,
-          region = region,
-          weapon = weaponMain,
-          overkill = ok,
-        }
-
-        DecorateById(CB.DB.overkill, id, destName, region, weaponMain, ok)
-        RefreshUI()
         SendRecord("O", rec)
+        RefreshUI()
       end
     end
 
@@ -132,48 +108,40 @@ function CB:OnCombatLog()
     end
 
     if amount and amount > 0 then
-      if CB:AddRecord(CB.DB.damage, sourceName, sName, amount, ts, isCrit, classFile, "local") then
-        local id = MakeEventId(sourceName, sName, amount, ts, isCrit, classFile)
+      local added, rec = CB:AddRecord(CB.DB.damage, sourceName, sName, amount, ts, isCrit, classFile, "local")
+      if added and rec then
+        rec.target = destName
+        rec.region = region
+        rec.weapon = weapon
+        rec.overkill = ok
 
-        local rec = {
-          player = sourceName,
-          class = classFile,
-          spell = sName,
-          amount = amount,
-          ts = ts,
-          isCrit = isCrit,
-          target = destName,
-          region = region,
-          weapon = weapon,
-          overkill = ok,
-        }
-
-        DecorateById(CB.DB.damage, id, destName, region, weapon, ok)
-        RefreshUI()
         SendRecord("D", rec)
+
+        -- SpellBest
+        local changed = false
+        if CB.AddSpellBest then
+          changed = CB:AddSpellBest(sourceName, sName, amount, ts, isCrit, classFile, "local") and true or false
+        end
+
+        if changed then
+          SendRecord("S", rec)
+        end
+
+        RefreshUI()
       end
     end
 
+    -- Overkill list
     if ok and ok > 0 then
-      if CB:AddRecord(CB.DB.overkill, sourceName, sName, ok, ts, isCrit, classFile, "local") then
-        local id = MakeEventId(sourceName, sName, ok, ts, isCrit, classFile)
+      local added, rec = CB:AddRecord(CB.DB.overkill, sourceName, sName, ok, ts, isCrit, classFile, "local")
+      if added and rec then
+        rec.target = destName
+        rec.region = region
+        rec.weapon = weapon
+        rec.overkill = ok
 
-        local rec = {
-          player = sourceName,
-          class = classFile,
-          spell = sName,
-          amount = ok,
-          ts = ts,
-          isCrit = isCrit,
-          target = destName,
-          region = region,
-          weapon = weapon,
-          overkill = ok,
-        }
-
-        DecorateById(CB.DB.overkill, id, destName, region, weapon, ok)
-        RefreshUI()
         SendRecord("O", rec)
+        RefreshUI()
       end
     end
 
@@ -186,25 +154,26 @@ function CB:OnCombatLog()
     local isCrit = critical and true or false
 
     if amount and amount > 0 then
-      if CB:AddRecord(CB.DB.heal, sourceName, sName, amount, ts, isCrit, classFile, "local") then
-        local id = MakeEventId(sourceName, sName, amount, ts, isCrit, classFile)
+      local added, rec = CB:AddRecord(CB.DB.heal, sourceName, sName, amount, ts, isCrit, classFile, "local")
+      if added and rec then
+        rec.target = destName
+        rec.region = region
+        rec.weapon = nil
+        rec.overkill = nil
 
-        local rec = {
-          player = sourceName,
-          class = classFile,
-          spell = sName,
-          amount = amount,
-          ts = ts,
-          isCrit = isCrit,
-          target = destName,
-          region = region,
-          weapon = nil,
-          overkill = nil,
-        }
-
-        DecorateById(CB.DB.heal, id, destName, region, nil, nil)
-        RefreshUI()
         SendRecord("H", rec)
+
+        -- HealSpellBest
+        local changed = false
+        if CB.AddHealSpellBest then
+          changed = CB:AddHealSpellBest(sourceName, sName, amount, ts, isCrit, classFile, "local") and true or false
+        end
+
+        if changed then
+          SendRecord("HS", rec)
+        end
+
+        RefreshUI()
       end
     end
   end

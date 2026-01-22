@@ -25,12 +25,23 @@ local function ClampSize(frame)
   frame:SetSize(w, h)
 end
 
-function UI:ApplyMainAlpha()
-  if not UI.frame then return end
-  local a = (CB.DB and CB.DB.ui and CB.DB.ui.bgAlpha) or 0.85
-  if a < 0 then a = 0 end
-  if a > 1 then a = 1 end
-  UI.frame:SetBackdropColor(0, 0, 0, a)
+local function ModeToText(mode)
+  if mode == "D10" then return "Schaden - Top 10" end
+  if mode == "D100" then return "Schaden - Top 100" end
+
+  if mode == "H10" then return "Heilung - Top 10" end
+  if mode == "H100" then return "Heilung - Top 100" end
+
+  if mode == "O10" then return "Overkill - Top 10" end
+  if mode == "O100" then return "Overkill - Top 100" end
+
+  if mode == "S10" then return "Angriffe - Top 10" end
+  if mode == "S100" then return "Angriffe - Top 100" end
+
+  if mode == "HS10" then return "Heilungen - Top 10" end
+  if mode == "HS100" then return "Heilungen - Top 100" end
+
+  return "Schaden - Top 10"
 end
 
 function UI:ApplyScale()
@@ -99,12 +110,21 @@ local function ShowTooltip(owner, rec, label)
 end
 
 function UI:CreateMain()
+  if UI.frame then return end
+
   local w = (CB.DB and CB.DB.ui and CB.DB.ui.w) or 360
   local h = (CB.DB and CB.DB.ui and CB.DB.ui.h) or 320
 
   local f = CreateFrame("Frame", "CrittersBoardFrame", UIParent, "BackdropTemplate")
   f:SetSize(w, h)
-  f:SetPoint("CENTER")
+
+  local ui = CB.DB and CB.DB.ui
+  if ui and ui.point and ui.relPoint and ui.x and ui.y then
+    f:SetPoint(ui.point, UIParent, ui.relPoint, ui.x, ui.y)
+  else
+    f:SetPoint("CENTER")
+  end
+
   f:SetMovable(true)
   f:SetResizable(true)
   f:SetClampedToScreen(true)
@@ -116,14 +136,25 @@ function UI:CreateMain()
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
   })
 
+  f:SetBackdropColor(0, 0, 0, 0.85)
+
   f:EnableMouse(true)
   f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function(self)
     if CB.DB and CB.DB.ui and CB.DB.ui.locked then return end
     self:StartMoving()
   end)
+
   f:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
+
+    if CB.DB and CB.DB.ui then
+      local point, _, relPoint, xOfs, yOfs = self:GetPoint(1)
+      CB.DB.ui.point = point
+      CB.DB.ui.relPoint = relPoint
+      CB.DB.ui.x = math.floor((xOfs or 0) + 0.5)
+      CB.DB.ui.y = math.floor((yOfs or 0) + 0.5)
+    end
   end)
 
   local gear = CreateFrame("Button", nil, f)
@@ -138,7 +169,7 @@ function UI:CreateMain()
 
   local modeText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   modeText:SetPoint("TOPLEFT", 12, -34)
-  modeText:SetText("Mode: ...")
+  modeText:SetText(ModeToText(CB.DB and CB.DB.ui and CB.DB.ui.mode))
 
   local btnClose = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   btnClose:SetPoint("TOPRIGHT", 2, 2)
@@ -211,7 +242,6 @@ function UI:CreateMain()
   UI.gearBtn = gear
 
   ClampSize(f)
-  UI:ApplyMainAlpha()
   UI:ApplyScale()
   UI:UpdateLock()
 
@@ -219,12 +249,20 @@ function UI:CreateMain()
 end
 
 function UI:Refresh()
-  if not UI.frame or not CB.DB then return end
+  if not CB.DB or not CB.DB.ui then return end
+
+  -- wenn UI noch nicht gebaut ist: einfach raus
+  if not UI.frame then return end
+
+  -- Überschrift immer updaten
+  if UI.modeText then
+    UI.modeText:SetText(ModeToText(CB.DB.ui.mode))
+  end
 
   local tbl, label = CB:GetCurrentTable()
   local n = CB:GetCurrentTopN()
 
-  UI.modeText:SetText("Mode: Top " .. n .. " " .. label)
+  if not tbl or not tbl.records then return end
 
   for i = 1, 100 do
     local rec = tbl.records[i]
@@ -268,7 +306,6 @@ function UI:Refresh()
       UI.lineButtons[i]:Hide()
     else
       UI.lines[i]:Hide()
-
       UI.lineButtons[i].rec = nil
       UI.lineButtons[i].label = label
       UI.lineButtons[i]:Hide()
@@ -277,7 +314,22 @@ function UI:Refresh()
 end
 
 function UI:ToggleMain()
-  if not UI.frame or not CB.DB then return end
+  if not CB.DB then
+    if CB.Print then CB:Print("DB nicht bereit") end
+    return
+  end
+
+  -- Fenster notfalls erzeugen
+  if not UI.frame then
+    if UI.CreateMain then
+      UI:CreateMain()
+    end
+  end
+
+  if not UI.frame then
+    if CB.Print then CB:Print("UI nicht bereit") end
+    return
+  end
 
   if UI.frame:IsShown() then
     UI.frame:Hide()
