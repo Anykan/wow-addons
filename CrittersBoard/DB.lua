@@ -19,42 +19,17 @@ function CB:InitDB()
   CB.DB = CB.DB or {}
   CB.DB.ui = CB.DB.ui or {}
 
-  -- Main UI defaults
-  if CB.DB.ui.mode == nil then
-    CB.DB.ui.mode = "D10"
-  end
+  if CB.DB.ui.mode == nil then CB.DB.ui.mode = "D10" end
+  if CB.DB.ui.scale == nil then CB.DB.ui.scale = 1.0 end
+  if CB.DB.ui.locked == nil then CB.DB.ui.locked = false end
+  if CB.DB.ui.isOpen == nil then CB.DB.ui.isOpen = false end
+  if CB.DB.ui.alertsEnabled == nil then CB.DB.ui.alertsEnabled = true end
+  if CB.DB.ui.shareAfterSync == nil then CB.DB.ui.shareAfterSync = true end
 
-  if CB.DB.ui.scale == nil then
-    CB.DB.ui.scale = 1.0
-  end
-
-  if CB.DB.ui.locked == nil then
-    CB.DB.ui.locked = false
-  end
-
-  if CB.DB.ui.isOpen == nil then
-    CB.DB.ui.isOpen = false
-  end
-
-  -- Alerts default (Audio + Warnmeldung)
-  if CB.DB.ui.alertsEnabled == nil then
-    CB.DB.ui.alertsEnabled = true
-  end
-
-  -- Share after sync (Default: AN)
-  if CB.DB.ui.shareAfterSync == nil then
-    CB.DB.ui.shareAfterSync = true
-  end
-
-  -- Tables
   CB.DB.damage = CB.DB.damage or { records = {}, seen = {}, revision = 0 }
   CB.DB.heal = CB.DB.heal or { records = {}, seen = {}, revision = 0 }
   CB.DB.overkill = CB.DB.overkill or { records = {}, seen = {}, revision = 0 }
-
-  -- Angriffe (Best pro Spell)
   CB.DB.spells = CB.DB.spells or { records = {}, bySpell = {}, revision = 0 }
-
-  -- Heilungen (Best pro Spell)
   CB.DB.healspells = CB.DB.healspells or { records = {}, bySpell = {}, revision = 0 }
 end
 
@@ -81,45 +56,42 @@ end
 
 function CB:GetCurrentTopN()
   local mode = CB.DB.ui.mode or "D10"
-
-  if mode == "D100" or mode == "H100" or mode == "O100" or mode == "S100" or mode == "HS100" then
-    return 100
-  end
-
+  if mode:find("100") then return 100 end
   return 10
 end
 
 -- =========================================================
--- Alerts (Sound + RaidWarning/UIErrors)
+-- Alerts
 -- =========================================================
 local function PlayAlert(alert)
   if not alert then return end
+  if CB.DB.ui.alertsEnabled == false then return end
 
-  -- nur AUS wenn wirklich false
-  if CB.DB and CB.DB.ui and CB.DB.ui.alertsEnabled == false then
-    return
-  end
-
-  if alert.soundPath and alert.soundPath ~= "" then
+  if alert.soundPath then
     PlaySoundFile(alert.soundPath, "Master")
   end
 
-  if alert.msg and alert.msg ~= "" then
+  if alert.msg then
     if RaidNotice_AddMessage and RaidWarningFrame then
-      RaidNotice_AddMessage(RaidWarningFrame, alert.msg, alert.color or ChatTypeInfo["RAID_WARNING"])
+      RaidNotice_AddMessage(
+        RaidWarningFrame,
+        alert.msg,
+        alert.color or ChatTypeInfo["RAID_WARNING"]
+      )
     else
-      local c = alert.color or { r = 1, g = 1, b = 0 }
-      UIErrorsFrame:AddMessage(alert.msg, c.r or 1, c.g or 1, c.b or 0, 1)
+      UIErrorsFrame:AddMessage(
+        alert.msg,
+        alert.color.r,
+        alert.color.g,
+        alert.color.b,
+        1
+      )
     end
   end
 end
 
 function CB:QueueAlert(alert)
-  if not alert then return end
-
-  if CB.DB and CB.DB.ui and CB.DB.ui.alertsEnabled == false then
-    return
-  end
+  if CB.DB.ui.alertsEnabled == false then return end
 
   CB._alertQueue = CB._alertQueue or {}
   table.insert(CB._alertQueue, alert)
@@ -135,8 +107,6 @@ function CB:QueueAlert(alert)
 
     local a = table.remove(CB._alertQueue, 1)
     PlayAlert(a)
-
-    -- 1.5 Sekunden Pause
     C_Timer.After(1.5, Next)
   end
 
@@ -144,35 +114,33 @@ function CB:QueueAlert(alert)
 end
 
 function CB:OnNewTop1(listKey, rec)
-  if not rec then return end
-  if CB.DB and CB.DB.ui and CB.DB.ui.alertsEnabled == false then return end
+  if CB.DB.ui.alertsEnabled == false then return end
 
-  local soundPath, msg
-  local color = { r = 1, g = 1, b = 0 }
+  local soundPath, msg, color
 
   if listKey == "D" then
     soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\dmg.ogg"
-    msg = string.format("NEUER #1 SCHADEN!  %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
+    msg = string.format("NEUER #1 SCHADEN!  %s - %s (%d)", rec.player, rec.spell, rec.amount)
     color = { r = 1, g = 0.2, b = 0.2 }
 
   elseif listKey == "H" then
     soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal.ogg"
-    msg = string.format("NEUER #1 HEAL!  %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
+    msg = string.format("NEUER #1 HEAL!  %s - %s (%d)", rec.player, rec.spell, rec.amount)
     color = { r = 0.2, g = 1, b = 0.2 }
 
   elseif listKey == "O" then
     soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\overkill.ogg"
-    msg = string.format("NEUER #1 OVERKILL!  %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
+    msg = string.format("NEUER #1 OVERKILL!  %s - %s (%d)", rec.player, rec.spell, rec.amount)
     color = { r = 1, g = 0.6, b = 0.2 }
 
   elseif listKey == "S" then
     soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\first.ogg"
-    msg = string.format("NEUER #1 ANGRIFF!  %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
+    msg = string.format("NEUER #1 ANGRIFF!  %s - %s (%d)", rec.player, rec.spell, rec.amount)
     color = { r = 0.6, g = 0.6, b = 1 }
 
   elseif listKey == "HS" then
     soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal2.ogg"
-    msg = string.format("NEUER #1 HEILUNG!  %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
+    msg = string.format("NEUER #1 HEILUNG!  %s - %s (%d)", rec.player, rec.spell, rec.amount)
     color = { r = 0.2, g = 0.8, b = 1 }
   end
 
@@ -180,19 +148,18 @@ function CB:OnNewTop1(listKey, rec)
 end
 
 -- =========================================================
--- AddRecord (Top Hits / Heals / Overkill)
+-- AddRecord (Damage / Heal / Overkill)
 -- =========================================================
 function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source)
   if not tbl then return false end
+
   tbl.records = tbl.records or {}
   tbl.seen = tbl.seen or {}
 
   amount = tonumber(amount) or 0
   if amount <= 0 then return false end
 
-  local id = CB:SafeStr(player) .. "|" .. CB:SafeStr(spell) .. "|" .. tostring(amount) .. "|" .. tostring(ts) .. "|" ..
-      tostring(isCrit and 1 or 0) .. "|" .. CB:SafeStr(classFile or "")
-
+  local id = CB:SafeStr(player) .. "|" .. CB:SafeStr(spell) .. "|" .. amount .. "|" .. ts
   if tbl.seen[id] then return false end
   tbl.seen[id] = true
 
@@ -202,7 +169,7 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source)
     spell = spell,
     amount = amount,
     ts = ts,
-    isCrit = isCrit and true or false,
+    isCrit = isCrit,
     class = classFile,
     source = source or "local",
   }
@@ -211,21 +178,18 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source)
   table.sort(tbl.records, SortDesc)
 
   while #tbl.records > 100 do
-    local removed = table.remove(tbl.records)
-    if removed and removed.id then
-      tbl.seen[removed.id] = nil
-    end
+    local r = table.remove(tbl.records)
+    tbl.seen[r.id] = nil
   end
 
-  tbl.revision = (tbl.revision or 0) + 1
+  tbl.revision = tbl.revision + 1
   return true, rec
 end
 
 -- =========================================================
--- Best-of per Spell (Angriffe / Heilungen)
+-- Spell Records (Angriffe)
 -- =========================================================
 function CB:AddSpellRecord(tbl, player, spell, amount, ts, isCrit, classFile, source)
-  if not tbl then return false end
   tbl.records = tbl.records or {}
   tbl.bySpell = tbl.bySpell or {}
 
@@ -233,19 +197,15 @@ function CB:AddSpellRecord(tbl, player, spell, amount, ts, isCrit, classFile, so
   if amount <= 0 then return false end
 
   local key = CB:SafeStr(spell)
-  if key == "" then return false end
-
   local old = tbl.bySpell[key]
-  if old and (old.amount or 0) >= amount then
-    return false
-  end
+  if old and old.amount >= amount then return false end
 
   local rec = {
     player = player,
     spell = spell,
     amount = amount,
     ts = ts,
-    isCrit = isCrit and true or false,
+    isCrit = isCrit,
     class = classFile,
     source = source or "local",
   }
@@ -262,37 +222,74 @@ function CB:AddSpellRecord(tbl, player, spell, amount, ts, isCrit, classFile, so
     table.remove(tbl.records)
   end
 
-  tbl.revision = (tbl.revision or 0) + 1
+  tbl.revision = tbl.revision + 1
   return true, rec
 end
 
 -- =========================================================
--- MISSING FUNCTIONS (FIX!)
--- Combat.lua calls these -> without them lists stay empty
+-- AddSpellBest (FIX)
 -- =========================================================
 function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source)
   if not CB.DB or not CB.DB.spells then return false end
 
-  local oldTop1 = (CB.DB.spells.records and CB.DB.spells.records[1]) or nil
-  local added, rec = CB:AddSpellRecord(CB.DB.spells, player, spell, amount, ts, isCrit, classFile, source)
+  local key = CB:SafeStr(spell)
+  CB.DB.spells.bySpell = CB.DB.spells.bySpell or {}
+
+  local oldBest = CB.DB.spells.bySpell[key]
+
+  local added, rec = CB:AddSpellRecord(
+    CB.DB.spells,
+    player,
+    spell,
+    amount,
+    ts,
+    isCrit,
+    classFile,
+    source
+  )
   if not added or not rec then return false end
 
-  local newTop1 = (CB.DB.spells.records and CB.DB.spells.records[1]) or nil
-  if newTop1 and newTop1 ~= oldTop1 and newTop1 == rec then
+  if not oldBest or rec.amount > (oldBest.amount or 0) then
+    CB:QueueAlert({
+      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\first.ogg",
+      msg = string.format(
+        "NEUER SPELL-REKORD!  %s - %s (%d)",
+        rec.player or "?",
+        rec.spell or "?",
+        rec.amount or 0
+      ),
+      color = { r = 0.6, g = 0.6, b = 1 }
+    })
+  end
+
+  local newTop1 = CB.DB.spells.records and CB.DB.spells.records[1]
+  if newTop1 and newTop1 == rec then
     CB:OnNewTop1("S", rec)
   end
 
   return true, rec
 end
 
+-- =========================================================
+-- Heal Spell Best (unverändert)
+-- =========================================================
 function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, source)
   if not CB.DB or not CB.DB.healspells then return false end
 
-  local oldTop1 = (CB.DB.healspells.records and CB.DB.healspells.records[1]) or nil
-  local added, rec = CB:AddSpellRecord(CB.DB.healspells, player, spell, amount, ts, isCrit, classFile, source)
-  if not added or not rec then return false end
+  local oldTop1 = CB.DB.healspells.records and CB.DB.healspells.records[1]
+  local added, rec = CB:AddSpellRecord(
+    CB.DB.healspells,
+    player,
+    spell,
+    amount,
+    ts,
+    isCrit,
+    classFile,
+    source
+  )
+  if not added then return false end
 
-  local newTop1 = (CB.DB.healspells.records and CB.DB.healspells.records[1]) or nil
+  local newTop1 = CB.DB.healspells.records and CB.DB.healspells.records[1]
   if newTop1 and newTop1 ~= oldTop1 and newTop1 == rec then
     CB:OnNewTop1("HS", rec)
   end

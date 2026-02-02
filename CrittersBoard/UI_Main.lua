@@ -166,11 +166,11 @@ function UI:CreateMain()
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOPLEFT", 32, -10)
   title:SetText("CrittersBoard")
-
+--[[
   local modeText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   modeText:SetPoint("TOPLEFT", 12, -34)
   modeText:SetText(ModeToText(CB.DB and CB.DB.ui and CB.DB.ui.mode))
-
+]]
   local btnClose = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   btnClose:SetPoint("TOPRIGHT", 2, 2)
 
