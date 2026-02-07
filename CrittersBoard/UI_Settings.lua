@@ -5,16 +5,40 @@ CB.UI = CB.UI or {}
 local UI = CB.UI
 
 local WIDTH = 320
-local HEIGHT = 410 -- Höhe etwas angepasst für neue Checkbox
+local HEIGHT = 500 
 local PAD_X = 20
+
+-- =========================================================
+-- Bestätigungs-Dialog
+-- =========================================================
+StaticPopupDialogs["CB_CONFIRM_CLEAR"] = {
+  text = "Möchtest du wirklich alle Listen von CrittersBoard löschen?",
+  button1 = "Ja",
+  button2 = "Nein",
+  OnAccept = function()
+    CB.DB.damage.records = {}
+    CB.DB.heal.records = {}
+    CB.DB.overkill.records = {}
+    if CB.DB.spells then CB.DB.spells.records = {} end
+    if CB.DB.healSpells then CB.DB.healSpells.records = {} end
+    print("|cff00ffffCrittersBoard:|r " .. (CB.L["MSG_LIST_CLEARED"] or "Listen gelöscht."))
+    if UI.Refresh then UI:Refresh() end
+  end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true,
+}
+
+local function GetModeKey(base, limit)
+  return base .. limit
+end
 
 function UI:CreateSettings()
   if UI.settingsFrame then return end
 
-  local s = CreateFrame("Frame", "CrittersBoardSettingsFrame", UIParent, "BasicFrameTemplateWithInset")
+  local s = CreateFrame("Frame", "CrittersBoardSettingsFrame", UIParent, "BasicFrameTemplate")
   UI.settingsFrame = s
-
-  -- ESC schließt das Fenster
+  s:SetFrameStrata("DIALOG")
   tinsert(UISpecialFrames, s:GetName())
 
   s:SetSize(WIDTH, HEIGHT)
@@ -27,245 +51,146 @@ function UI:CreateSettings()
 
   s.title = s:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   s.title:SetPoint("TOP", 0, -6)
-  s.title:SetText("CrittersBoard - Einstellungen")
+  s.title:SetText(CB.L["SETTINGS_TITLE"] or "CrittersBoard - Einstellungen")
 
-  local y = 40
+  local y = 45
 
-  -- Ensure DB defaults
-  CB.DB.ui = CB.DB.ui or {}
-  CB.DB.ui.mode = CB.DB.ui.mode or "D10"
-  CB.DB.ui.scale = CB.DB.ui.scale or 1.0
-  CB.DB.ui.locked = CB.DB.ui.locked or false
-  CB.DB.ui.disableSync = CB.DB.ui.disableSync or false
+  -- Aktuellen Status aus der DB laden
+  local mode = CB.DB.ui.mode or "D10"
+  local curBase = mode:match("^(%a+)") or "D"
+  local curLimit = mode:match("(%d+)$") or "10"
 
-  -- Default: Sync AN
-  CB.DB.ui.shareAfterSync = (CB.DB.ui.shareAfterSync ~= false)
+  -- Label für Dropdowns
+  local labelList = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  labelList:SetPoint("TOPLEFT", PAD_X, -y)
+  labelList:SetText(CB.L["LABEL_CHOOSE_LIST"] or "Liste auswählen:")
+  y = y + 20
 
-  -- Default: Audio AN
-  CB.DB.ui.alertsEnabled = (CB.DB.ui.alertsEnabled ~= false)
+  -- 1. Dropdown: Auswahl der Liste
+  local dropList = CreateFrame("Frame", "CB_SettingsDropList", s, "UIDropDownMenuTemplate")
+  dropList:SetPoint("TOPLEFT", PAD_X - 15, -y)
+  UIDropDownMenu_SetWidth(dropList, 150)
 
-  -- =========================================================
-  -- Mode label
-  -- =========================================================
-  UI.modeText = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  UI.modeText:SetPoint("TOPLEFT", PAD_X, -y)
-  UI.modeText:SetText("Liste auswählen")
-  y = y + 18
-
-  -- =========================================================
-  -- Dropdown Split: LISTE + TOP
-  -- =========================================================
-  local function GetModeParts(mode)
-    if not mode or mode == "" then
-      return "D", 10
-    end
-
-    if mode == "D10" then return "D", 10 end
-    if mode == "D100" then return "D", 100 end
-
-    if mode == "H10" then return "H", 10 end
-    if mode == "H100" then return "H", 100 end
-
-    if mode == "O10" then return "O", 10 end
-    if mode == "O100" then return "O", 100 end
-
-    if mode == "S10" then return "S", 10 end
-    if mode == "S100" then return "S", 100 end
-
-    if mode == "HS10" then return "HS", 10 end
-    if mode == "HS100" then return "HS", 100 end
-
-    return "D", 10
-  end
-
-  local function MakeMode(listKey, topN)
-    topN = tonumber(topN) or 10
-    if topN ~= 10 and topN ~= 100 then topN = 10 end
-    return tostring(listKey) .. tostring(topN)
-  end
-
-  local function ListKeyToText(listKey)
-    if listKey == "D" then return "Schaden" end
-    if listKey == "H" then return "Heilung" end
-    if listKey == "O" then return "Overkill" end
-    if listKey == "S" then return "Angriffe" end
-    if listKey == "HS" then return "Heilungen" end
-    return "Schaden"
-  end
-
-  local function TopNToText(topN)
-    if tonumber(topN) == 100 then return "Top 100" end
-    return "Top 10"
-  end
-
-  local function ApplyMode(listKey, topN)
-    CB.DB.ui.mode = MakeMode(listKey, topN)
-
-    if UI.modeText then
-      UI.modeText:SetText(ListKeyToText(listKey) .. " - " .. TopNToText(topN))
-    end
-
-    if UI.Refresh then
-      UI:Refresh()
-    end
-  end
-
-  local currentListKey, currentTopN = GetModeParts(CB.DB.ui.mode)
-  UI.modeText:SetText(ListKeyToText(currentListKey) .. " - " .. TopNToText(currentTopN))
-
-  -- Dropdown 1: LISTE
-  local listDrop = CreateFrame("Frame", "CrittersBoardListDrop", s, "UIDropDownMenuTemplate")
-  listDrop:SetPoint("TOPLEFT", PAD_X - 12, -y)
-  UIDropDownMenu_SetWidth(listDrop, 130)
-  UIDropDownMenu_SetText(listDrop, ListKeyToText(currentListKey))
-
-  UIDropDownMenu_Initialize(listDrop, function(self, level)
-    local info = UIDropDownMenu_CreateInfo()
-    info.notCheckable = false
-
-    local function AddListOption(key)
-      info.text = ListKeyToText(key)
-      info.checked = (currentListKey == key)
-      info.func = function()
-        currentListKey = key
-        UIDropDownMenu_SetText(listDrop, ListKeyToText(currentListKey))
-        ApplyMode(currentListKey, currentTopN)
-        CloseDropDownMenus()
+  UIDropDownMenu_Initialize(dropList, function()
+    local items = {
+      { text = "Schaden", value = "D" },
+      { text = "Heilung", value = "H" },
+      { text = "Overkill", value = "O" },
+      { text = "Angriffe", value = "S" },
+      { text = "Heil-Zauber", value = "HS" },
+    }
+    for _, item in ipairs(items) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = item.text
+      info.value = item.value
+      info.func = function(self)
+        UIDropDownMenu_SetSelectedValue(dropList, self.value)
+        curBase = self.value
+        CB.DB.ui.mode = GetModeKey(curBase, curLimit)
+        UIDropDownMenu_SetText(dropList, item.text)
+        if UI.Refresh then UI:Refresh() end
       end
-      UIDropDownMenu_AddButton(info, level)
+      info.checked = (curBase == item.value)
+      UIDropDownMenu_AddButton(info)
     end
-
-    AddListOption("D")
-    AddListOption("H")
-    AddListOption("O")
-    AddListOption("S")
-    AddListOption("HS")
   end)
 
-  -- Dropdown 2: TOP
-  local topDrop = CreateFrame("Frame", "CrittersBoardTopDrop", s, "UIDropDownMenuTemplate")
-  topDrop:SetPoint("TOPLEFT", PAD_X + 155, -y)
-  UIDropDownMenu_SetWidth(topDrop, 90)
-  UIDropDownMenu_SetText(topDrop, TopNToText(currentTopN))
+  -- Initialen Text setzen für Liste
+  local baseNames = { D="Schaden", H="Heilung", O="Overkill", S="Angriffe", HS="Heil-Zauber" }
+  UIDropDownMenu_SetText(dropList, baseNames[curBase] or "Schaden")
 
-  UIDropDownMenu_Initialize(topDrop, function(self, level)
-    local info = UIDropDownMenu_CreateInfo()
-    info.notCheckable = false
+  -- 2. Dropdown: Auswahl des Limits (Top 10 / Top 100)
+  local dropLimit = CreateFrame("Frame", "CB_SettingsDropLimit", s, "UIDropDownMenuTemplate")
+  dropLimit:SetPoint("LEFT", dropList, "RIGHT", -20, 0)
+  UIDropDownMenu_SetWidth(dropLimit, 80)
 
-    local function AddTopOption(n)
-      info.text = TopNToText(n)
-      info.checked = (currentTopN == n)
-      info.func = function()
-        currentTopN = n
-        UIDropDownMenu_SetText(topDrop, TopNToText(currentTopN))
-        ApplyMode(currentListKey, currentTopN)
-        CloseDropDownMenus()
+  UIDropDownMenu_Initialize(dropLimit, function()
+    local limits = { "10", "100" }
+    for _, l in ipairs(limits) do
+      local info = UIDropDownMenu_CreateInfo()
+      info.text = "Top " .. l
+      info.value = l
+      info.func = function(self)
+        UIDropDownMenu_SetSelectedValue(dropLimit, self.value)
+        curLimit = self.value
+        CB.DB.ui.mode = GetModeKey(curBase, curLimit)
+        UIDropDownMenu_SetText(dropLimit, "Top " .. l)
+        if UI.Refresh then UI:Refresh() end
       end
-      UIDropDownMenu_AddButton(info, level)
+      info.checked = (curLimit == l)
+      UIDropDownMenu_AddButton(info)
     end
-
-    AddTopOption(10)
-    AddTopOption(100)
   end)
 
-  y = y + 55
+  UIDropDownMenu_SetText(dropLimit, "Top " .. curLimit)
+
+  y = y + 45
 
   -- =========================================================
-  -- Scale Slider
+  -- Checkboxen
   -- =========================================================
-  local scaleLabel = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  scaleLabel:SetPoint("TOPLEFT", PAD_X, -y)
-  scaleLabel:SetText("Skalierung")
-  y = y + 18
-
-  local scaleSlider = CreateFrame("Slider", "CrittersBoardScaleSlider", s, "OptionsSliderTemplate")
-  scaleSlider:SetPoint("TOPLEFT", PAD_X, -y)
-  scaleSlider:SetWidth(WIDTH - 60)
-  scaleSlider:SetMinMaxValues(0.7, 1.5)
-  scaleSlider:SetValueStep(0.05)
-  scaleSlider:SetObeyStepOnDrag(true)
-  scaleSlider:SetValue(CB.DB.ui.scale or 1.0)
-
-  _G[scaleSlider:GetName() .. "Low"]:SetText("0.7")
-  _G[scaleSlider:GetName() .. "High"]:SetText("1.5")
-  _G[scaleSlider:GetName() .. "Text"]:SetText(string.format("%.2f", CB.DB.ui.scale or 1.0))
-
-  scaleSlider:SetScript("OnValueChanged", function(self, val)
-    val = tonumber(val) or 1.0
-    CB.DB.ui.scale = val
-    _G[self:GetName() .. "Text"]:SetText(string.format("%.2f", val))
-    if UI.ApplyScale then UI:ApplyScale() end
-  end)
-
-  y = y + 55
-
-  -- =========================================================
-  -- Lock Checkbox
-  -- =========================================================
+  
+  -- Fenster fixieren
   local lockCB = CreateFrame("CheckButton", "CrittersBoardLockCB", s, "ChatConfigCheckButtonTemplate")
   lockCB:SetPoint("TOPLEFT", PAD_X, -y)
-  lockCB.Text:SetText("Fenster fixieren")
-  lockCB:SetChecked(CB.DB.ui.locked and true or false)
+  lockCB.Text:SetText(CB.L["OPT_LOCK"] or "Fenster fixieren")
+  lockCB:SetChecked(CB.DB.ui.locked)
   lockCB:SetScript("OnClick", function(self)
-    CB.DB.ui.locked = self:GetChecked() and true or false
+    CB.DB.ui.locked = self:GetChecked()
     if UI.UpdateLock then UI:UpdateLock() end
   end)
 
   y = y + 35
 
-  -- =========================================================
-  -- Share After Sync Checkbox
-  -- =========================================================
-  local shareCB = CreateFrame("CheckButton", "CrittersBoardShareAfterSyncCB", s, "ChatConfigCheckButtonTemplate")
-  shareCB:SetPoint("TOPLEFT", PAD_X, -y)
-  shareCB.Text:SetText("Nach Sync an Online-Spieler teilen")
-  shareCB:SetChecked(CB.DB.ui.shareAfterSync and true or false)
-  shareCB:SetScript("OnClick", function(self)
-    CB.DB.ui.shareAfterSync = self:GetChecked() and true or false
+  -- Skalierung Slider
+  local scaleSlider = CreateFrame("Slider", "CrittersBoardScaleSlider", s, "OptionsSliderTemplate")
+  scaleSlider:SetPoint("TOPLEFT", PAD_X + 5, -y - 15)
+  scaleSlider:SetMinMaxValues(0.5, 2.0)
+  scaleSlider:SetValueStep(0.05)
+  scaleSlider:SetValue(CB.DB.ui.scale or 1.0)
+  _G[scaleSlider:GetName() .. 'Low']:SetText("0.5")
+  _G[scaleSlider:GetName() .. 'High']:SetText("2.0")
+  _G[scaleSlider:GetName() .. 'Text']:SetText((CB.L["OPT_SCALE"] or "Skalierung") .. ": " .. string.format("%.2f", CB.DB.ui.scale or 1.0))
+
+  scaleSlider:SetScript("OnValueChanged", function(self, value)
+    CB.DB.ui.scale = value
+    _G[self:GetName() .. 'Text']:SetText((CB.L["OPT_SCALE"] or "Skalierung") .. ": " .. string.format("%.2f", value))
+    if UI.frame then UI.frame:SetScale(value) end
   end)
 
-  y = y + 30
+  y = y + 55
 
-  -- =========================================================
-  -- Audio Checkbox
-  -- =========================================================
+  -- Audio Alerts
   local audioCB = CreateFrame("CheckButton", "CrittersBoardAudioCB", s, "ChatConfigCheckButtonTemplate")
   audioCB:SetPoint("TOPLEFT", PAD_X, -y)
-  audioCB.Text:SetText("Audio und Warnmeldung")
-  audioCB:SetChecked(CB.DB.ui.alertsEnabled and true or false)
+  audioCB.Text:SetText(CB.L["OPT_AUDIO"] or "Audio und Warnmeldung")
+  audioCB:SetChecked(CB.DB.ui.alertsEnabled)
   audioCB:SetScript("OnClick", function(self)
-    CB.DB.ui.alertsEnabled = self:GetChecked() and true or false
+    CB.DB.ui.alertsEnabled = self:GetChecked()
   end)
 
-  y = y + 30
+  y = y + 35
 
-  -- =========================================================
-  -- NEU: Disable Sync Checkbox (Dev Tool)
-  -- =========================================================
+  -- Sync Deaktivieren (Entwickler-Option)
   local disableSyncCB = CreateFrame("CheckButton", "CrittersBoardDisableSyncCB", s, "ChatConfigCheckButtonTemplate")
   disableSyncCB:SetPoint("TOPLEFT", PAD_X, -y)
-  disableSyncCB.Text:SetText("|cffff0000Synchronisierung deaktivieren|r")
-  disableSyncCB:SetChecked(CB.DB.ui.disableSync and true or false)
+  disableSyncCB.Text:SetText("|cffff3333" .. (CB.L["OPT_SYNC_DISABLED"] or "Sync aus") .. "|r")
+  disableSyncCB:SetChecked(CB.DB.ui.disableSync)
   disableSyncCB:SetScript("OnClick", function(self)
-    CB.DB.ui.disableSync = self:GetChecked() and true or false
-    if CB.DB.ui.disableSync then
-        print("|cff00ffffCrittersBoard:|r Sync wurde global deaktiviert.")
-    else
-        print("|cff00ffffCrittersBoard:|r Sync wurde aktiviert.")
-    end
+    CB.DB.ui.disableSync = self:GetChecked()
   end)
 
-  y = y + 45
+  y = y + 55
 
   -- =========================================================
   -- Buttons
   -- =========================================================
-local btnWidth = (WIDTH - (PAD_X * 2) - 10) / 2
+  local btnWidth = (WIDTH - (PAD_X * 2) - 10) / 2
 
   local btnSync = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
   btnSync:SetSize(btnWidth, 24)
   btnSync:SetPoint("TOPLEFT", PAD_X, -y)
-  btnSync:SetText("Sync")
+  btnSync:SetText(CB.L["BTN_SYNC"] or "Sync")
   btnSync:SetScript("OnClick", function()
     if CB.RequestSnapshot then CB:RequestSnapshot(true) end
   end)
@@ -273,20 +198,14 @@ local btnWidth = (WIDTH - (PAD_X * 2) - 10) / 2
   local btnClear = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
   btnClear:SetSize(btnWidth, 24)
   btnClear:SetPoint("TOPLEFT", PAD_X + btnWidth + 10, -y)
-  btnClear:SetText("Liste löschen")
+  btnClear:SetText(CB.L["BTN_CLEAR"] or "Liste löschen")
   btnClear:SetScript("OnClick", function()
-    if CB.ClearCurrentList then CB:ClearCurrentList() end
-    if UI.Refresh then UI:Refresh() end
+    StaticPopup_Show("CB_CONFIRM_CLEAR")
   end)
-
-  s:Hide()
 end
 
 function UI:ToggleSettings()
-  if not UI.settingsFrame then
-    UI:CreateSettings()
-  end
-
+  if not UI.settingsFrame then UI:CreateSettings() end
   if UI.settingsFrame:IsShown() then
     UI.settingsFrame:Hide()
   else

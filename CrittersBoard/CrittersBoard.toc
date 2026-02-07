@@ -2,13 +2,14 @@
 ## Title: CrittersBoard
 ## Notes: Top Hits & Heals Board
 ## Author: You
-## Version: 0.4.2.1
+## Version: 0.4.3
 ## SavedVariables: CrittersBoardDB
 
 Utils.lua
+Locales.lua
 DB.lua
+Sync.lua
+Core.lua
+Combat.lua
 UI_Main.lua
 UI_Settings.lua
-Sync.lua
-Combat.lua
-Core.lua
