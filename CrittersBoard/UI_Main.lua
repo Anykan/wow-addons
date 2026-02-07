@@ -191,3 +191,15 @@ function UI:CreateMain()
   
   UI:UpdateLock()
 end
+
+function UI:ToggleMain()
+  if not UI.frame then UI:CreateMain() end
+  if UI.frame:IsShown() then
+    UI.frame:Hide()
+    CB.DB.ui.isOpen = false
+  else
+    UI.frame:Show()
+    CB.DB.ui.isOpen = true
+    UI:Refresh()
+  end
+end
