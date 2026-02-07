@@ -5,7 +5,7 @@ CB.UI = CB.UI or {}
 local UI = CB.UI
 
 local WIDTH = 320
-local HEIGHT = 380
+local HEIGHT = 410 -- Höhe etwas angepasst für neue Checkbox
 local PAD_X = 20
 
 function UI:CreateSettings()
@@ -36,6 +36,7 @@ function UI:CreateSettings()
   CB.DB.ui.mode = CB.DB.ui.mode or "D10"
   CB.DB.ui.scale = CB.DB.ui.scale or 1.0
   CB.DB.ui.locked = CB.DB.ui.locked or false
+  CB.DB.ui.disableSync = CB.DB.ui.disableSync or false
 
   -- Default: Sync AN
   CB.DB.ui.shareAfterSync = (CB.DB.ui.shareAfterSync ~= false)
@@ -234,6 +235,24 @@ function UI:CreateSettings()
   audioCB:SetChecked(CB.DB.ui.alertsEnabled and true or false)
   audioCB:SetScript("OnClick", function(self)
     CB.DB.ui.alertsEnabled = self:GetChecked() and true or false
+  end)
+
+  y = y + 30
+
+  -- =========================================================
+  -- NEU: Disable Sync Checkbox (Dev Tool)
+  -- =========================================================
+  local disableSyncCB = CreateFrame("CheckButton", "CrittersBoardDisableSyncCB", s, "ChatConfigCheckButtonTemplate")
+  disableSyncCB:SetPoint("TOPLEFT", PAD_X, -y)
+  disableSyncCB.Text:SetText("|cffff0000Synchronisierung deaktivieren|r")
+  disableSyncCB:SetChecked(CB.DB.ui.disableSync and true or false)
+  disableSyncCB:SetScript("OnClick", function(self)
+    CB.DB.ui.disableSync = self:GetChecked() and true or false
+    if CB.DB.ui.disableSync then
+        print("|cff00ffffCrittersBoard:|r Sync wurde global deaktiviert.")
+    else
+        print("|cff00ffffCrittersBoard:|r Sync wurde aktiviert.")
+    end
   end)
 
   y = y + 45

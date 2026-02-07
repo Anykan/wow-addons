@@ -25,6 +25,8 @@ function CB:InitDB()
   if CB.DB.ui.isOpen == nil then CB.DB.ui.isOpen = false end
   if CB.DB.ui.alertsEnabled == nil then CB.DB.ui.alertsEnabled = true end
   if CB.DB.ui.shareAfterSync == nil then CB.DB.ui.shareAfterSync = true end
+  -- NEU: Entwickler-Option zum Deaktivieren des Syncs
+  if CB.DB.ui.disableSync == nil then CB.DB.ui.disableSync = false end
 
   CB.DB.damage = CB.DB.damage or { records = {}, seen = {}, revision = 0 }
   CB.DB.heal = CB.DB.heal or { records = {}, seen = {}, revision = 0 }
@@ -34,21 +36,18 @@ function CB:InitDB()
 end
 
 -- =========================================================
--- Clear Data (Neu hinzugefügt)
+-- Clear Data
 -- =========================================================
 function CB:ClearCurrentList()
-  -- Alle Listen komplett leeren
   CB.DB.damage = { records = {}, seen = {}, revision = 0 }
   CB.DB.heal = { records = {}, seen = {}, revision = 0 }
   CB.DB.overkill = { records = {}, seen = {}, revision = 0 }
   CB.DB.spells = { records = {}, bySpell = {}, revision = 0 }
   CB.DB.healspells = { records = {}, bySpell = {}, revision = 0 }
 
-  -- Verhindert, dass der automatische Share/Sync sofort wieder alles füllt
   if CB.Sync then
     CB.Sync.syncWasPulled = false
     CB.Sync.shareRunning = false
-    -- Optional: Timer abbrechen, falls einer läuft
     if CB.Sync.syncFinishTimer then
         CB.Sync.syncFinishTimer:Cancel()
         CB.Sync.syncFinishTimer = nil
@@ -120,7 +119,6 @@ function CB:QueueAlert(alert)
 
   CB._alertQueue = CB._alertQueue or {}
 
-  -- NEU: Limit auf maximal 10 wartende Meldungen
   if #CB._alertQueue >= 10 then 
     return 
   end
@@ -238,7 +236,11 @@ function CB:AddSpellRecord(tbl, player, spell, amount, ts, isCrit, classFile, so
   local old = tbl.bySpell[key]
   if old and old.amount >= amount then return false end
 
+  -- NEU: Eindeutige ID generieren
+  local id = CB:SafeStr(player) .. "|" .. CB:SafeStr(spell) .. "|" .. amount .. "|" .. ts
+
   local rec = {
+    id = id,
     player = player,
     spell = spell,
     amount = amount,

@@ -57,6 +57,11 @@ SYNC.stats = SYNC.stats or {
 
 local function Now() return time() end
 
+-- NEU: Check ob Sync global deaktiviert ist
+local function IsSyncDisabled()
+    return (CB.DB and CB.DB.ui and CB.DB.ui.disableSync == true)
+end
+
 local function PrintDebug(msg)
   if not DEBUG then return end
   if CB.Print then
@@ -87,6 +92,7 @@ local function StartSendTicker()
 end
 
 local function Send(channel, target, msg)
+  if IsSyncDisabled() then return end -- NEU
   if not C_ChatInfo or not C_ChatInfo.SendAddonMessage then return end
   if channel == "GUILD" and not IsInGuild() then return end
 
@@ -432,6 +438,11 @@ end
 -- Public API
 -- =========================================================
 function CB:RequestSnapshot(manual)
+  if IsSyncDisabled() then -- NEU
+    if manual and CB.Print then CB:Print("|cffff0000Sync ist deaktiviert (Entwickler-Modus).|r") end
+    return 
+  end
+
   if not IsInGuild() then
     if CB.Print then CB:Print("Du bist nicht in einer Gilde.") end
     return
@@ -463,6 +474,7 @@ function CB:RequestSnapshot(manual)
 end
 
 function CB:AutoSync()
+  if IsSyncDisabled() then return end -- NEU
   if SYNC.autoSyncDone then return end
   SYNC.autoSyncDone = true
 
@@ -527,6 +539,7 @@ function CB:OnSyncFinished()
 end
 
 function CB:SendEvent(kind, rec)
+  if IsSyncDisabled() then return end -- NEU
   if not IsInGuild() then return end
   if not rec or not kind then return end
 
@@ -564,6 +577,7 @@ recvFrame:SetScript("OnEvent", function(self, event, prefix, msg, channel, sende
     return
   end
 
+  if IsSyncDisabled() then return end -- NEU
   if prefix ~= CB.PREFIX then return end
   if not msg then return end
 

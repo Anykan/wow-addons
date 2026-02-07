@@ -16,31 +16,24 @@ local LINE_W = 520
 local function ClampSize(frame)
   local w = frame:GetWidth()
   local h = frame:GetHeight()
-
   if w < MIN_W then w = MIN_W end
   if h < MIN_H then h = MIN_H end
   if w > MAX_W then w = MAX_W end
   if h > MAX_H then h = MAX_H end
-
   frame:SetSize(w, h)
 end
 
 local function ModeToText(mode)
   if mode == "D10" then return "Schaden - Top 10" end
   if mode == "D100" then return "Schaden - Top 100" end
-
   if mode == "H10" then return "Heilung - Top 10" end
   if mode == "H100" then return "Heilung - Top 100" end
-
   if mode == "O10" then return "Overkill - Top 10" end
   if mode == "O100" then return "Overkill - Top 100" end
-
   if mode == "S10" then return "Angriffe - Top 10" end
   if mode == "S100" then return "Angriffe - Top 100" end
-
   if mode == "HS10" then return "Heilungen - Top 10" end
   if mode == "HS100" then return "Heilungen - Top 100" end
-
   return "Schaden - Top 10"
 end
 
@@ -60,7 +53,6 @@ end
 
 local function ShowTooltip(owner, rec, label)
   if not rec then return end
-
   GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
   GameTooltip:ClearLines()
 
@@ -71,20 +63,17 @@ local function ShowTooltip(owner, rec, label)
 
   GameTooltip:AddLine(rec.player or "Unknown", pr, pg, pb)
   GameTooltip:AddLine(" ")
-
   GameTooltip:AddDoubleLine("Angriff:", tostring(rec.spell or "-"), 1, 1, 1, 1, 1, 1)
 
   if rec.weapon and rec.weapon ~= "" then
     GameTooltip:AddDoubleLine("Waffe:", tostring(rec.weapon), 1, 1, 1, 0.9, 0.9, 0.9)
   end
-
   if rec.target and rec.target ~= "" then
     GameTooltip:AddDoubleLine("Ziel:", tostring(rec.target), 1, 1, 1, 0.9, 0.9, 0.9)
   end
 
   GameTooltip:AddLine(" ")
-
-  if label == "Heal" then
+  if label == "Heal" or label == "Heilungen" then
     GameTooltip:AddDoubleLine("Heal:", tostring(rec.amount or 0), 1, 1, 1, 1, 1, 0)
   elseif label == "Overkill" then
     GameTooltip:AddDoubleLine("Overkill:", tostring(rec.amount or 0), 1, 1, 1, 1, 1, 0)
@@ -101,17 +90,14 @@ local function ShowTooltip(owner, rec, label)
   if rec.ts then
     GameTooltip:AddDoubleLine("Datum:", date("%d.%m.%Y %H:%M:%S", rec.ts), 1, 1, 1, 0.8, 0.8, 0.8)
   end
-
   if rec.region and rec.region ~= "" then
     GameTooltip:AddDoubleLine("Region:", tostring(rec.region), 1, 1, 1, 0.8, 0.8, 0.8)
   end
-
   GameTooltip:Show()
 end
 
 function UI:CreateMain()
   if UI.frame then return end
-
   local w = (CB.DB and CB.DB.ui and CB.DB.ui.w) or 360
   local h = (CB.DB and CB.DB.ui and CB.DB.ui.h) or 320
 
@@ -128,16 +114,13 @@ function UI:CreateMain()
   f:SetMovable(true)
   f:SetResizable(true)
   f:SetClampedToScreen(true)
-
   f:SetBackdrop({
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
     tile = true, tileSize = 16, edgeSize = 16,
     insets = { left = 4, right = 4, top = 4, bottom = 4 }
   })
-
   f:SetBackdropColor(0, 0, 0, 0.85)
-
   f:EnableMouse(true)
   f:RegisterForDrag("LeftButton")
   f:SetScript("OnDragStart", function(self)
@@ -147,7 +130,6 @@ function UI:CreateMain()
 
   f:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
-
     if CB.DB and CB.DB.ui then
       local point, _, relPoint, xOfs, yOfs = self:GetPoint(1)
       CB.DB.ui.point = point
@@ -166,11 +148,7 @@ function UI:CreateMain()
   local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
   title:SetPoint("TOPLEFT", 32, -10)
   title:SetText("CrittersBoard")
---[[
-  local modeText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  modeText:SetPoint("TOPLEFT", 12, -34)
-  modeText:SetText(ModeToText(CB.DB and CB.DB.ui and CB.DB.ui.mode))
-]]
+
   local btnClose = CreateFrame("Button", nil, f, "UIPanelCloseButton")
   btnClose:SetPoint("TOPRIGHT", 2, 2)
 
@@ -184,36 +162,28 @@ function UI:CreateMain()
 
   for i = 1, 100 do
     local yOff = -((i - 1) * LINE_H)
-
     local btn = CreateFrame("Button", nil, content)
     btn:SetSize(LINE_W, LINE_H)
     btn:SetPoint("TOPLEFT", 0, yOff)
     btn:EnableMouse(true)
     btn:SetFrameLevel(f:GetFrameLevel() + 10)
-
     btn:SetScript("OnEnter", function(self)
       if not self.rec then return end
       ShowTooltip(self, self.rec, self.label)
     end)
-
-    btn:SetScript("OnLeave", function()
-      GameTooltip:Hide()
-    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     local line = content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     line:SetPoint("TOPLEFT", 0, yOff)
-
     UI.lines[i] = line
     UI.lineButtons[i] = btn
   end
 
   content:SetHeight(100 * LINE_H)
-
   local resizer = CreateFrame("Frame", nil, f)
   resizer:SetSize(16, 16)
   resizer:SetPoint("BOTTOMRIGHT", -4, 4)
   resizer:EnableMouse(true)
-
   local tex = resizer:CreateTexture(nil, "OVERLAY")
   tex:SetAllPoints()
   tex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
@@ -222,51 +192,34 @@ function UI:CreateMain()
     if CB.DB and CB.DB.ui and CB.DB.ui.locked then return end
     f:StartSizing("BOTTOMRIGHT")
   end)
-
   resizer:SetScript("OnMouseUp", function()
     f:StopMovingOrSizing()
     ClampSize(f)
-
     if CB.DB and CB.DB.ui then
       CB.DB.ui.w = math.floor(f:GetWidth() + 0.5)
       CB.DB.ui.h = math.floor(f:GetHeight() + 0.5)
     end
   end)
 
-  f:SetScript("OnSizeChanged", function(self)
-    ClampSize(self)
-  end)
-
+  f:SetScript("OnSizeChanged", function(self) ClampSize(self) end)
   UI.frame = f
-  UI.modeText = modeText
   UI.gearBtn = gear
-
   ClampSize(f)
   UI:ApplyScale()
   UI:UpdateLock()
-
   f:Hide()
 end
 
 function UI:Refresh()
   if not CB.DB or not CB.DB.ui then return end
-
-  -- wenn UI noch nicht gebaut ist: einfach raus
   if not UI.frame then return end
-
-  -- Überschrift immer updaten
-  if UI.modeText then
-    UI.modeText:SetText(ModeToText(CB.DB.ui.mode))
-  end
 
   local tbl, label = CB:GetCurrentTable()
   local n = CB:GetCurrentTopN()
-
   if not tbl or not tbl.records then return end
 
   for i = 1, 100 do
     local rec = tbl.records[i]
-
     if i <= n and rec then
       local pr, pg, pb = 1, 1, 1
       if CB.GetClassColorFromClassFile then
@@ -280,7 +233,8 @@ function UI:Refresh()
       end
 
       local numberText = tostring(rec.amount or 0)
-      if label == "Heal" then
+      -- Fix: label Prüfung erweitert für die neuen Listen
+      if label == "Heal" or label == "Heilungen" then
         if CB.ColorNumberHeal then
           numberText = CB.ColorNumberHeal(CB, rec.amount or 0, rec.isCrit)
         end
@@ -290,17 +244,15 @@ function UI:Refresh()
         end
       end
 
+      -- Formatierung sicherstellen: Spieler - Spell - Wert
       UI.lines[i]:SetText(string.format("#%d  %s - %s - %s", i, playerColored, rec.spell or "Unknown", numberText))
       UI.lines[i]:Show()
-
       UI.lineButtons[i].rec = rec
       UI.lineButtons[i].label = label
       UI.lineButtons[i]:Show()
-
     elseif i <= n then
       UI.lines[i]:SetText(string.format("#%d  -", i))
       UI.lines[i]:Show()
-
       UI.lineButtons[i].rec = nil
       UI.lineButtons[i].label = label
       UI.lineButtons[i]:Hide()
@@ -314,22 +266,9 @@ function UI:Refresh()
 end
 
 function UI:ToggleMain()
-  if not CB.DB then
-    if CB.Print then CB:Print("DB nicht bereit") end
-    return
-  end
-
-  -- Fenster notfalls erzeugen
-  if not UI.frame then
-    if UI.CreateMain then
-      UI:CreateMain()
-    end
-  end
-
-  if not UI.frame then
-    if CB.Print then CB:Print("UI nicht bereit") end
-    return
-  end
+  if not CB.DB then return end
+  if not UI.frame then UI:CreateMain() end
+  if not UI.frame then return end
 
   if UI.frame:IsShown() then
     UI.frame:Hide()
