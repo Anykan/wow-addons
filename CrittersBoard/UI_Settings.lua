@@ -5,7 +5,7 @@ CB.UI = CB.UI or {}
 local UI = CB.UI
 
 local WIDTH = 320
-local HEIGHT = 360
+local HEIGHT = 380
 local PAD_X = 20
 
 function UI:CreateSettings()
@@ -241,26 +241,22 @@ function UI:CreateSettings()
   -- =========================================================
   -- Buttons
   -- =========================================================
+local btnWidth = (WIDTH - (PAD_X * 2) - 10) / 2
+
   local btnSync = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
-  btnSync:SetSize(WIDTH - 40, 24)
+  btnSync:SetSize(btnWidth, 24)
   btnSync:SetPoint("TOPLEFT", PAD_X, -y)
-  btnSync:SetText("Manueller Sync")
+  btnSync:SetText("Sync")
   btnSync:SetScript("OnClick", function()
-    if CB.RequestSnapshot then
-      CB:RequestSnapshot(true)
-    end
+    if CB.RequestSnapshot then CB:RequestSnapshot(true) end
   end)
 
-  y = y + 35
-
   local btnClear = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
-  btnClear:SetSize(WIDTH - 40, 24)
-  btnClear:SetPoint("TOPLEFT", PAD_X, -y)
-  btnClear:SetText("Aktuelle Liste löschen")
+  btnClear:SetSize(btnWidth, 24)
+  btnClear:SetPoint("TOPLEFT", PAD_X + btnWidth + 10, -y)
+  btnClear:SetText("Liste löschen")
   btnClear:SetScript("OnClick", function()
-    if CB.ClearCurrentList then
-      CB:ClearCurrentList()
-    end
+    if CB.ClearCurrentList then CB:ClearCurrentList() end
     if UI.Refresh then UI:Refresh() end
   end)
 
