@@ -7,28 +7,186 @@ local UI = CB.UI
 UI.lines = UI.lines or {}
 UI.lineButtons = UI.lineButtons or {}
 
-local MIN_W, MIN_H = 250, 200
-local MAX_W, MAX_H = 700, 800
-
+-- Design-Konstanten aus v0.4.3.1
+local MIN_W, MIN_H = 50, 50
+local MAX_W, MAX_H = 700, 1200
 local LINE_H = 16
-local LINE_W = 500
 
--- Hilfsfunktion: Modus-String in Text umwandeln (für den Header)
-local function ModeToText(mode)
-  local base = mode:match("^(%a+)")
-  local limit = mode:match("(%d+)$") or "10"
+-- =========================================================
+-- TOOLTIP ENGINE (v0.5 Logik)
+-- =========================================================
+function UI:ShowTooltip(tooltip, rec)
+  if not rec then return end
+  tooltip:ClearLines()
   
-  local name = "Unbekannt"
-  if base == "D" then name = "Schaden"
-  elseif base == "H" then name = "Heilung"
-  elseif base == "O" then name = "Overkill"
-  elseif base == "S" then name = "Angriffe"
-  elseif base == "HS" then name = "Heil-Zauber"
+  -- Zaubername live über ID auflösen (Spielsprache)
+  local sName = "???"
+  if rec.spellId then
+    local infoName = GetSpellInfo(rec.spellId)
+    if infoName then sName = infoName else sName = "ID: "..rec.spellId end
   end
+
+  -- 1. Zaubername
+  tooltip:AddDoubleLine(CB.L["TOOLTIP_SPELL"] or "Zauber:", "|cffffffff" .. sName .. "|r")
   
-  return string.format("%s (Top %s)", name, limit)
+  -- 2. Spieler & Klasse
+  local r, g, b = CB:GetClassColorFromClassFile(rec.classFile)
+  tooltip:AddDoubleLine("Spieler:", CB:ColorText(rec.player or "???", r, g, b))
+
+  -- 3. NEU: Ziel (Target)
+  -- Wir prüfen ob destName vorhanden ist, sonst "Unbekannt"
+  local targetName = rec.destName or "Unbekannt"
+  tooltip:AddDoubleLine("Ziel:", "|cffffffff" .. targetName .. "|r")
+  
+  -- 4. Betrag
+  local color = rec.isCrit and "|cffff3333" or "|cffffffff"
+  tooltip:AddDoubleLine("Betrag:", color .. (rec.amount or 0) .. (rec.isCrit and " (Kritisch!)" or "") .. "|r")
+
+  -- Standort-Info (v0.5)
+  if rec.mapID and rec.mapID ~= 0 then
+    local mapInfo = C_Map.GetMapInfo(rec.mapID)
+    local mapName = mapInfo and mapInfo.name or "Unbekannt"
+    local coords = ""
+    if rec.coordX and rec.coordY and (rec.coordX ~= 0 or rec.coordY ~= 0) then
+        coords = string.format(" (%.1f, %.1f)", rec.coordX, rec.coordY)
+    end
+    tooltip:AddDoubleLine("Ort:", "|cff00ffff" .. mapName .. coords .. "|r")
+  end
+
+  -- Zeitstempel
+  if rec.ts then
+    tooltip:AddDoubleLine("Datum:", "|cff888888" .. date("%d.%m.%Y %H:%M", rec.ts) .. "|r")
+  end
+
+  tooltip:Show()
 end
 
+-- =========================================================
+-- HAUPTFENSTER (v0.4.3.1 Design)
+-- =========================================================
+function UI:CreateMain()
+  if UI.frame then return end
+
+  local f = CreateFrame("Frame", "CrittersBoardFrame", UIParent, "BasicFrameTemplate")
+  UI.frame = f
+  local pos = (CB.DB and CB.DB.ui) and CB.DB.ui.pos or nil
+  
+  if pos then
+    f:ClearAllPoints()
+    f:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or 0)
+    f:SetSize(pos.w or 300, pos.h or 400)
+  else
+    -- Standardwerte falls DB frisch gelöscht wurde
+    f:SetSize(300, 400)
+    f:SetPoint("CENTER")
+  end
+  f:SetMovable(true)
+  f:SetResizable(true)
+  f:SetClampedToScreen(true)
+  f:EnableMouse(true)
+  
+  -- Fix für Resize-API (v0.5 Kompatibilität)
+  if f.SetResizeBounds then
+    f:SetResizeBounds(MIN_W, MIN_H, MAX_W, MAX_H)
+  else
+    f:SetMinResize(MIN_W, MIN_H)
+    f:SetMaxResize(MAX_W, MAX_H)
+  end
+
+  -- Header / Drag
+  local header = CreateFrame("Frame", nil, f)
+  header:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+  header:SetPoint("TOPRIGHT", f, "TOPRIGHT", -25, 0) -- Platz für Gear Button
+  header:SetHeight(25)
+  header:EnableMouse(true)
+  header:RegisterForDrag("LeftButton")
+  header:SetScript("OnDragStart", function() if not CB.DB.ui.locked then f:StartMoving() end end)
+  header:SetScript("OnDragStop", function()
+    f:StopMovingOrSizing()
+    local point, _, relPoint, x, y = f:GetPoint()
+    CB.DB.ui.pos = CB.DB.ui.pos or {}
+    CB.DB.ui.pos.point = point
+    CB.DB.ui.pos.relativePoint = relPoint
+    CB.DB.ui.pos.x = x
+    CB.DB.ui.pos.y = y
+  end)
+  
+  -- Titel v0.4.3.1 (Zentriert)
+  UI.titleText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  UI.titleText:SetPoint("TOP", 0, -6)
+  UI.titleText:SetText(CB.L["ADDON_NAME"] or "CrittersBoard")
+
+  -- Gear Button
+  local gear = CreateFrame("Button", nil, f)
+  gear:SetSize(14, 14)
+  gear:SetPoint("TOPRIGHT", f, "TOPRIGHT", -28, -4)
+  gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
+  gear:SetFrameLevel(f:GetFrameLevel() + 10)
+  gear:EnableMouse(true)
+  gear:RegisterForClicks("LeftButtonUp")
+  gear:SetScript("OnClick", function()
+    if UI.ToggleSettings then UI:ToggleSettings() end
+  end)
+  UI.gearBtn = gear
+
+  -- ScrollFrame
+  local sf = CreateFrame("ScrollFrame", "CrittersBoardScrollFrame", f, "UIPanelScrollFrameTemplate")
+  sf:SetPoint("TOPLEFT", 10, -30)
+  sf:SetPoint("BOTTOMRIGHT", -30, 10)
+
+  local content = CreateFrame("Frame", nil, sf)
+  content:SetSize(260, 1600)
+  sf:SetScrollChild(content)
+
+  -- Zeilen-Erstellung (v0.4.3.1 Look & Feel)
+  for i = 1, 100 do
+    local row = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    row:SetPoint("TOPLEFT", 5, -(i-1) * LINE_H - 5)
+    row:SetHeight(LINE_H)
+    row:SetJustifyH("LEFT")
+    UI.lines[i] = row
+
+    local btn = CreateFrame("Button", nil, content)
+    btn:SetSize(300, LINE_H)
+    btn:SetPoint("TOPLEFT", row)
+    btn:SetScript("OnEnter", function(self)
+      if self.rec then
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        UI:ShowTooltip(GameTooltip, self.rec)
+      end
+    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    UI.lineButtons[i] = btn
+  end
+
+  -- Resize Grip
+  local rb = CreateFrame("Button", nil, f)
+    rb:SetSize(16, 16)
+    rb:SetPoint("BOTTOMRIGHT", -2, 2)
+    rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+  
+    rb:SetScript("OnMouseDown", function() 
+      if not CB.DB.ui.locked then f:StartSizing() end 
+    end)
+
+    rb:SetScript("OnMouseUp", function() 
+      f:StopMovingOrSizing()
+      -- NEU: Breite und Höhe in die Datenbank schreiben
+      CB.DB.ui.pos = CB.DB.ui.pos or {}
+      CB.DB.ui.pos.w = f:GetWidth()
+      CB.DB.ui.pos.h = f:GetHeight()
+    end)
+
+  f:SetScript("OnSizeChanged", function() 
+    content:SetWidth(f:GetWidth() - 40)
+  end)
+
+end
+
+-- =========================================================
+-- REFRESH LOGIK (v0.5 Funktionalität)
+-- =========================================================
 function UI:Refresh()
   if not CB.DB or not UI.frame or not UI.frame:IsShown() then return end
 
@@ -36,170 +194,57 @@ function UI:Refresh()
   local base = mode:match("^(%a+)")
   local limit = tonumber(mode:match("(%d+)$")) or 10
 
-  -- Header Text aktualisieren
-  UI.title:SetText("CrittersBoard - " .. ModeToText(mode))
-
-  -- Datenquelle bestimmen
-  local data, isHeal, label
-  if base == "D" then data = CB.DB.damage; label = "Damage"
-  elseif base == "H" then data = CB.DB.heal; isHeal = true; label = "Heal"
-  elseif base == "O" then data = CB.DB.overkill; label = "Overkill"
-  elseif base == "S" then data = CB.DB.spells; label = "Spells"
-  elseif base == "HS" then data = CB.DB.healSpells; isHeal = true; label = "HealSpells"
+  -- Liste bestimmen
+  local tbl = CB.DB.damage
+  if base == "H" then tbl = CB.DB.heal
+  elseif base == "O" then tbl = CB.DB.overkill
+  elseif base == "S" then tbl = CB.DB.spells
+  elseif base == "HS" then tbl = CB.DB.healSpells
   end
 
-  if not data or not data.records then return end
+  -- Titel setzen
+  UI.titleText:SetText(CB.L["MODE_" .. mode] or mode)
 
   -- Zeilen füllen
   for i = 1, 100 do
-    if i <= limit then
-      local rec = data.records[i]
-      if rec then
-        local pCol = CB:ColorText(rec.player or "??", CB:GetClassColorFromClassFile(rec.classFile))
-        local val = isHeal and CB:ColorNumberHeal(rec.amount, rec.isCrit) or CB:ColorNumberDamage(rec.amount, rec.isCrit)
-        
-        UI.lines[i]:SetText(string.format("#%d  %s - %s - %s", i, pCol, rec.spell or "??", val))
+      local rec = (tbl and tbl.records) and tbl.records[i] or nil
+      if rec and i <= limit then
+        local r, g, b = CB:GetClassColorFromClassFile(rec.classFile)
+        local nameColor = CB:ColorText(rec.player or "???", r, g, b)
+      
+      -- Formatierung des Wertes
+        local valStr = rec.amount or 0
+        if rec.isCrit then valStr = "|cffff3333" .. valStr .. "|r" end
+
+      -- Zaubername live über ID abrufen (Spielsprache)
+        local sName = "???"
+        if rec.spellId then
+          local infoName = GetSpellInfo(rec.spellId)
+          if infoName then
+            sName = infoName
+          else
+            sName = "ID: " .. rec.spellId
+          end
+        end
+
+      -- Anzeige: Platz. Name (Zaubername) - Wert
+        UI.lines[i]:SetText(string.format("%d. %s (%s) - %s", i, nameColor, sName, valStr))
         UI.lineButtons[i].rec = rec
-        UI.lineButtons[i].label = label
-        UI.lineButtons[i]:Show()
+        UI.lines[i]:Show()
       else
-        UI.lines[i]:SetText(string.format("#%d  -", i))
+        UI.lines[i]:Hide()
         UI.lineButtons[i].rec = nil
-        UI.lineButtons[i]:Hide()
       end
-      UI.lines[i]:Show()
-    else
-      -- Zeilen außerhalb des gewählten Limits (z.B. 11-100 bei Top 10) komplett ausblenden
-      UI.lines[i]:Hide()
-      UI.lineButtons[i]:Hide()
     end
   end
-
-  -- Scroll-Bereich an das Limit anpassen
-  UI.scrollContent:SetHeight(limit * LINE_H + 10)
-end
 
 function UI:UpdateLock()
   if not UI.frame then return end
   if CB.DB.ui.locked then
     UI.frame:SetMovable(false)
-    UI.frame:EnableMouse(not CB.DB.ui.locked) -- Verhindert Drag, lässt aber Scrollen zu wenn nötig
-    UI.resizeBtn:Hide()
+    UI.frame:SetResizable(false)
   else
     UI.frame:SetMovable(true)
-    UI.frame:EnableMouse(true)
-    UI.resizeBtn:Show()
-  end
-end
-
-function UI:CreateMain()
-  if UI.frame then return end
-
-  local f = CreateFrame("Frame", "CrittersBoardMainFrame", UIParent, "BasicFrameTemplate")
-  UI.frame = f
-  local savedW = CB.DB.ui.width or 400
-  local savedH = CB.DB.ui.height or 300
-  f:SetSize(savedW, savedH)
-  if CB.DB.ui and CB.DB.ui.xOfs then
-    f:SetPoint(CB.DB.ui.point or "CENTER", UIParent, CB.DB.ui.relativePoint or "CENTER", CB.DB.ui.xOfs, CB.DB.ui.yOfs)
-  else
-    f:SetPoint("CENTER")
-  end
-  f:SetMovable(true)
-  f:SetResizable(true)
-  f:EnableMouse(true)
-  f:RegisterForDrag("LeftButton")
-  f:SetClampedToScreen(true)
-  f:SetResizeBounds(MIN_W, MIN_H, MAX_W, MAX_H)
-
-  f:SetScript("OnDragStart", f.StartMoving)
-  f:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    -- Neue Position in der DB speichern
-    if CB.DB and CB.DB.ui then
-      local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
-      CB.DB.ui.point = point
-      CB.DB.ui.relativePoint = relativePoint
-      CB.DB.ui.xOfs = xOfs
-      CB.DB.ui.yOfs = yOfs
-    end
-  end)
-  f:SetScript("OnSizeChanged", function(self, width, height)
-    if CB.DB and CB.DB.ui then
-      CB.DB.ui.width = width
-      CB.DB.ui.height = height
-    end
-  end)
-  
-  f:SetScript("OnShow", function() UI:Refresh() end)
-
-  -- Titel
-  UI.title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
-  UI.title:SetPoint("TOP", 0, -4)
-  UI.title:SetText("CrittersBoard")
-
-  -- Zahnrad Button für Settings
-  local gear = CreateFrame("Button", nil, f)
-  gear:SetSize(12, 12)
-  gear:SetPoint("TOPRIGHT", -30, -6)
-  gear:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
-  gear:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-  UI.gearBtn = gear
-
-  -- ScrollFrame Setup
-  local scrollFrame = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
-  scrollFrame:SetPoint("TOPLEFT", 10, -30)
-  scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
-
-  local content = CreateFrame("Frame", nil, scrollFrame)
-  content:SetSize(LINE_W, 100 * LINE_H)
-  scrollFrame:SetScrollChild(content)
-  UI.scrollContent = content
-
-  -- 100 Zeilen im Voraus erstellen
-  for i = 1, 100 do
-    local row = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    row:SetPoint("TOPLEFT", 5, -(i-1) * LINE_H - 5)
-    row:SetHeight(LINE_H)
-    row:SetJustifyH("LEFT")
-    UI.lines[i] = row
-
-    local btn = CreateFrame("Button", nil, content)
-    btn:SetAllPoints(row)
-    btn:SetScript("OnEnter", function(self)
-      if self.rec then
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
- --       CB:ShowTooltip(GameTooltip, self.rec, self.label)
-      end
-    end)
-    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    UI.lineButtons[i] = btn
-  end
-
-  -- Resize Button
-  local rb = CreateFrame("Button", nil, f)
-  rb:SetSize(16, 16)
-  rb:SetPoint("BOTTOMRIGHT", -2, 2)
-  rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-  rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-  rb:SetScript("OnMouseDown", function() f:StartSizing() end)
-  rb:SetScript("OnMouseUp", function() f:StopMovingOrSizing() end)
-  UI.resizeBtn = rb
-
-  -- Initiale Skalierung
-  if CB.DB.ui.scale then f:SetScale(CB.DB.ui.scale) end
-  
-  UI:UpdateLock()
-end
-
-function UI:ToggleMain()
-  if not UI.frame then UI:CreateMain() end
-  if UI.frame:IsShown() then
-    UI.frame:Hide()
-    CB.DB.ui.isOpen = false
-  else
-    UI.frame:Show()
-    CB.DB.ui.isOpen = true
-    UI:Refresh()
+    UI.frame:SetResizable(true)
   end
 end
