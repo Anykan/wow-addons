@@ -65,8 +65,14 @@ function UI:CreateSettings()
   dropdown:SetPoint("TOPLEFT", PAD_X - 15, -y)
   UIDropDownMenu_SetWidth(dropdown, 200)
 
-  local modes = {"D10", "D100", "H10", "H100", "O10", "O100", "S_BEST", "HS_BEST"}
-  
+--  local modes = {"D10", "D100", "H10", "H100", "O10", "O100", "S_BEST", "HS_BEST"}
+  local modes = {
+    "D10", "D100", 
+    "H10", "H100", 
+    "O10", "O100", 
+    "S10", "S100", 
+    "HS10", "HS100"
+  }
   UIDropDownMenu_Initialize(dropdown, function()
     for _, m in ipairs(modes) do
       local info = UIDropDownMenu_CreateInfo()

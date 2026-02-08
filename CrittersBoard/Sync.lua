@@ -46,7 +46,7 @@ function CB:SendEvent(kind, rec)
     if not rec then return end
 
     -- Format v0.5: kind|version|player|spell|amount|ts|isCrit|class|spellId|mapID|x|y
-    local payload = string.format("%s|%d|%s|%s|%d|%d|%d|%s|%d|%d|%.1f|%.1f",
+    local payload = string.format("%s|%d|%s|%s|%d|%d|%d|%s|%d|%d|%.1f|%.1f|%s",
         kind,
         CB.REQUIRED_DB_VERSION or 1,
         CB:SafeStr(rec.player or "Unknown"),
@@ -58,7 +58,8 @@ function CB:SendEvent(kind, rec)
         rec.spellId or 0,
         rec.mapID or 0,
         rec.coordX or 0,
-        rec.coordY or 0
+        rec.coordY or 0,
+		CB:SafeStr(rec.destName or "Unbekannt")
     )
 
     if IsInGuild() then

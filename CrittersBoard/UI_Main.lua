@@ -182,6 +182,13 @@ function UI:CreateMain()
     content:SetWidth(f:GetWidth() - 40)
   end)
 
+  -- =========================================================
+  -- FIX: Skalierung sofort beim Erstellen anwenden
+  -- =========================================================
+  if CB.DB and CB.DB.ui and CB.DB.ui.scale then
+    f:SetScale(CB.DB.ui.scale)
+  end
+
 end
 
 -- =========================================================

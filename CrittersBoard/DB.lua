@@ -165,17 +165,7 @@ function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, d
     -- ALERT LOGIK für S (Angriffe)
     -- =========================================================
     -- 1. Prüfen, ob dieser Rekord jetzt Platz 1 der gesamten S-Liste ist
-    local isNewTop1 = (CB.DB.spells.records[1] and CB.DB.spells.records[1].amount == amount)
-    
-    -- 2. Alert auslösen
-    if isNewTop1 then
-        -- Goldener Alert: Du hast den höchsten Schlag aller Zeiten (in der S-Liste) gemacht
-        CB:PlayAlert("S", rec, true)
-    elseif source == "local" then
-        -- Normaler Alert: Du hast deinen persönlichen Rekord für DIESEN Spell verbessert
-        CB:PlayAlert("S", rec, false)
-    end
-
+    CB:PlayAlert("S", rec, true)
     return true, rec
   end
   return false
@@ -222,8 +212,10 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
     table.sort(tbl.records, function(a, b) return (a.amount or 0) > (b.amount or 0) end)
     
     -- Alarm auslösen (Sound/Text)
-    if source == "local" then
-        CB:PlayAlert("HS", rec, false)
+    local isNewTop1 = (tbl.records[1] and tbl.records[1].amount == amount)
+    
+    if isNewTop1 then
+        CB:PlayAlert("HS", rec, true) -- Globaler Alarm für alle
     end
     
     return true, rec
