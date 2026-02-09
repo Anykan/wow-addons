@@ -2,7 +2,7 @@ CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
 
 CB.PREFIX = "CB_CRIT"
-
+CB.DEBUG_MODE = false
 -- =========================================================
 -- ALLGEMEINE HELFER
 -- =========================================================
@@ -16,6 +16,22 @@ function CB:SafeStr(s)
   return tostring(s):gsub("|", "/")
 end
 
+function CB:DLog(id, val1, val2, val3)
+    local logs = {
+        [1] = "|cffffff00DEBUG Swing 1:|r Schaden: " .. tostring(val1 or "0"),
+        [2] = "DEBUG: Core - FEHLER 2: RequestSnapshot Funktion fehlt!",
+		[3] = "|cff00ff00DEBUG Spell: 3|r " .. tostring(arg13) .. " (ID: " .. tostring(arg12) .. ") -> Schaden: " .. tostring(arg15),
+		[4] = "|cff00ffffDEBUG Queue: 4|r Aktuelle Warteschlange: " .. tostring(val1 or "0") .. " Einträge.",
+		[5] = "|cff00ff00DEBUG Sync: 5|r Daten empfangen von: " .. tostring(val1 or "Unbekannt") .. " (Kanal: " .. tostring(val2 or "??") .. ")",
+		[7] = "|cffff0000DEBUG Sync-OUT 7:|r Sende Daten-Typ: " .. tostring(val1 or "??"),
+		[8] = "|cff0000ffDEBUG Sync-DETAIL 8:|r Inhalt: " .. tostring(val1 or "leer"),
+		[9] = "|cffffa500DEBUG Sync-STSTOP 9:|r " .. tostring(val1 or "Aktion")
+    }
+    
+    if logs[id] then 
+        self:Print(logs[id]) 
+    end
+end
 -- =========================================================
 -- STANDORT-ENGINE (NEU in v0.5)
 -- =========================================================
@@ -61,6 +77,7 @@ local isProcessing = false
 
 function CB:QueueAlert(data)
   table.insert(CB.alertQueue, data)
+  if CB.DEBUG_MODE then CB:DLog(4, #CB.alertQueue) end
   if not isProcessing then
     CB:ProcessNextAlert()
   end

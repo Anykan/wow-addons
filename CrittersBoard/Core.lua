@@ -1,6 +1,8 @@
 CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
+
 CB.REQUIRED_DB_VERSION = 1
+
 -- 1. Slash-Befehl registrieren (Damit /cb funktioniert)
 SLASH_CRITTERSBOARD1 = "/cb"
 SlashCmdList["CRITTERSBOARD"] = function(msg)
@@ -133,7 +135,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
                     CB:Print("DEBUG: Core - Timer abgelaufen. Rufe RequestSnapshot auf.")
                     CB:RequestSnapshot(false)
                 else
-                    CB:Print("DEBUG: Core - FEHLER: RequestSnapshot Funktion fehlt!")
+                    if CB.DEBUG_MODE then CB:DLog(2,0,0) end
                 end
             end)
         else
@@ -150,11 +152,9 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
         
         if sourceGUID == UnitGUID("player") then
             if subevent == "SPELL_DAMAGE" or subevent == "SPELL_CRIT" then
-                -- Das hier zeigt dir Schildschlag, Blutdurst etc. in GRÜN
-                CB:Print("|cff00ff00DEBUG Spell:|r " .. tostring(arg13) .. " (ID: " .. tostring(arg12) .. ") -> Schaden: " .. tostring(arg15))
+                if CB.DEBUG_MODE then CB:DLog(3, arg13, arg12, arg15) end
             elseif subevent == "SWING_DAMAGE" then
-                -- Das hier zeigt den normalen "Angriff" (weißer Schaden)
-                CB:Print("|cffffff00DEBUG Swing:|r Schaden: " .. tostring(arg12))
+                if CB.DEBUG_MODE then CB:DLog(1, arg12) end
             end
         end
 
