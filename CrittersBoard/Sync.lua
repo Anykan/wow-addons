@@ -105,7 +105,8 @@ local function OnAddonMessage(prefix, text, channel, sender)
     local isCrit, classFile = (parts[7] == "1"), parts[8]
     local spellId, mapID = tonumber(parts[9]) or 0, tonumber(parts[10]) or 0
     local x, y = tonumber(parts[11]) or 0, tonumber(parts[12]) or 0
-
+	local destName  = parts[13] or "Unbekannt"
+	
     local tbl = (kind == "D" and CB.DB.damage) or (kind == "H" and CB.DB.heal) or 
                 (kind == "O" and CB.DB.overkill) or (kind == "S" and CB.DB.spells) or 
                 (kind == "HS" and CB.DB.healSpells)
@@ -114,17 +115,21 @@ local function OnAddonMessage(prefix, text, channel, sender)
 
     local added, newRec = false, nil
     if kind == "D" or kind == "H" or kind == "O" then
-        added, newRec = CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, "guild", kind)
+        added, newRec = CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, "guild", kind, destName)
     elseif kind == "S" then
-        added, newRec = CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, "guild")
+        added, newRec = CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, "guild", destName)
     elseif kind == "HS" then
-        added, newRec = CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, "guild")
+        added, newRec = CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, "guild", destName)
     end
 
     if added then
         SYNC.newCount = SYNC.newCount + 1
         if newRec then
-            newRec.spellId, newRec.mapID, newRec.coordX, newRec.coordY = spellId, mapID, x, y
+			newRec.spellId = spellId
+			newRec.mapID   = mapID
+			newRec.coordX  = x
+			newRec.coordY  = y
+			newRec.destName = destName
         end
         if CB.UI and CB.UI.Refresh then CB.UI:Refresh() end
     end
