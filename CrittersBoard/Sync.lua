@@ -25,6 +25,10 @@ local function EncodeRecord(rec)
         tostring(rec.ts or time()),
         crit,
         CB:SafeStr(rec.destName or "Unbekannt"),
+        tostring(rec.spellId or 0),   -- NEU
+        tostring(rec.mapID or 0),     -- NEU
+        tostring(rec.coordX or 0),    -- NEU
+        tostring(rec.coordY or 0),    -- NEU
     }, ",")
 end
 
@@ -159,7 +163,12 @@ local function OnAddonMessage(prefix, text, channel, sender)
             local pName, pClass, pSpell = r[1], r[2], r[3]
             local pAmount, pTS = tonumber(r[4]) or 0, tonumber(r[5]) or 0
             local pCrit, pDest = (r[6] == "1"), r[7] or "Unbekannt"
-            
+
+			local pSpellId = tonumber(r[8])
+            local pMapID   = tonumber(r[9])
+            local pCoordX  = tonumber(r[10])
+            local pCoordY  = tonumber(r[11])
+			
             local added = false
             if listKind == "S" or listKind == "HS" then
                 if listKind == "S" then
@@ -172,6 +181,13 @@ local function OnAddonMessage(prefix, text, channel, sender)
             end
 
             if added then
+                SYNC.newCount = SYNC.newCount + 1
+            end
+			if added and newRec then
+                newRec.spellId = pSpellId
+                newRec.mapID   = pMapID
+                newRec.coordX  = pCoordX
+                newRec.coordY  = pCoordY
                 SYNC.newCount = SYNC.newCount + 1
             end
         end
@@ -206,6 +222,7 @@ end
 local f = CreateFrame("Frame")
 f:RegisterEvent("CHAT_MSG_ADDON")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
+
 f:SetScript("OnEvent", function(_, event, prefix, text, channel, sender)
     if event == "PLAYER_ENTERING_WORLD" then
         C_ChatInfo.RegisterAddonMessagePrefix(CB.PREFIX)
