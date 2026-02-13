@@ -47,8 +47,8 @@ L["MSG_LIST_CLEARED"] = "All lists cleared."
 L["OPT_SYNC_DISABLED"] = "Disable Sync (Global)"
 
 -- NEU für v0.5 (Wipe Popup)
-L["WIPE_TITLE"] = "CrittersBoard Update v0.5.4.1"
-L["WIPE_TEXT"] = "|cff66ff66CrittersBoard v0.5.4.1|r\n\nThe database was updated with the latest version and needs to be reset; unfortunately, all data will be lost.."
+L["WIPE_TITLE"] = "CrittersBoard Update v0.5.4.2"
+L["WIPE_TEXT"] = "|cff66ff66CrittersBoard v0.5.4.2|r\n\nThe database was updated with the latest version 3 and needs to be reset; unfortunately, all data will be lost.."
 L["CONFIRM"] = "OK"
 -- Alert Nachrichten
 -- Alert Messages (Epic Style)
@@ -100,8 +100,8 @@ if GetLocale() == "deDE" then
     L["OPT_SYNC_DISABLED"] = "Sync deaktivieren (Global)"
     
     -- NEU für v0.5 (Wipe Popup)
-	L["WIPE_TITLE"] = "CrittersBoard Update v0.5.4.1"
-	L["WIPE_TEXT"] = "|cff66ff66CrittersBoard v0.5.4.1|r\n\nDie Datenbank wurde auf die neueste Version aktualisiert und muss zurückgesetzt werden; dabei gehen leider alle Daten verloren."
+	L["WIPE_TITLE"] = "CrittersBoard Update v0.5.4.2"
+	L["WIPE_TEXT"] = "|cff66ff66CrittersBoard v0.5.4.2|r\n\nDie Datenbank wurde auf die neueste Version 3 aktualisiert und muss zurückgesetzt werden; dabei gehen leider alle Daten verloren."
 
 	-- Alert Nachrichten
 	L["ALERT_MSG_D"]  = "|TInterface\\Icons\\Spell_Fire_Fireball02:0|t UNGLAUBLICH! %s zertrümmert den Rekord mit %s (%d Schaden)!"

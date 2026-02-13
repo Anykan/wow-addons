@@ -1,8 +1,6 @@
 CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
 
-CB.REQUIRED_DB_VERSION = 2
-
 -- 1. Slash-Befehl registrieren (Damit /cb funktioniert)
 SLASH_CRITTERSBOARD1 = "/cb"
 SlashCmdList["CRITTERSBOARD"] = function(msg)

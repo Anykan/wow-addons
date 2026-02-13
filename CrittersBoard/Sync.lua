@@ -1,7 +1,6 @@
 CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
 
-CB.PREFIX = "CB_CRIT"
 CB.Sync = CB.Sync or {}
 local SYNC = CB.Sync
 
@@ -11,6 +10,7 @@ SYNC.newCount = 0
 SYNC.knownSenders = {} 
 
 local MAX_PAYLOAD = 220
+local vToken = "V:" .. (CB.REQUIRED_DB_VERSION or 3) 
 
 -- =========================================================
 -- HILFSFUNKTIONEN FÜR CHUNKS (Wie in alter Version)
@@ -100,7 +100,7 @@ function CB:SendEvent(kind, rec, priority)
     if not rec then return end
 
     local prio = priority or "NORMAL"
-    local payload = string.format("EVT|%s|%s", kind, EncodeRecord(rec))
+    local payload = string.format("EVT|%s|%s|%s", vToken, kind, EncodeRecord(rec))
 
     if IsInGuild() then
         ChatThrottleLib:SendAddonMessage(prio, CB.PREFIX, payload, "GUILD")
@@ -125,22 +125,28 @@ local function OnAddonMessage(prefix, text, channel, sender)
             for _, t in ipairs(types) do
                 local chunks = MakeChunks(t)
                 for _, payload in ipairs(chunks) do
-                    local msg = "CHUNK|" .. t .. "|" .. payload
+                    local msg = "CHUNK|" .. vToken .. "|" .. t .. "|" .. payload
                     ChatThrottleLib:SendAddonMessage("BULK", CB.PREFIX, msg, "GUILD")
                 end
             end
         end
         return
     end
-
+	
+	local receivedToken = parts[2]
+		if receivedToken ~= vToken then
+			if CB.DEBUG_MODE then print("Ignoriere Nachricht mit falscher Version: " .. tostring(receivedToken)) end
+		return 
+    end
+	
     -- B) CHUNK/EVT Verarbeitung
     local listKind, payload
     if cmd == "CHUNK" then
-        listKind = parts[2]
-        payload = parts[3]
+        listKind = parts[3]
+        payload = parts[4]
     elseif cmd == "EVT" then
-        listKind = parts[2]
-        payload = parts[3]
+        listKind = parts[3]
+        payload = parts[4]
     else
         return
     end
@@ -159,25 +165,26 @@ local function OnAddonMessage(prefix, text, channel, sender)
         -- Komma trennt Felder
         for p in string.gmatch(recStr, "([^,]+)") do table.insert(r, p) end
         
-        if #r >= 6 then
+        if #r >= 11 then
             local pName, pClass, pSpell = r[1], r[2], r[3]
             local pAmount, pTS = tonumber(r[4]) or 0, tonumber(r[5]) or 0
             local pCrit, pDest = (r[6] == "1"), r[7] or "Unbekannt"
 
-			local pSpellId = tonumber(r[8])
-            local pMapID   = tonumber(r[9])
-            local pCoordX  = tonumber(r[10])
-            local pCoordY  = tonumber(r[11])
+			local pSpellId = tonumber(r[8]) or 0
+            local pMapID   = tonumber(r[9]) or 0
+            local pCoordX  = tonumber(r[10]) or 0
+            local pCoordY  = tonumber(r[11]) or 0
 			
-            local added = false
+            local added, newRec = false, nil
+			
             if listKind == "S" or listKind == "HS" then
                 if listKind == "S" then
-                    added = CB:AddSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, mapID, posX,posY)
+                    added, newRec= CB:AddSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, pMapID, pCoordX, pCoordY)
                 else
-                    added = CB:AddHealSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, mapID, posX,posY)
+                    added, newRec = CB:AddHealSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, pMapID, pCoordX, pCoordY)
                 end
             else
-                added = CB:AddRecord(tbl, pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", listKind, pDest, pSpellId, mapID, posX,posY)
+                added, newRec = CB:AddRecord(tbl, pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", listKind, pDest, pSpellId, pMapID, pCoordX, pCoordY)
             end
 			if added and newRec then
                 newRec.spellId = pSpellId

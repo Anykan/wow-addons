@@ -1,8 +1,6 @@
 CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
 
-CB.PREFIX = "CB_CRIT"
-CB.DEBUG_MODE = false
 -- =========================================================
 -- ALLGEMEINE HELFER
 -- =========================================================
