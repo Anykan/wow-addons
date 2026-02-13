@@ -53,39 +53,88 @@ function UI:CreateSettings()
 
   local y = 45
 
+-- =========================================================
+  -- 1. Dropdown: Kategorie auswählen (D, H, O, S, HS)
   -- =========================================================
-  -- Dropdown: Liste auswählen
-  -- =========================================================
-  local label = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  label:SetPoint("TOPLEFT", PAD_X, -y)
-  label:SetText(CB.L["LABEL_CHOOSE_LIST"] or "Liste wählen:")
-  y = y + 20
+  local catLabel = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  catLabel:SetPoint("TOPLEFT", PAD_X, -y)
+  catLabel:SetText(CB.L["LABEL_CHOOSE_LIST"] or "Kategorie:")
+  
+  local catDrop = CreateFrame("Frame", "CB_CategoryDrop", s, "UIDropDownMenuTemplate")
+  catDrop:SetPoint("TOPLEFT", PAD_X + 90, -y + 8)
+  UIDropDownMenu_SetWidth(catDrop, 150)
 
-  local dropdown = CreateFrame("Frame", "CB_ModeDropdown", s, "UIDropDownMenuTemplate")
-  dropdown:SetPoint("TOPLEFT", PAD_X - 15, -y)
-  UIDropDownMenu_SetWidth(dropdown, 200)
-
---  local modes = {"D10", "D100", "H10", "H100", "O10", "O100", "S_BEST", "HS_BEST"}
-  local modes = {
-    "D10", "D100", 
-    "H10", "H100", 
-    "O10", "O100", 
-    "S10", "S100", 
-    "HS10", "HS100"
-  }
-  UIDropDownMenu_Initialize(dropdown, function()
-    for _, m in ipairs(modes) do
-      local info = UIDropDownMenu_CreateInfo()
-      info.text = CB.L["MODE_" .. m] or m
-      info.func = function()
-        CB.DB.ui.mode = m
-        UIDropDownMenu_SetText(dropdown, info.text)
-        if UI.Refresh then UI:Refresh() end
+  UIDropDownMenu_Initialize(catDrop, function()
+      local opts = {
+          { text = CB.L["CAT_D"] or "Schaden", val = "D" },
+          { text = CB.L["CAT_H"] or "Heilung", val = "H" },
+          { text = CB.L["CAT_O"] or "Overkill", val = "O" },
+          { text = CB.L["CAT_S"] or "Angriffe", val = "S" },
+          { text = CB.L["CAT_HS"] or "Heil-Zauber", val = "HS" },
+      }
+      for _, o in ipairs(opts) do
+          local info = UIDropDownMenu_CreateInfo()
+          info.text = o.text
+          info.value = o.val
+          info.func = function(button)
+              CB.DB.ui.base = button.value
+              UIDropDownMenu_SetSelectedValue(catDrop, button.value)
+              UIDropDownMenu_SetText(catDrop, o.text) 
+              if UI.scrollFrame then
+                  UI.scrollFrame:SetVerticalScroll(0)
+              end
+              if UI.Refresh then UI:Refresh() end
+          end
+          info.checked = (CB.DB.ui.base == o.val)
+          UIDropDownMenu_AddButton(info)
       end
-      UIDropDownMenu_AddButton(info)
-    end
   end)
-  UIDropDownMenu_SetText(dropdown, CB.L["MODE_" .. (CB.DB.ui.mode or "D10")])
+  
+  -- Initialer Text beim Öffnen der Settings
+  local currentBase = CB.DB.ui.base or "D"
+  UIDropDownMenu_SetText(catDrop, CB.L["CAT_"..currentBase] or currentBase)
+
+  y = y + 40 
+
+  -- =========================================================
+  -- 2. Dropdown: Limit auswählen (10, 100)
+  -- =========================================================
+  local limLabel = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  limLabel:SetPoint("TOPLEFT", PAD_X, -y)
+  limLabel:SetText(CB.L["LABEL_CHOOSE_LIMIT"] or "Anzahl:")
+
+  local limDrop = CreateFrame("Frame", "CB_LimitDrop", s, "UIDropDownMenuTemplate")
+  limDrop:SetPoint("TOPLEFT", PAD_X + 90, -y + 8)
+  UIDropDownMenu_SetWidth(limDrop, 150)
+
+  UIDropDownMenu_Initialize(limDrop, function()
+	  local opts = { 
+          { text = (CB.L["LABEL_TOP"] or "Top") .. " 10", val = 10 }, 
+          { text = (CB.L["LABEL_TOP"] or "Top") .. " 25", val = 25 }, 
+          { text = (CB.L["LABEL_TOP"] or "Top") .. " 50", val = 50 }, 
+          { text = (CB.L["LABEL_TOP"] or "Top") .. " 100", val = 100 } 
+      }
+      for _, o in ipairs(opts) do
+          local info = UIDropDownMenu_CreateInfo()
+          info.text = o.text
+          info.value = o.val
+          info.func = function(button)
+              CB.DB.ui.limit = button.value
+              UIDropDownMenu_SetSelectedValue(limDrop, button.value)
+              UIDropDownMenu_SetText(limDrop, o.text)
+              if UI.scrollFrame then
+                  UI.scrollFrame:SetVerticalScroll(0)
+              end
+              if UI.Refresh then UI:Refresh() end
+          end
+          info.checked = (CB.DB.ui.limit == o.val)
+          UIDropDownMenu_AddButton(info)
+      end
+  end)
+  
+  -- Initialer Text beim Öffnen der Settings
+  local currentLimit = CB.DB.ui.limit or 10
+  UIDropDownMenu_SetText(limDrop, (CB.L["LABEL_TOP"] or "Top") .. " " .. currentLimit)
 
   y = y + 45
 
@@ -121,7 +170,24 @@ function UI:CreateSettings()
   audioCB:SetChecked(CB.DB.ui.alertsEnabled)
   audioCB:SetScript("OnClick", function(self) CB.DB.ui.alertsEnabled = self:GetChecked() end)
   y = y + 35
-
+  
+-- 5. Slider: Alert Limit (Warteschlange) - JETZT UNTER AUDIO
+  local alertSlider = CreateFrame("Slider", "CB_AlertLimitSlider", s, "OptionsSliderTemplate")
+  alertSlider:SetPoint("TOPLEFT", PAD_X + 10, -y - 15) -- Kleiner Einzug nach rechts
+  alertSlider:SetWidth(WIDTH - 60)
+  alertSlider:SetMinMaxValues(1, 20)
+  alertSlider:SetValueStep(1)
+  alertSlider:SetValue(CB.DB.ui.alertLimit or 5)
+  _G[alertSlider:GetName() .. "Low"]:SetText("1")
+  _G[alertSlider:GetName() .. "High"]:SetText("20")
+  _G[alertSlider:GetName() .. "Text"]:SetText((CB.L["OPT_ALERT_LIMIT"] or "Max. Sounds") .. ": " .. alertSlider:GetValue())
+  alertSlider:SetScript("OnValueChanged", function(self, value)
+    value = math.floor(value)
+    CB.DB.ui.alertLimit = value
+    _G[self:GetName() .. "Text"]:SetText((CB.L["OPT_ALERT_LIMIT"] or "Max. Sounds") .. ": " .. value)
+  end)
+  
+  y = y + 45 -- Platz für den Slider-Text
   -- Lock
   local lockCB = CreateFrame("CheckButton", "CB_LockCB", s, "ChatConfigCheckButtonTemplate")
   lockCB:SetPoint("TOPLEFT", PAD_X, -y)
@@ -153,13 +219,6 @@ function UI:CreateSettings()
   btnSync:SetScript("OnClick", function()
     if CB.RequestSnapshot then CB:RequestSnapshot(true) end
   end)
---[[
-  local btnClear = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
-  btnClear:SetSize(btnWidth, 26)
-  btnClear:SetPoint("TOPLEFT", PAD_X + btnWidth + 10, -y)
-  btnClear:SetText(CB.L["BTN_CLEAR"] or "Löschen")
-  btnClear:SetScript("OnClick", function() StaticPopup_Show("CB_CONFIRM_CLEAR") end)
-]]--
   s:Hide()
 end
 

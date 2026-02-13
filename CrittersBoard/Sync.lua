@@ -172,16 +172,12 @@ local function OnAddonMessage(prefix, text, channel, sender)
             local added = false
             if listKind == "S" or listKind == "HS" then
                 if listKind == "S" then
-                    added = CB:AddSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest)
+                    added = CB:AddSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, mapID, posX,posY)
                 else
-                    added = CB:AddHealSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest)
+                    added = CB:AddHealSpellBest(pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", pDest, pSpellId, mapID, posX,posY)
                 end
             else
-                added = CB:AddRecord(tbl, pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", listKind, pDest)
-            end
-
-            if added then
-                SYNC.newCount = SYNC.newCount + 1
+                added = CB:AddRecord(tbl, pName, pSpell, pAmount, pTS, pCrit, pClass, "guild", listKind, pDest, pSpellId, mapID, posX,posY)
             end
 			if added and newRec then
                 newRec.spellId = pSpellId

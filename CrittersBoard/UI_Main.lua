@@ -133,6 +133,7 @@ function UI:CreateMain()
   local sf = CreateFrame("ScrollFrame", "CrittersBoardScrollFrame", f, "UIPanelScrollFrameTemplate")
   sf:SetPoint("TOPLEFT", 10, -30)
   sf:SetPoint("BOTTOMRIGHT", -30, 10)
+  UI.scrollFrame = sf
 
   local content = CreateFrame("Frame", nil, sf)
   content:SetSize(260, 1600)
@@ -197,10 +198,9 @@ end
 function UI:Refresh()
   if not CB.DB or not UI.frame or not UI.frame:IsShown() then return end
 
-  local mode = CB.DB.ui.mode or "D10"
-  local base = mode:match("^(%a+)")
-  local limit = tonumber(mode:match("(%d+)$")) or 10
-
+  local base = CB.DB.ui.base or "D"
+  local limit = CB.DB.ui.limit or 10
+  local modeKey = base .. limit -- Nur für die Überschrift aus den Locales
   -- Liste bestimmen
   local tbl = CB.DB.damage
   if base == "H" then tbl = CB.DB.heal
@@ -209,8 +209,10 @@ function UI:Refresh()
   elseif base == "HS" then tbl = CB.DB.healSpells
   end
 
-  -- Titel setzen
-  UI.titleText:SetText(CB.L["MODE_" .. mode] or mode)
+-- TITEL DYNAMISCH ZUSAMMENBAUEN
+  local catName = CB.L["CAT_" .. base] or base
+  local topLabel = CB.L["LABEL_TOP"] or "Top"
+  UI.titleText:SetText(string.format("%s - %s %d", catName, topLabel, limit))
 
   -- Zeilen füllen
   for i = 1, 100 do

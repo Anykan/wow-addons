@@ -47,28 +47,17 @@ function CB:OnCombatLog()
 
     if amount and amount > 0 then
       -- 1. Hauptliste: Schaden (D)
-      local added, rec = CB:AddRecord(CB.DB.damage, sourceName, spellName, amount, ts, isCrit, classFile, "local", "D", destName)
+      local added, rec = CB:AddRecord(CB.DB.damage, sourceName, spellName, amount, ts, isCrit, classFile, "local", "D", destName, spellId, mapID, posX,posY)
       if added and rec then
-        rec.spellId = spellId
-        rec.mapID = mapID
-        rec.coordX = posX
-        rec.coordY = posY
-        rec.destGUID = destGUID
-		rec.destName = destName
-        SendRecord("D", rec)
+         SendRecord("D", rec)
         RefreshUI()
       end
 
       -- 2. Best-of-Spells: Angriffe (S)
       
-      local addedS, recS = CB:AddSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName)
+      local addedS, recS = CB:AddSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName, spellId, mapID, posX, posY)
       if addedS and recS then
-        recS.spellId = spellId
-        recS.mapID = mapID
-        recS.coordX = posX
-        recS.coordY = posY
 	    recS.destGUID = destGUID
-        recS.destName = destName
         SendRecord("S", recS)
         RefreshUI()
       end
@@ -77,14 +66,9 @@ function CB:OnCombatLog()
 
     -- 3. Overkill (O)
     if ok and ok > 0 then
-      local added, rec = CB:AddRecord(CB.DB.overkill, sourceName, spellName, ok, ts, isCrit, classFile, "local", "O", destName)
+      local added, rec = CB:AddRecord(CB.DB.overkill, sourceName, spellName, ok, ts, isCrit, classFile, "local", "O", destName, spellId, mapID, posX,posY)
       if added and rec then
-        rec.spellId = spellId
-        rec.mapID = mapID
-        rec.coordX = posX
-        rec.coordY = posY
         rec.destGUID = destGUID
-		rec.destName = destName
         SendRecord("O", rec)
         RefreshUI()
       end
@@ -100,32 +84,20 @@ function CB:OnCombatLog()
 
     if amount and amount > 0 then
       -- 1. Hauptliste: Heilung (H) - Top 10/100
-      local added, rec = CB:AddRecord(CB.DB.heal, sourceName, spellName, amount, ts, isCrit, classFile, "local", "H", destName)
+      local added, rec = CB:AddRecord(CB.DB.heal, sourceName, spellName, amount, ts, isCrit, classFile, "local", "H", destName, spellId, mapID, posX,posY)
       if added and rec then
-        rec.spellId = spellId
-        rec.mapID = mapID
-        rec.coordX = posX
-        rec.coordY = posY
         rec.destGUID = destGUID
-		rec.destName = destName
         SendRecord("H", rec)
+		RefreshUI()
       end
 
       -- 2. Best-of-Spells: Heilung (HS) 
-      -- ENTFERNT: "if isCrit then" -> Wir wollen JEDEN Bestwert pro Zauber, egal ob Crit oder nicht
-      local addedHS, recHS = CB:AddHealSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName)
+      local addedHS, recHS = CB:AddHealSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName, spellId, mapID, posX,posY)
       if addedHS and recHS then
-        recHS.spellId = spellId
-        recHS.mapID = mapID
-        recHS.coordX = posX
-        recHS.coordY = posY
         recHS.destGUID = destGUID
-		recHS.destName = destName
         SendRecord("HS", recHS)
+		RefreshUI()
       end
-      
-      -- UI immer aktualisieren, wenn eine Heilung verarbeitet wurde
-      RefreshUI()
     end
   end
 end

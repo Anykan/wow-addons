@@ -76,8 +76,36 @@ CB.alertQueue = CB.alertQueue or {}
 local isProcessing = false
 
 function CB:QueueAlert(data)
+  -- 1. Sync-Schutz (Keine Sounds beim Einloggen/Abgleich)
+  if CB.Sync and CB.Sync.isSyncActive then 
+    return 
+  end
+  
+  -- 2. Limit vom Slider laden (Standard 5)
+  local maxAlerts = (CB.DB and CB.DB.ui and CB.DB.ui.alertLimit) or 5
+  
+  -- 3. Berechnung: Wie viele sind gerade aktiv?
+  -- Warteschlange + 1 (falls gerade ein Sound abgespielt wird)
+  local currentActive = #CB.alertQueue
+  if isProcessing then 
+    currentActive = currentActive + 1 
+  end
+  
+  -- 4. STRENGE PRÜFUNG:
+  -- Wenn currentActive schon das Limit erreicht hat, darf nichts Neues rein.
+  -- Bei Slider auf 1: Wenn einer spielt (currentActive = 1), wird 1 >= 1 wahr -> ABBRUCH.
+  if currentActive >= maxAlerts then 
+    return 
+  end
+  
+  -- 5. Alert in die Schlange aufnehmen
   table.insert(CB.alertQueue, data)
-  if CB.DEBUG_MODE then CB:DLog(4, #CB.alertQueue) end
+  
+  if CB.DEBUG_MODE then 
+    CB:DLog(4, #CB.alertQueue) 
+  end
+  
+  -- 6. Abarbeitung starten, falls sie noch nicht läuft
   if not isProcessing then
     CB:ProcessNextAlert()
   end

@@ -12,49 +12,51 @@ end
 -- SOUND & ALERT ENGINE (v0.5)
 -- =========================================================
 function CB:PlayAlert(listKey, rec, isGlobal)
-  if not CB.DB or not CB.DB.ui or not CB.DB.ui.alertsEnabled then return end
+	if not CB.DB or not CB.DB.ui or not CB.DB.ui.alertsEnabled then return end
 
-  local soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\record.ogg"
-  local msg = ""
-  local color = { r = 1, g = 1, b = 1 }
+	local soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\record.ogg"
+	local msg = ""
+	local color = { r = 1, g = 1, b = 1 }
+	local pName = rec.player or "?"
+	local sName = rec.spell or "?"
+	local amount = rec.amount or 0
+  
+	if isGlobal then
+		-- Gildenweite Platz #1 Sounds & Nachrichten
+		if listKey == "D" then
+		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\dmg.ogg"
+		  msg = string.format(CB.L["ALERT_MSG_D"], pName, sName, amount)
+		  color = { r = 1, g = 0.2, b = 0.2 }
+		elseif listKey == "H" then
+		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal.ogg"
+		  msg = string.format(CB.L["ALERT_MSG_H"], pName, sName, amount)
+		  color = { r = 0.2, g = 1, b = 0.2 }
+		elseif listKey == "O" then
+		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\overkill.ogg"
+		  msg = string.format(CB.L["ALERT_MSG_O"], pName, sName, amount)
+		  color = { r = 1, g = 0.6, b = 0.2 }
+		elseif listKey == "S" then
+		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\first.ogg"
+		  msg = string.format(CB.L["ALERT_MSG_S"], pName, sName, amount)
+		  color = { r = 0.6, g = 0.6, b = 1 }
+		elseif listKey == "HS" then
+		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal2.ogg"
+		  msg = string.format(CB.L["ALERT_MSG_HS"], pName, sName, amount)
+		  color = { r = 0.2, g = 0.8, b = 1 }
+		end
+	  else
+		-- Lokaler Rekord
+		soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\record.ogg"
+		msg = string.format(CB.L["MSG_NEW_RECORD"] or "Neuer Rekord! %s: %d", sName, amount)
+		color = { r = 0.5, g = 1, b = 0.5 }
+	  end
 
-  if isGlobal then
-    -- Gildenweite Platz #1 Sounds
-    if listKey == "D" then
-      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\dmg.ogg"
-      msg = string.format("NEUER #1 SCHADEN! %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
-      color = { r = 1, g = 0.2, b = 0.2 }
-    elseif listKey == "H" then
-      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal.ogg"
-      msg = string.format("NEUER #1 HEAL! %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
-      color = { r = 0.2, g = 1, b = 0.2 }
-    elseif listKey == "O" then
-      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\overkill.ogg"
-      msg = string.format("NEUER #1 OVERKILL! %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
-      color = { r = 1, g = 0.6, b = 0.2 }
-    elseif listKey == "S" then
-      -- Deine Anforderung: first.ogg bleibt für Angriffs-Zauber Rekorde
-      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\first.ogg"
-      msg = string.format("NEUER #1 ANGRIFF! %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
-      color = { r = 0.6, g = 0.6, b = 1 }
-    elseif listKey == "HS" then
-      soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal2.ogg"
-      msg = string.format("NEUER #1 HEILUNG! %s - %s (%d)", rec.player or "?", rec.spell or "?", rec.amount or 0)
-      color = { r = 0.2, g = 0.8, b = 1 }
-    end
-  else
-    -- Lokaler Rekord (Persönliche Verbesserung, kein Platz 1)
-    soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\record.ogg"
-    msg = string.format(CB.L["MSG_NEW_RECORD"] .. " %s: %d", rec.spell or "?", rec.amount or 0)
-    color = { r = 0.5, g = 1, b = 0.5 }
-  end
-
-  CB:QueueAlert({
-    soundPath = soundPath,
-    msg = msg,
-    color = color
-  })
-end
+	  CB:QueueAlert({
+		soundPath = soundPath,
+		msg = msg,
+		color = color
+	  })
+	end
 
 -- =========================================================
 -- Init DB (mit Wipe-Logik für v0.5)
@@ -67,14 +69,16 @@ function CB:InitDB()
 
   -- UI Defaults (Diese bleiben hier, das ist gut so)
   CB.DB.ui = CB.DB.ui or {}
-  if CB.DB.ui.mode == nil then CB.DB.ui.mode = "D10" end
+  if CB.DB.ui.base == nil then CB.DB.ui.base = "D" end
+  if CB.DB.ui.limit == nil then CB.DB.ui.limit = 10 end
   if CB.DB.ui.scale == nil then CB.DB.ui.scale = 1.0 end
   if CB.DB.ui.locked == nil then CB.DB.ui.locked = false end
   if CB.DB.ui.isOpen == nil then CB.DB.ui.isOpen = false end
   if CB.DB.ui.alertsEnabled == nil then CB.DB.ui.alertsEnabled = true end
   if CB.DB.ui.shareAfterSync == nil then CB.DB.ui.shareAfterSync = true end
   if CB.DB.ui.disableSync == nil then CB.DB.ui.disableSync = false end
-
+  if CB.DB.ui.alertLimit == nil then CB.DB.ui.alertLimit = 5 end
+  
   -- Tabellen Initialisierung (Nur erstellen, falls sie fehlen)
   CB.DB.damage = CB.DB.damage or { records = {}, seen = {}, revision = 0 }
   CB.DB.heal = CB.DB.heal or { records = {}, seen = {}, revision = 0 }
@@ -87,7 +91,7 @@ end
 -- Core Save Functions
 -- =========================================================
 
-function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source, listKey, destName)
+function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source, listKey, destName, spellId, mapID, posX, posY)
   if not tbl or not tbl.records then return false end
   
   local oldTop1Amount = (tbl.records[1] and tbl.records[1].amount) or 0
@@ -104,7 +108,11 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source,
     ts = ts,
     isCrit = isCrit,
     classFile = classFile,
-    destName = destName
+    destName = destName,
+	spellId = spellId or 0,
+    mapID = mapID or 0,
+    coordX = posX or 0,
+    coordY = posY or 0
   }
 
   table.insert(tbl.records, rec)
@@ -120,12 +128,10 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source,
   if amount > oldTop1Amount then
     CB:PlayAlert(listKey, rec, true)
   end
-  -- Der "elseif source == local" Teil wurde entfernt!
-
   return true, rec
 end
 
-function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, destName)
+function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, destName, spellId, mapID, posX, posY)
   if not CB.DB or not CB.DB.spells then return false end
   
   local key = tostring(spell)
@@ -142,7 +148,11 @@ function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, d
       ts = ts,
       isCrit = isCrit,
       classFile = classFile,
-      destName = destName -- Ziel speichern für Tooltip
+      destName = destName,
+	  spellId   = spellId or 0,
+      mapID     = mapID or 0,
+      coordX    = posX or 0,
+      coordY    = posY or 0
     }
     CB.DB.spells.bySpell[key] = rec
     
@@ -171,7 +181,7 @@ function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, d
   return false
 end
 
-function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, source, destName)
+function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, source, destName, spellId, mapID, posX, posY)
   if not CB.DB or not CB.DB.healSpells then return false end
   
   local tbl = CB.DB.healSpells
@@ -184,13 +194,17 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
 
   if amount > oldAmount then
     local rec = {
-      player = player,
-      spell = spell,
-      amount = amount,
-      ts = ts,
-      isCrit = isCrit,
+	  player    = player,
+      spell     = spell,
+      amount    = amount,
+      ts        = ts,
+      isCrit    = isCrit,
       classFile = classFile,
-	  destName = destName
+      destName  = destName,
+      spellId   = spellId or 0,
+      mapID     = mapID or 0,
+      coordX    = posX or 0,
+      coordY    = posY or 0
     }
     tbl.bySpell[key] = rec
     
