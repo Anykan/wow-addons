@@ -192,6 +192,9 @@ local function OnAddonMessage(prefix, text, channel, sender)
                 newRec.coordX  = pCoordX
                 newRec.coordY  = pCoordY
                 SYNC.newCount = SYNC.newCount + 1
+				if CB.UpdateLDB then 
+                    CB:UpdateLDB(newRec) 
+                end
             end
         end
     end

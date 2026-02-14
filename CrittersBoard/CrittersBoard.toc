@@ -2,8 +2,10 @@
 ## Title: CrittersBoard
 ## Notes: Top Hits & Heals Board
 ## Author: You
-## Version: 0.5.4.2
+## Version: 0.5.5
 ## SavedVariables: CrittersBoardDB
+
+libs\Libs.xml
 
 Definitions.lua
 Utils.lua
@@ -11,6 +13,7 @@ Locales.lua
 DB.lua
 Sync.lua
 Core.lua
+LDB_Provider.lua
 Combat.lua
 UI_Main.lua
 UI_Settings.lua

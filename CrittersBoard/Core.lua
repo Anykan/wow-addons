@@ -105,7 +105,13 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
         CB.DB = CrittersBoardDB
         
         if CB.InitDB then CB:InitDB() end
-
+		
+		-- === NEU: Initialisierung für TitanPanel & Minimap-Icon ===
+        if CB.InitLDB then 
+            CB:InitLDB() 
+        end
+        -- =========================================================
+		
         -- Debug: Versionsstand
         CB:Print("DEBUG: Core - Eigene Version: " .. tostring(CB.REQUIRED_DB_VERSION) .. " | DB Version: " .. tostring(currentVersion or 0))
 

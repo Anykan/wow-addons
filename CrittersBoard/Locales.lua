@@ -61,6 +61,13 @@ L["ALERT_MSG_HS"] = "|TInterface\\Icons\\Spell_Holy_SurgeOfLight:0|t HOLY SPELL!
 -- Local Records
 L["MSG_NEW_RECORD"] = "|TInterface\\Icons\\Ability_Hibernating:0|t New Personal Record! %s: %d"
 L["MSG_NEW_RECORD"] = "Neuer Rekord! %s: %d"
+--Panel
+L["LDB_WAITING"] = "Waiting for data..."
+L["LDB_NO_DATA"] = "No records logged."
+L["LDB_TOOLTIP_L_BAR"] = "Left-Click (Bar): Switch List"
+L["LDB_TOOLTIP_L_ICON"] = "Left-Click (Icon): Toggle Window"
+L["LDB_TOOLTIP_R"] = "Right-Click: Settings"
+L["LDB_LAST_RECORD"] = "Last Record:"
 -- =========================================================
 -- DEUTSCH
 -- =========================================================
@@ -110,6 +117,13 @@ if GetLocale() == "deDE" then
 	L["ALERT_MSG_S"]  = "|TInterface\\Icons\\Ability_MeleeDamage:0|t MEISTERHAFT! %s landet einen %s Treffer von %d!"
 	L["ALERT_MSG_HS"] = "|TInterface\\Icons\\Spell_Holy_SurgeOfLight:0|t HEIL-ZAUBER! %s bricht den Rekord: %s heilte %d!"
 	L["MSG_NEW_RECORD"] = "Neuer Rekord! %s: %d"
+	--Panel
+	L["LDB_WAITING"] = "Warte auf Daten..."
+    L["LDB_NO_DATA"] = "Kein Rekord geloggt."
+    L["LDB_TOOLTIP_L_BAR"] = "Links-Klick (Leiste): Liste wechseln"
+    L["LDB_TOOLTIP_L_ICON"] = "Links-Klick (Icon): Fenster An/Aus"
+    L["LDB_TOOLTIP_R"] = "Rechts-Klick: Einstellungen"
+    L["LDB_LAST_RECORD"] = "Letzter Rekord:"
 end
 
 CB.L = L
