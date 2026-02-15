@@ -118,18 +118,22 @@ function CB:ProcessNextAlert()
   isProcessing = true
   local data = table.remove(CB.alertQueue, 1)
 
-  -- Sound abspielen
+  -- 1. Sound abspielen
   if data.soundPath then
     PlaySoundFile(data.soundPath, "Master")
   end
 
-  -- Text-Meldung (Raid Warning Style)
+  -- 2. Text-Meldung
   if data.msg then
     RaidNotice_AddMessage(RaidWarningFrame, data.msg, data.color or {r=1, g=1, b=1})
-  --  CB:Print(data.msg)
   end
 
-  -- Kleiner Delay zwischen mehreren Alerts (1.5 Sek)
+  -- 3. NEU: Titan Panel nur aktualisieren, wenn dieser Alert dran ist
+  -- Wir nehmen die Daten aus dem Rekord, der den Alert ausgelöst hat
+  if data.rec and CB.UpdateLDB then
+    CB:UpdateLDB(data.rec)
+  end
+
   C_Timer.After(1.5, function()
     CB:ProcessNextAlert()
   end)

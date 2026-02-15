@@ -51,7 +51,6 @@ function CB:OnCombatLog()
       if added and rec then
         SendRecord("D", rec)
         RefreshUI()
-		CB:UpdateLDB(rec)
       end
 
       -- 2. Best-of-Spells: Angriffe (S)
@@ -61,7 +60,6 @@ function CB:OnCombatLog()
 	    recS.destGUID = destGUID
         SendRecord("S", recS)
         RefreshUI()
-		CB:UpdateLDB(recS)
       end
       
     end
@@ -73,7 +71,6 @@ function CB:OnCombatLog()
         rec.destGUID = destGUID
         SendRecord("O", rec)
         RefreshUI()
-		CB:UpdateLDB(rec)
       end
     end
 
@@ -92,7 +89,6 @@ function CB:OnCombatLog()
         rec.destGUID = destGUID
         SendRecord("H", rec)
 		RefreshUI()
-		CB:UpdateLDB(rec)
       end
 
       -- 2. Best-of-Spells: Heilung (HS) 
@@ -101,7 +97,6 @@ function CB:OnCombatLog()
         recHS.destGUID = destGUID
         SendRecord("HS", recHS)
 		RefreshUI()
-		CB:UpdateLDB(recHS)
       end
     end
   end

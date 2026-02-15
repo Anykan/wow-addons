@@ -20,7 +20,6 @@ L["CAT_O"] = "Overkill"
 L["CAT_S"] = "Masterful Strikes"
 L["CAT_HS"] = "Sacred Records"
 L["LABEL_TOP"] = "Top"
-L["LABEL_CHOOSE_LIST"] = "Kategorie wählen:"
 L["LABEL_CHOOSE_LIMIT"] = "Anzahl:"
 	
 L["LABEL_CHOOSE_LIST"] = "Select List:"
@@ -39,8 +38,8 @@ L["TOOLTIP_COORDS"] = "Coordinates"
 
 L["YES"] = "Yes"
 L["NO"] = "No"
+L["CONFIRM"] = "OK"
 
-L["MSG_NEW_RECORD"] = "NEW RECORD!"
 L["MSG_DB_NOT_READY"] = "Database not ready"
 L["MSG_LIST_CLEARED"] = "All lists cleared."
 
@@ -49,10 +48,8 @@ L["OPT_SYNC_DISABLED"] = "Disable Sync (Global)"
 -- NEU für v0.5 (Wipe Popup)
 L["WIPE_TITLE"] = "CrittersBoard Update v0.5.4.2"
 L["WIPE_TEXT"] = "|cff66ff66CrittersBoard v0.5.4.2|r\n\nThe database was updated with the latest version 3 and needs to be reset; unfortunately, all data will be lost.."
-L["CONFIRM"] = "OK"
+
 -- Alert Nachrichten
--- Alert Messages (Epic Style)
--- Alert Messages (Epic Style with Classic-compatible Icons)
 L["ALERT_MSG_D"]  = "|TInterface\\Icons\\Spell_Fire_Fireball02:0|t UNBELIEVABLE! %s smashed the record with %s (%d Damage)!"
 L["ALERT_MSG_H"]  = "|TInterface\\Icons\\Spell_Holy_HolyBolt:0|t DIVINE! %s saved everyone with %s for %d Healing!"
 L["ALERT_MSG_O"]  = "|TInterface\\Icons\\Ability_Creature_Isle_05:0|t OBLITERATED! %s destroyed the target with %s by %d!"
@@ -60,14 +57,19 @@ L["ALERT_MSG_S"]  = "|TInterface\\Icons\\Ability_MeleeDamage:0|t MASTERFUL! %s l
 L["ALERT_MSG_HS"] = "|TInterface\\Icons\\Spell_Holy_SurgeOfLight:0|t HOLY SPELL! %s broke the record: %s healed for %d!"
 -- Local Records
 L["MSG_NEW_RECORD"] = "|TInterface\\Icons\\Ability_Hibernating:0|t New Personal Record! %s: %d"
-L["MSG_NEW_RECORD"] = "Neuer Rekord! %s: %d"
---Panel
+
+-- LDB / Titan Panel Tooltip
+L["LDB_TITLE"] = "|cff66ff66CrittersBoard Records|r"
 L["LDB_WAITING"] = "Waiting for data..."
 L["LDB_NO_DATA"] = "No records logged."
-L["LDB_TOOLTIP_L_BAR"] = "Left-Click (Bar): Switch List"
-L["LDB_TOOLTIP_L_ICON"] = "Left-Click (Icon): Toggle Window"
-L["LDB_TOOLTIP_R"] = "Right-Click: Settings"
-L["LDB_LAST_RECORD"] = "Last Record:"
+L["LDB_LAST_RECORD"] = "Current Leader:"
+L["LDB_HINT_L"] = "|cffaaaaaaLeft-Click: Switch Category|r"
+
+-- Minimap Tooltip
+L["MINIMAP_TITLE"] = "|cff66ff66CrittersBoard|r"
+L["MINIMAP_HINT_L"] = "|cffaaaaaaLeft-Click: Toggle Window|r"
+L["MINIMAP_HINT_R"] = "|cffaaaaaaRight-Click: Settings|r"
+
 -- =========================================================
 -- DEUTSCH
 -- =========================================================
@@ -100,7 +102,6 @@ if GetLocale() == "deDE" then
     L["YES"] = "Ja"
     L["NO"] = "Nein"
 
-    L["MSG_NEW_RECORD"] = "NEUER REKORD!"
     L["MSG_DB_NOT_READY"] = "Datenbank nicht bereit"
     L["MSG_LIST_CLEARED"] = "Alle Listen wurden geleert."
 
@@ -116,14 +117,19 @@ if GetLocale() == "deDE" then
 	L["ALERT_MSG_O"]  = "|TInterface\\Icons\\Ability_Creature_Isle_05:0|t OVERKILL! %s hat das Ziel mit %s um %d vernichtet!"
 	L["ALERT_MSG_S"]  = "|TInterface\\Icons\\Ability_MeleeDamage:0|t MEISTERHAFT! %s landet einen %s Treffer von %d!"
 	L["ALERT_MSG_HS"] = "|TInterface\\Icons\\Spell_Holy_SurgeOfLight:0|t HEIL-ZAUBER! %s bricht den Rekord: %s heilte %d!"
-	L["MSG_NEW_RECORD"] = "Neuer Rekord! %s: %d"
-	--Panel
-	L["LDB_WAITING"] = "Warte auf Daten..."
+	L["MSG_NEW_RECORD"] = "Neuer persönlicher Rekord! %s: %d"
+	
+	-- LDB / Titan Panel Tooltip
+    L["LDB_TITLE"] = "|cff66ff66CrittersBoard Rekorde|r"
+    L["LDB_WAITING"] = "Warte auf Daten..."
     L["LDB_NO_DATA"] = "Kein Rekord geloggt."
-    L["LDB_TOOLTIP_L_BAR"] = "Links-Klick (Leiste): Liste wechseln"
-    L["LDB_TOOLTIP_L_ICON"] = "Links-Klick (Icon): Fenster An/Aus"
-    L["LDB_TOOLTIP_R"] = "Rechts-Klick: Einstellungen"
-    L["LDB_LAST_RECORD"] = "Letzter Rekord:"
+    L["LDB_LAST_RECORD"] = "Aktueller Spitzenreiter:"
+    L["LDB_HINT_L"] = "|cffaaaaaaLinks-Klick: Kategorie wechseln|r"
+
+    -- Minimap Tooltip
+    L["MINIMAP_TITLE"] = "|cff66ff66CrittersBoard|r"
+    L["MINIMAP_HINT_L"] = "|cffaaaaaaLinks-Klick: Fenster An/Aus|r"
+    L["MINIMAP_HINT_R"] = "|cffaaaaaaRechts-Klick: Einstellungen|r"
 end
 
 CB.L = L
