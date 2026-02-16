@@ -130,9 +130,9 @@ function CB:ProcessNextAlert()
 
   -- 3. NEU: Titan Panel nur aktualisieren, wenn dieser Alert dran ist
   -- Wir nehmen die Daten aus dem Rekord, der den Alert ausgelöst hat
-  if data.rec and CB.UpdateLDB then
+  --if data.rec and CB.UpdateLDB then
     CB:UpdateLDB(data.rec)
-  end
+  --end
 
   C_Timer.After(1.5, function()
     CB:ProcessNextAlert()

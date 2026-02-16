@@ -54,7 +54,8 @@ function CB:PlayAlert(listKey, rec, isGlobal)
 	  CB:QueueAlert({
 		soundPath = soundPath,
 		msg = msg,
-		color = color
+		color = color,
+		rec = rec
 	  })
 	end
 

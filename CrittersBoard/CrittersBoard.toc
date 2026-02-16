@@ -2,7 +2,7 @@
 ## Title: CrittersBoard
 ## Notes: Top Hits & Heals Board
 ## Author: You
-## Version: 0.5.5.1
+## Version: 0.5.5.2
 ## SavedVariables: CrittersBoardDB
 
 libs\Libs.xml
