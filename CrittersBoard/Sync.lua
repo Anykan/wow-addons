@@ -25,10 +25,10 @@ local function EncodeRecord(rec)
         tostring(rec.ts or time()),
         crit,
         CB:SafeStr(rec.destName or "Unbekannt"),
-        tostring(rec.spellId or 0),   -- NEU
-        tostring(rec.mapID or 0),     -- NEU
-        tostring(rec.coordX or 0),    -- NEU
-        tostring(rec.coordY or 0),    -- NEU
+        tostring(rec.spellId or 0),
+        tostring(rec.mapID or 0),
+        tostring(rec.coordX or 0),
+        tostring(rec.coordY or 0),
     }, ",")
 end
 
@@ -38,6 +38,7 @@ local function GetTableByKind(kind)
     if kind == "O" then return CB.DB.overkill end
     if kind == "S" then return CB.DB.spells end
     if kind == "HS" then return CB.DB.healSpells end
+	if kind == "DT" then return CB.DB.damageTaken end
     return nil
 end
 
@@ -48,7 +49,7 @@ local function MakeChunks(kind)
     local chunks = {}
     local current = ""
 
-    -- Geht durch ALLE Datensätze (kein Limit, wie besprochen)
+    -- Geht durch ALLE Datensätze (kein Limit)
     for i = 1, #tbl.records do
         local line = EncodeRecord(tbl.records[i])
         local add = (current == "") and line or (";" .. line)
@@ -121,7 +122,7 @@ local function OnAddonMessage(prefix, text, channel, sender)
     if cmd == "SNAP_REQ" then
         if CB.DEBUG_MODE then CB:DLog(9, "SNAP_REQ empfangen - starte Chunk-Antwort") end
         if CB.DB then
-            local types = {"D", "H", "O", "S", "HS"}
+            local types = {"D", "H", "O", "S", "HS", "DT"}
             for _, t in ipairs(types) do
                 local chunks = MakeChunks(t)
                 for _, payload in ipairs(chunks) do
@@ -157,7 +158,15 @@ local function OnAddonMessage(prefix, text, channel, sender)
     end
 
     local tbl = GetTableByKind(listKind)
-    if not tbl or not payload then return end
+    -- SpamSchutz-Filters:
+	if not tbl then
+		if not CB.UpdateWarned then
+			-- Nutzt jetzt den Text aus der Locales.lua
+			CB:Print(string.format(CB.L["UPDATE_NEEDED"], tostring(listKind)))
+			CB.UpdateWarned = true 
+		end
+		return 
+	end
 
     -- Zerlegen der Chunks (Semikolon trennt Rekorde)
     for recStr in string.gmatch(payload, "([^;]+)") do

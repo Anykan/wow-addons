@@ -19,6 +19,8 @@ L["CAT_H"] = "Divine Miracles"
 L["CAT_O"] = "Overkill"
 L["CAT_S"] = "Masterful Strikes"
 L["CAT_HS"] = "Sacred Records"
+L["CAT_DT"] = "Hall of Pain"
+
 L["LABEL_TOP"] = "Top"
 L["LABEL_CHOOSE_LIMIT"] = "Anzahl:"
 	
@@ -70,6 +72,9 @@ L["MINIMAP_TITLE"] = "|cff66ff66CrittersBoard|r"
 L["MINIMAP_HINT_L"] = "|cffaaaaaaLeft-Click: Toggle Window|r"
 L["MINIMAP_HINT_R"] = "|cffaaaaaaRight-Click: Settings|r"
 
+L["ALERT_MSG_DT"] = "|TInterface\\Icons\\Ability_Warrior_EndlessRage:0|t OUCH! %s took a massive %d hit from %s!"
+L["UPDATE_NEEDED"] = "|cffff3333Update Required:|r You are receiving data for a new category (%s). Please update CrittersBoard!"
+
 -- =========================================================
 -- DEUTSCH
 -- =========================================================
@@ -81,6 +86,7 @@ if GetLocale() == "deDE" then
 	L["CAT_O"] = "Gnadenstoß"
 	L["CAT_S"] = "Meisterhafte Schläge"
 	L["CAT_HS"] = "Heilige Rekorde"
+	L["CAT_DT"] = "Halle des Schmerzes"
 
 	L["LABEL_TOP"] = "Top"
     L["LABEL_CHOOSE_LIMIT"] = "Anzahl:"
@@ -130,6 +136,9 @@ if GetLocale() == "deDE" then
     L["MINIMAP_TITLE"] = "|cff66ff66CrittersBoard|r"
     L["MINIMAP_HINT_L"] = "|cffaaaaaaLinks-Klick: Fenster An/Aus|r"
     L["MINIMAP_HINT_R"] = "|cffaaaaaaRechts-Klick: Einstellungen|r"
+	
+	L["ALERT_MSG_DT"] = "|TInterface\\Icons\\Ability_Warrior_EndlessRage:0|t AUTSCH! %s hat %d Schaden von %s kassiert!"
+	L["UPDATE_NEEDED"] = "|cffff3333Update benötigt:|r Du empfängst Daten für eine neue Kategorie (%s). Bitte aktualisiere CrittersBoard!"
 end
 
 CB.L = L

@@ -7,7 +7,6 @@ local UI = CB.UI
 UI.lines = UI.lines or {}
 UI.lineButtons = UI.lineButtons or {}
 
--- Design-Konstanten aus v0.4.3.1
 local MIN_W, MIN_H = 50, 50
 local MAX_W, MAX_H = 700, 1200
 local LINE_H = 16
@@ -33,10 +32,16 @@ function UI:ShowTooltip(tooltip, rec)
   local r, g, b = CB:GetClassColorFromClassFile(rec.classFile)
   tooltip:AddDoubleLine("Spieler:", CB:ColorText(rec.player or "???", r, g, b))
 
-  -- 3. NEU: Ziel (Target)
-  -- Wir prüfen ob destName vorhanden ist, sonst "Unbekannt"
+-- 3. Dynamisches Label (Ziel oder Verursacher)
+  local label = CB.L["TOOLTIP_TARGET"] or "Ziel:"
+  
+  -- Wenn die aktuelle Liste "DT" (Halle des Schmerzes) ist, Text ändern
+  if CB.DB and CB.DB.ui and CB.DB.ui.base == "DT" then
+      label = "Verursacher:"
+  end
+  
   local targetName = rec.destName or "Unbekannt"
-  tooltip:AddDoubleLine("Ziel:", "|cffffffff" .. targetName .. "|r")
+  tooltip:AddDoubleLine(label, "|cffffffff" .. targetName .. "|r")
   
   -- 4. Betrag
   local color = rec.isCrit and "|cffff3333" or "|cffffffff"
@@ -207,6 +212,7 @@ function UI:Refresh()
   elseif base == "O" then tbl = CB.DB.overkill
   elseif base == "S" then tbl = CB.DB.spells
   elseif base == "HS" then tbl = CB.DB.healSpells
+  elseif base == "DT" then tbl = CB.DB.damageTaken
   end
 
 -- TITEL DYNAMISCH ZUSAMMENBAUEN

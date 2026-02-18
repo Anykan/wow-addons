@@ -86,6 +86,7 @@ function CB:WipeDatabase()
     CrittersBoardDB.overkill = { records = {}, seen = {}, revision = 0 }
     CrittersBoardDB.spells = { records = {}, bySpell = {}, revision = 0 }
     CrittersBoardDB.healSpells = { records = {}, bySpell = {}, revision = 0 }
+	CrittersBoardDB.damageTaken = { records = {}, seen = {}, revision = 0 }
     CrittersBoardDB.ui = savedUI
 
     -- 4. WICHTIG: Die globale Variable nochmal explizit setzen
@@ -101,15 +102,15 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
         if arg1 ~= "CrittersBoard" then return end
 
         CrittersBoardDB = CrittersBoardDB or {}
-        local currentVersion = CrittersBoardDB.formatVersion
-        CB.DB = CrittersBoardDB
-        
-        if CB.InitDB then CB:InitDB() end
-		
-		-- === NEU: Initialisierung für TitanPanel & Minimap-Icon ===
-        if CB.InitLDB then 
-            CB:InitLDB() 
-        end
+		local currentVersion = CrittersBoardDB.formatVersion
+		CB.DB = CrittersBoardDB
+
+		-- NEU: Sicherstellen, dass damageTaken existiert, auch ohne Wipe
+		if CB.DB then
+			CB.DB.damageTaken = CB.DB.damageTaken or { records = {}, seen = {}, revision = 0 }
+		end
+
+		if CB.InitDB then CB:InitDB() end
         -- =========================================================
 		
         -- Debug: Versionsstand

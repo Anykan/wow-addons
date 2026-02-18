@@ -22,6 +22,11 @@ StaticPopupDialogs["CB_CONFIRM_CLEAR"] = {
       CB.DB.overkill.records = {}
       if CB.DB.spells then CB.DB.spells.records = {} end
       if CB.DB.healSpells then CB.DB.healSpells.records = {} end
+	  if CB.DB.damageTaken then 
+        CB.DB.damageTaken.records = {} 
+        CB.DB.damageTaken.seen = {} 
+      end	  
+	  
       CB:Print(CB.L["MSG_LIST_CLEARED"] or "Listen gelöscht.")
       if UI.Refresh then UI:Refresh() end
     end
@@ -71,6 +76,7 @@ function UI:CreateSettings()
           { text = CB.L["CAT_O"] or "Overkill", val = "O" },
           { text = CB.L["CAT_S"] or "Angriffe", val = "S" },
           { text = CB.L["CAT_HS"] or "Heil-Zauber", val = "HS" },
+		  { text = CB.L["CAT_DT"] or "Halle des Schmerzes", val = "DT" },
       }
       for _, o in ipairs(opts) do
           local info = UIDropDownMenu_CreateInfo()

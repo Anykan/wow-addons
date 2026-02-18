@@ -15,6 +15,7 @@ local modeIcons = {
     ["S"]  = "Interface\\Icons\\Ability_MeleeDamage",
     ["HS"] = "Interface\\Icons\\Spell_Holy_SurgeOfLight",
     ["O"]  = "Interface\\Icons\\Spell_Shadow_DeathPact",
+	["DT"] = "Interface\\Icons\\Ability_Warrior_EndlessRage",
 }
 
 -- =========================================================
@@ -56,10 +57,12 @@ CB.LDB_Object = LDB:NewDataObject("CrittersBoard", {
                     local current = CB.DB.ui.base or "D"
                     local nextMode = "D"
                     if current == "D" then nextMode = "H"
-                    elseif current == "H" then nextMode = "S"
-                    elseif current == "S" then nextMode = "HS"
-                    elseif current == "HS" then nextMode = "O"
-                    else nextMode = "D" end
+					elseif current == "H" then nextMode = "S"
+					elseif current == "S" then nextMode = "HS"
+					elseif current == "HS" then nextMode = "O"
+					elseif current == "O" then nextMode = "DT" -- NEU
+					elseif current == "DT" then nextMode = "D" -- NEU
+					else nextMode = "D" end
                     
                     CB.DB.ui.base = nextMode
                     CB.LDB_Object.icon = modeIcons[nextMode] or modeIcons["D"]
@@ -127,7 +130,14 @@ function CB:InitLDB()
         -- Letzten Rekord suchen
         local lastRec = nil
         local latestTS = 0
-        local categories = {CB.DB.damage, CB.DB.heal, CB.DB.overkill, CB.DB.spells, CB.DB.healSpells}
+        local categories = {
+			CB.DB.damage, 
+			CB.DB.heal, 
+			CB.DB.overkill, 
+			CB.DB.spells, 
+			CB.DB.healSpells, 
+			CB.DB.damageTaken
+		}
         
         for _, cat in ipairs(categories) do
             if cat and cat.records then

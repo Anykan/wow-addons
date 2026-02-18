@@ -43,6 +43,10 @@ function CB:PlayAlert(listKey, rec, isGlobal)
 		  soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\heal2.ogg"
 		  msg = string.format(CB.L["ALERT_MSG_HS"], pName, sName, amount)
 		  color = { r = 0.2, g = 0.8, b = 1 }
+		elseif listKey == "DT" then
+          soundPath = "Interface\\AddOns\\CrittersBoard\\sounds\\survive.ogg" 
+          msg = string.format(CB.L["ALERT_MSG_DT"], pName, amount, sName)
+          color = { r = 1, g = 0.3, b = 0.3 } 
 		end
 	  else
 		-- Lokaler Rekord
@@ -86,6 +90,7 @@ function CB:InitDB()
   CB.DB.overkill = CB.DB.overkill or { records = {}, seen = {}, revision = 0 }
   CB.DB.spells = CB.DB.spells or { records = {}, bySpell = {}, revision = 0 }
   CB.DB.healSpells = CB.DB.healSpells or { records = {}, bySpell = {}, revision = 0 }
+  CB.DB.damageTaken = CB.DB.damageTaken or { records = {}, seen = {}, revision = 0 }
 end
 
 -- =========================================================
@@ -227,11 +232,7 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
     table.sort(tbl.records, function(a, b) return (a.amount or 0) > (b.amount or 0) end)
     
     -- Alarm auslösen (Sound/Text)
-    local isNewTop1 = (tbl.records[1] and tbl.records[1].amount == amount)
-    
-    if isNewTop1 then
-        CB:PlayAlert("HS", rec, true) -- Globaler Alarm für alle
-    end
+    CB:PlayAlert("HS", rec, true) -- Globaler Alarm für alle
     
     return true, rec
   end
