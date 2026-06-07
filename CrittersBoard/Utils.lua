@@ -10,15 +10,15 @@ end
 
 function CB:SafeStr(s)
   if not s then return "" end
-  -- Entfernt Trennzeichen, um den Sync-String nicht zu brechen
-  return tostring(s):gsub("|", "/")
+  -- Entfernt alle Sync-Trennzeichen (|=Farbcode, ,=Feld, ;=Datensatz)
+  return tostring(s):gsub("[|,;]", " ")
 end
 
 function CB:DLog(id, val1, val2, val3)
     local logs = {
         [1] = "|cffffff00DEBUG Swing 1:|r Schaden: " .. tostring(val1 or "0"),
         [2] = "DEBUG: Core - FEHLER 2: RequestSnapshot Funktion fehlt!",
-		[3] = "|cff00ff00DEBUG Spell: 3|r " .. tostring(arg13) .. " (ID: " .. tostring(arg12) .. ") -> Schaden: " .. tostring(arg15),
+		[3] = "|cff00ff00DEBUG Spell: 3|r " .. tostring(val1 or "?") .. " (ID: " .. tostring(val2 or "?") .. ") -> Schaden: " .. tostring(val3 or "?"),
 		[4] = "|cff00ffffDEBUG Queue: 4|r Aktuelle Warteschlange: " .. tostring(val1 or "0") .. " Einträge.",
 		[5] = "|cff00ff00DEBUG Sync: 5|r Daten empfangen von: " .. tostring(val1 or "Unbekannt") .. " (Kanal: " .. tostring(val2 or "??") .. ")",
 		[7] = "|cffff0000DEBUG Sync-OUT 7:|r Sende Daten-Typ: " .. tostring(val1 or "??"),
@@ -129,7 +129,7 @@ function CB:ProcessNextAlert()
   end
 
   -- 3. NEU: Titan Panel nur aktualisieren, wenn dieser Alert dran ist
-  CB:UpdateLDB(data.rec)
+  if CB.UpdateLDB then CB:UpdateLDB(data.rec) end
 
   C_Timer.After(1.5, function()
     CB:ProcessNextAlert()

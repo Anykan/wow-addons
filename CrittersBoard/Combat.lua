@@ -12,6 +12,14 @@ local function SendRecord(kind, rec)
   CB:SendEvent(kind, rec)
 end
 
+-- EVT nur senden wenn Record in den angezeigten Top 20 liegt
+-- S und HS haben kein fixes Limit → immer true (nicht über diese Funktion prüfen)
+local function IsInDisplayTop(tbl, rec, limit)
+  limit = limit or 20
+  if #tbl.records < limit then return true end
+  return rec.amount >= tbl.records[limit].amount
+end
+
 function CB:OnCombatLog()
   local info = {CombatLogGetCurrentEventInfo()} -- Event-Daten einmal sammeln
   local subevent = info[2]
@@ -56,9 +64,11 @@ function CB:OnCombatLog()
       
       -- Rekord in die DT-Tabelle (Halle des Schmerzes) schreiben
       local added, rec = CB:AddRecord(CB.DB.damageTaken, destName or "Ich", spellName, amount, ts, isCrit, myClass or "UNKNOWN", "local", "DT", safeSourceName, spellId, mapID, posX, posY)
-      
+
       if added and rec then
-        SendRecord("DT", rec) -- Deinen Rekord an die Gilde senden
+        if IsInDisplayTop(CB.DB.damageTaken, rec) then
+          SendRecord("DT", rec)
+        end
         RefreshUI()
       end
     end
@@ -91,7 +101,9 @@ function CB:OnCombatLog()
       -- 1. Hauptliste: Schaden (D)
       local added, rec = CB:AddRecord(CB.DB.damage, sourceName, spellName, amount, ts, isCrit, classFile, "local", "D", destName, spellId, mapID, posX,posY)
       if added and rec then
-        SendRecord("D", rec)
+        if IsInDisplayTop(CB.DB.damage, rec) then
+          SendRecord("D", rec)
+        end
         RefreshUI()
       end
 
@@ -99,7 +111,6 @@ function CB:OnCombatLog()
       
       local addedS, recS = CB:AddSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName, spellId, mapID, posX, posY)
       if addedS and recS then
-	    recS.destGUID = destGUID
         SendRecord("S", recS)
         RefreshUI()
       end
@@ -110,8 +121,9 @@ function CB:OnCombatLog()
     if ok and ok > 0 then
       local added, rec = CB:AddRecord(CB.DB.overkill, sourceName, spellName, ok, ts, isCrit, classFile, "local", "O", destName, spellId, mapID, posX,posY)
       if added and rec then
-        rec.destGUID = destGUID
-        SendRecord("O", rec)
+        if IsInDisplayTop(CB.DB.overkill, rec) then
+          SendRecord("O", rec)
+        end
         RefreshUI()
       end
     end
@@ -121,22 +133,22 @@ function CB:OnCombatLog()
   -- =========================
 
   elseif subevent == "SPELL_HEAL" then
-    local spellId, spellName, _, amount, overkill, _, critical = select(12, unpack(info))
+    local spellId, spellName, _, amount, _, _, critical = select(12, unpack(info))
     local isCrit = critical and true or false
 
     if amount and amount > 0 then
       -- 1. Hauptliste: Heilung (H) - Top 10/100
       local added, rec = CB:AddRecord(CB.DB.heal, sourceName, spellName, amount, ts, isCrit, classFile, "local", "H", destName, spellId, mapID, posX,posY)
       if added and rec then
-        rec.destGUID = destGUID
-        SendRecord("H", rec)
-		RefreshUI()
+        if IsInDisplayTop(CB.DB.heal, rec) then
+          SendRecord("H", rec)
+        end
+        RefreshUI()
       end
 
       -- 2. Best-of-Spells: Heilung (HS) 
       local addedHS, recHS = CB:AddHealSpellBest(sourceName, spellName, amount, ts, isCrit, classFile, "local", destName, spellId, mapID, posX,posY)
       if addedHS and recHS then
-        recHS.destGUID = destGUID
         SendRecord("HS", recHS)
 		RefreshUI()
       end

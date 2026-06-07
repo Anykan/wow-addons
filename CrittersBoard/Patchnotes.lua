@@ -1,0 +1,81 @@
+CrittersBoard = CrittersBoard or {}
+local CB = CrittersBoard
+
+-- =========================================================
+-- PATCHNOTES TEXTE (pro Version, EN + DE)
+-- =========================================================
+
+CB.PATCHNOTES = {}
+
+CB.PATCHNOTES["0.6"] = {
+    en = {
+        title = "CrittersBoard v0.6 — What's New",
+        lines = {
+            "|cffFFD700Coordinator-Sync (completely new)|r",
+            "• Automatic coordinator election — the player with the longest active session takes the lead.",
+            "• On login the coordinator sends a full snapshot to all guild members.",
+            "• After receiving the snapshot, you send back your own records (delta push) — no more data loss when players were offline.",
+            "• Coordinator role is handed off gracefully on logout.",
+            "• No more manual sync button needed.",
+            " ",
+            "|cffFFD700Version System|r",
+            "• Two separate version numbers: DB version (format/wipe) and protocol version (sync).",
+            "• When a newer protocol version is detected, outgoing sync stops immediately and an update notice is shown.",
+            " ",
+            "|cffFFD700Lists & Display|r",
+            "• Hall of Destruction, Divine Miracles, Overkill, Hall of Pain: fixed |cffFFFFFFTop 20|r limit.",
+            "• Masterful Strikes & Sacred Records: dynamic, grows with every new spell best.",
+            "• Limit dropdown removed from settings.",
+            " ",
+            "|cffFFD700Sync Efficiency|r",
+            "• EVT (live record) is only sent when the hit actually enters the Top 20.",
+            "• No snapshot sent when you are the only player online.",
+            "• Spell name is no longer transmitted — reconstructed client-side via GetSpellInfo.",
+            " ",
+            "|cffFFD700Spell Grouping|r",
+            "• Spells are grouped by name — Fireball Rank 1–8 appears as one entry with the highest value ever hit.",
+            " ",
+            "|cffFFD700UI Cleanup|r",
+            "• Sync checkbox and sync button removed from settings.",
+            "• Dead code cleaned up.",
+            " ",
+            "|cffFFD700Info Tooltip|r",
+            "• New ? button shows a description for the active category (EN + DE).",
+        },
+    },
+    de = {
+        title = "CrittersBoard v0.6 — Was ist neu",
+        lines = {
+            "|cffFFD700Coordinator-Sync (komplett neu)|r",
+            "• Automatische Coordinator-Wahl — der Spieler mit der längsten aktiven Session übernimmt die Leitung.",
+            "• Beim Einloggen sendet der Coordinator automatisch einen Snapshot an alle Gildenmitglieder.",
+            "• Nach dem Snapshot sendest du deine eigenen Rekorde zurück (Delta-Push) — kein Datenverlust mehr wenn Spieler offline waren.",
+            "• Coordinator-Rolle wird beim Ausloggen sauber weitergegeben.",
+            "• Kein manueller Sync-Button mehr nötig.",
+            " ",
+            "|cffFFD700Versionssystem|r",
+            "• Zwei getrennte Versionsnummern: DB-Version (Format/Wipe) und Protokoll-Version (Sync).",
+            "• Wird eine neuere Protokollversion erkannt, stoppt der ausgehende Sync sofort und eine Update-Meldung erscheint.",
+            " ",
+            "|cffFFD700Listen & Anzeige|r",
+            "• Halle der Zerstörung, Göttliche Wunder, Gnadenstoß, Halle des Schmerzes: fest auf |cffFFFFFFTop 20|r begrenzt.",
+            "• Meisterhafte Schläge & Heilige Rekorde: dynamisch, wächst mit jedem neuen Zauber-Best.",
+            "• Limit-Dropdown aus den Einstellungen entfernt.",
+            " ",
+            "|cffFFD700Sync-Effizienz|r",
+            "• EVT (Echtzeit-Rekord) wird nur noch gesendet wenn der Treffer wirklich in die Top 20 kommt.",
+            "• Kein Snapshot-Versand wenn du alleine online bist.",
+            "• Zaubername wird nicht mehr übertragen — wird clientseitig per GetSpellInfo rekonstruiert.",
+            " ",
+            "|cffFFD700Spell-Gruppierung|r",
+            "• Zauber werden nach Namen gruppiert — Feuerball Rang 1–8 erscheint als ein Eintrag mit dem höchsten je erreichten Wert.",
+            " ",
+            "|cffFFD700UI-Bereinigung|r",
+            "• Sync-Checkbox und Sync-Button aus den Einstellungen entfernt.",
+            "• Toter Code aufgeräumt.",
+            " ",
+            "|cffFFD700Info-Tooltip|r",
+            "• Neuer ?-Button zeigt eine Beschreibung der aktuellen Kategorie (EN + DE).",
+        },
+    },
+}
