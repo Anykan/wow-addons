@@ -109,56 +109,6 @@ CB.LDB_Object = LDB:NewDataObject("CrittersBoard", {
 })
 
 -- =========================================================
--- INITIALISIERUNG
--- =========================================================
-function CB:InitLDB()
-    if LDBIcon and CB.DB then
-        -- Sicherstellen, dass die UI-Tabelle existiert
-        CB.DB.ui = CB.DB.ui or {}
-        -- Sicherstellen, dass die Minimap-Einstellungen existieren
-        CB.DB.ui.minimap = CB.DB.ui.minimap or { hide = false, minimapPos = 220 }
-        
-        -- Registrierung beim Icon-System
-        if not LDBIcon:IsRegistered("CrittersBoard") then
-            LDBIcon:Register("CrittersBoard", CB.LDB_Object, CB.DB.ui.minimap)
-        end
-        
-        -- Icon auf die aktuelle Kategorie setzen
-        local current = CB.DB.ui.base or "D"
-        CB.LDB_Object.icon = modeIcons[current] or modeIcons["D"]
-
-        -- Letzten Rekord suchen
-        local lastRec = nil
-        local latestTS = 0
-        local categories = {
-			CB.DB.damage, 
-			CB.DB.heal, 
-			CB.DB.overkill, 
-			CB.DB.spells, 
-			CB.DB.healSpells, 
-			CB.DB.damageTaken
-		}
-        
-        for _, cat in ipairs(categories) do
-            if cat and cat.records then
-                for _, rec in ipairs(cat.records) do
-                    if rec.ts and rec.ts > latestTS then
-                        latestTS = rec.ts
-                        lastRec = rec
-                    end
-                end
-            end
-        end
-
-        if lastRec then
-            CB:UpdateLDB(lastRec)
-        else
-            CB.LDB_Object.text = "CB: " .. (CB.L["LDB_NO_DATA"] or "Keine Daten")
-        end
-    end
-end
-
--- =========================================================
 -- UPDATE LOGIK
 -- =========================================================
 function CB:UpdateLDB(rec)
@@ -166,9 +116,8 @@ function CB:UpdateLDB(rec)
     CB.LastGlobalRecord = rec
 
     local sName = "???"
-    if rec.spellId then
-        local name = GetSpellInfo(rec.spellId)
-        sName = name or rec.spell or "???"
+    if rec.spellId and rec.spellId > 0 then
+        sName = GetSpellInfo(rec.spellId) or rec.spell or "???"
     elseif rec.spell then
         sName = rec.spell
     end

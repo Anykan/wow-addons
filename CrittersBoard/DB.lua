@@ -70,19 +70,19 @@ function CB:InitDB()
   CrittersBoardDB = CrittersBoardDB or {}
   CB.DB = CrittersBoardDB
 
-  -- ALTE WIPELOGIK ENTFERNT (Das macht jetzt die Core.lua!)
+  -- Formatversion stempeln falls frische DB (SavedVariables neu)
+  if CB.DB.formatVersion == nil then
+    CB.DB.formatVersion = CB.DB_VERSION
+  end
 
   -- UI Defaults (Diese bleiben hier, das ist gut so)
   CB.DB.ui = CB.DB.ui or {}
   if CB.DB.ui.base == nil then CB.DB.ui.base = "D" end
-  if CB.DB.ui.limit == nil then CB.DB.ui.limit = 10 end
   if CB.DB.ui.scale == nil then CB.DB.ui.scale = 1.0 end
   if CB.DB.ui.locked == nil then CB.DB.ui.locked = false end
   if CB.DB.ui.isOpen == nil then CB.DB.ui.isOpen = false end
   if CB.DB.ui.alertsEnabled == nil then CB.DB.ui.alertsEnabled = true end
-  if CB.DB.ui.shareAfterSync == nil then CB.DB.ui.shareAfterSync = true end
-  if CB.DB.ui.disableSync == nil then CB.DB.ui.disableSync = false end
-  if CB.DB.ui.alertLimit == nil then CB.DB.ui.alertLimit = 5 end
+if CB.DB.ui.alertLimit == nil then CB.DB.ui.alertLimit = 5 end
   
   -- Tabellen Initialisierung (Nur erstellen, falls sie fehlen)
   CB.DB.damage = CB.DB.damage or { records = {}, seen = {}, revision = 0 }
@@ -105,7 +105,11 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source,
   local recordId = string.format("%s_%d_%d", player, amount, ts)
   tbl.seen = tbl.seen or {}
   if tbl.seen[recordId] then return false end
-  tbl.seen[recordId] = true
+  tbl.seen[recordId] = ts
+
+  -- Vor dem Einfügen prüfen ob Liste voll war und was der schlechteste Wert war
+  local listWasFull = #tbl.records >= 100
+  local worstBefore = listWasFull and tbl.records[#tbl.records].amount or 0
 
   local rec = {
     player = player,
@@ -130,6 +134,11 @@ function CB:AddRecord(tbl, player, spell, amount, ts, isCrit, classFile, source,
 
   tbl.revision = (tbl.revision or 0) + 1
 
+  -- Record wurde rausgeworfen → nicht senden, kein Alert
+  if listWasFull and amount < worstBefore then
+    return false
+  end
+
   -- SOUND LOGIK: Nur wenn der neue Wert den alten Platz 1 schlägt
   if amount > oldTop1Amount then
     CB:PlayAlert(listKey, rec, true)
@@ -139,8 +148,8 @@ end
 
 function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, destName, spellId, mapID, posX, posY)
   if not CB.DB or not CB.DB.spells then return false end
-  
-  local key = tostring(spell)
+
+  local key = (spellId and spellId > 0 and GetSpellInfo(spellId)) or spell
   CB.DB.spells.bySpell = CB.DB.spells.bySpell or {}
   local oldBest = CB.DB.spells.bySpell[key]
   local oldAmount = oldBest and oldBest.amount or 0
@@ -155,17 +164,18 @@ function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, d
       isCrit = isCrit,
       classFile = classFile,
       destName = destName,
-	  spellId   = spellId or 0,
+      spellId   = spellId or 0,
       mapID     = mapID or 0,
       coordX    = posX or 0,
       coordY    = posY or 0
     }
     CB.DB.spells.bySpell[key] = rec
-    
+
     -- Sync-Liste (die Top-Liste der Zauber) aktualisieren
     local found = false
     for i, r in ipairs(CB.DB.spells.records) do
-        if r.spell == spell then
+        local existingKey = (r.spellId and r.spellId > 0 and GetSpellInfo(r.spellId)) or r.spell
+        if existingKey == key then
             CB.DB.spells.records[i] = rec
             found = true
             break
@@ -175,7 +185,7 @@ function CB:AddSpellBest(player, spell, amount, ts, isCrit, classFile, source, d
     
     -- Sortieren, damit wir wissen, wer Platz 1 ist
     table.sort(CB.DB.spells.records, SortDesc)
-    CB.DB.spells.revision = CB.DB.spells.revision + 1
+    CB.DB.spells.revision = (CB.DB.spells.revision or 0) + 1
 
     -- =========================================================
     -- ALERT LOGIK für S (Angriffe)
@@ -194,13 +204,13 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
   tbl.records = tbl.records or {}
   tbl.bySpell = tbl.bySpell or {}
   
-  local key = tostring(spell)
+  local key = (spellId and spellId > 0 and GetSpellInfo(spellId)) or spell
   local oldBest = tbl.bySpell[key]
   local oldAmount = oldBest and oldBest.amount or 0
 
   if amount > oldAmount then
     local rec = {
-	  player    = player,
+      player    = player,
       spell     = spell,
       amount    = amount,
       ts        = ts,
@@ -213,11 +223,12 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
       coordY    = posY or 0
     }
     tbl.bySpell[key] = rec
-    
+
     -- Bestehenden Eintrag in der Anzeige-Liste suchen und ersetzen
     local found = false
     for i, r in ipairs(tbl.records) do
-        if r.spell == spell then
+        local existingKey = (r.spellId and r.spellId > 0 and GetSpellInfo(r.spellId)) or r.spell
+        if existingKey == key then
             tbl.records[i] = rec
             found = true
             break
@@ -231,9 +242,11 @@ function CB:AddHealSpellBest(player, spell, amount, ts, isCrit, classFile, sourc
     -- Sortieren nach Amount
     table.sort(tbl.records, function(a, b) return (a.amount or 0) > (b.amount or 0) end)
     
+    tbl.revision = (tbl.revision or 0) + 1
+
     -- Alarm auslösen (Sound/Text)
     CB:PlayAlert("HS", rec, true) -- Globaler Alarm für alle
-    
+
     return true, rec
   end
   return false

@@ -8,33 +8,6 @@ local WIDTH = 320
 local HEIGHT = 400
 local PAD_X = 20
 
--- =========================================================
--- Bestätigungs-Dialog für das Löschen
--- =========================================================
-StaticPopupDialogs["CB_CONFIRM_CLEAR"] = {
-  text = "Möchtest du wirklich alle Listen von CrittersBoard löschen?",
-  button1 = CB.L["YES"] or "Ja",
-  button2 = CB.L["NO"] or "Nein",
-  OnAccept = function()
-    if CB.DB then
-      CB.DB.damage.records = {}
-      CB.DB.heal.records = {}
-      CB.DB.overkill.records = {}
-      if CB.DB.spells then CB.DB.spells.records = {} end
-      if CB.DB.healSpells then CB.DB.healSpells.records = {} end
-	  if CB.DB.damageTaken then 
-        CB.DB.damageTaken.records = {} 
-        CB.DB.damageTaken.seen = {} 
-      end	  
-	  
-      CB:Print(CB.L["MSG_LIST_CLEARED"] or "Listen gelöscht.")
-      if UI.Refresh then UI:Refresh() end
-    end
-  end,
-  timeout = 0,
-  whileDead = true,
-  hideOnEscape = true,
-}
 
 function UI:CreateSettings()
   if UI.settingsFrame then return end
@@ -100,49 +73,7 @@ function UI:CreateSettings()
   local currentBase = CB.DB.ui.base or "D"
   UIDropDownMenu_SetText(catDrop, CB.L["CAT_"..currentBase] or currentBase)
 
-  y = y + 40 
-
-  -- =========================================================
-  -- 2. Dropdown: Limit auswählen (10, 100)
-  -- =========================================================
-  local limLabel = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  limLabel:SetPoint("TOPLEFT", PAD_X, -y)
-  limLabel:SetText(CB.L["LABEL_CHOOSE_LIMIT"] or "Anzahl:")
-
-  local limDrop = CreateFrame("Frame", "CB_LimitDrop", s, "UIDropDownMenuTemplate")
-  limDrop:SetPoint("TOPLEFT", PAD_X + 90, -y + 8)
-  UIDropDownMenu_SetWidth(limDrop, 150)
-
-  UIDropDownMenu_Initialize(limDrop, function()
-	  local opts = { 
-          { text = (CB.L["LABEL_TOP"] or "Top") .. " 10", val = 10 }, 
-          { text = (CB.L["LABEL_TOP"] or "Top") .. " 25", val = 25 }, 
-          { text = (CB.L["LABEL_TOP"] or "Top") .. " 50", val = 50 }, 
-          { text = (CB.L["LABEL_TOP"] or "Top") .. " 100", val = 100 } 
-      }
-      for _, o in ipairs(opts) do
-          local info = UIDropDownMenu_CreateInfo()
-          info.text = o.text
-          info.value = o.val
-          info.func = function(button)
-              CB.DB.ui.limit = button.value
-              UIDropDownMenu_SetSelectedValue(limDrop, button.value)
-              UIDropDownMenu_SetText(limDrop, o.text)
-              if UI.scrollFrame then
-                  UI.scrollFrame:SetVerticalScroll(0)
-              end
-              if UI.Refresh then UI:Refresh() end
-          end
-          info.checked = (CB.DB.ui.limit == o.val)
-          UIDropDownMenu_AddButton(info)
-      end
-  end)
-  
-  -- Initialer Text beim Öffnen der Settings
-  local currentLimit = CB.DB.ui.limit or 10
-  UIDropDownMenu_SetText(limDrop, (CB.L["LABEL_TOP"] or "Top") .. " " .. currentLimit)
-
-  y = y + 45
+  y = y + 40
 
   -- =========================================================
   -- Slider: Skalierung
@@ -205,26 +136,6 @@ function UI:CreateSettings()
   end)
   y = y + 35
 
-  -- Disable Sync
-  local syncOffCB = CreateFrame("CheckButton", "CB_SyncOffCB", s, "ChatConfigCheckButtonTemplate")
-  syncOffCB:SetPoint("TOPLEFT", PAD_X, -y)
-  syncOffCB.Text:SetText("|cffff3333" .. (CB.L["OPT_SYNC_DISABLED"] or "Sync aus") .. "|r")
-  syncOffCB:SetChecked(CB.DB.ui.disableSync)
-  syncOffCB:SetScript("OnClick", function(self) CB.DB.ui.disableSync = self:GetChecked() end)
-  y = y + 55
-
-  -- =========================================================
-  -- Buttons
-  -- =========================================================
-  local btnWidth = (WIDTH - (PAD_X * 2) - 10) / 2
-
-  local btnSync = CreateFrame("Button", nil, s, "UIPanelButtonTemplate")
-  btnSync:SetSize(btnWidth, 26)
-  btnSync:SetPoint("TOPLEFT", PAD_X, -y)
-  btnSync:SetText(CB.L["BTN_SYNC"] or "Sync")
-  btnSync:SetScript("OnClick", function()
-    if CB.RequestSnapshot then CB:RequestSnapshot(true) end
-  end)
   s:Hide()
 end
 

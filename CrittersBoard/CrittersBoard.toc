@@ -1,8 +1,8 @@
-## Interface: 11404
+## Interface: 11508
 ## Title: CrittersBoard
 ## Notes: Top Hits & Heals Board
 ## Author: You
-## Version: 0.5.6
+## Version: 0.6
 ## SavedVariables: CrittersBoardDB
 
 libs\Libs.xml
@@ -10,6 +10,7 @@ libs\Libs.xml
 Definitions.lua
 Utils.lua
 Locales.lua
+Patchnotes.lua
 DB.lua
 Sync.lua
 Core.lua
@@ -17,3 +18,4 @@ LDB_Provider.lua
 Combat.lua
 UI_Main.lua
 UI_Settings.lua
+UI_Patchnotes.lua

@@ -20,7 +20,7 @@ function UI:ShowTooltip(tooltip, rec)
   
   -- Zaubername live über ID auflösen (Spielsprache)
   local sName = "???"
-  if rec.spellId then
+  if rec.spellId and rec.spellId > 0 then
     local infoName = GetSpellInfo(rec.spellId)
     if infoName then sName = infoName else sName = "ID: "..rec.spellId end
   end
@@ -116,6 +116,33 @@ function UI:CreateMain()
     CB.DB.ui.pos.y = y
   end)
   
+-- Info Button (Fragezeichen)
+  local infoBtn = CreateFrame("Button", nil, f)
+  infoBtn:SetSize(22, 22)
+  infoBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 5, -1)
+  infoBtn:SetNormalTexture("Interface\\Common\\Help-i")
+  infoBtn:SetFrameLevel(f:GetFrameLevel() + 10)
+  infoBtn:EnableMouse(true)
+  
+  -- NACHHER: Dynamische Abfrage der Locales
+  infoBtn:SetScript("OnEnter", function(self)
+    local currentBase = CB.DB.ui.base or "D" -- Holt das Kürzel (D, H, etc.)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    
+    -- Nutzt L["CAT_D"] etc. als Überschrift (Zentrale Variable!)
+    local title = CB.L["CAT_" .. currentBase] or "Info"
+    GameTooltip:SetText(title)
+    
+    -- Nutzt L["DESC_D"] etc. für den Beschreibungstext (Weiß)
+    local desc = CB.L["DESC_" .. currentBase] or ""
+    GameTooltip:AddLine(desc, 1, 1, 1, true)
+    
+    GameTooltip:Show()
+  end)
+  
+  infoBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  UI.infoBtn = infoBtn
+  
   -- Titel v0.4.3.1 (Zentriert)
   UI.titleText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   UI.titleText:SetPoint("TOP", 0, -6)
@@ -153,8 +180,9 @@ function UI:CreateMain()
     UI.lines[i] = row
 
     local btn = CreateFrame("Button", nil, content)
-    btn:SetSize(300, LINE_H)
+    btn:SetHeight(LINE_H)
     btn:SetPoint("TOPLEFT", row)
+    btn:SetPoint("TOPRIGHT", content, "TOPRIGHT", 0, 0)
     btn:SetScript("OnEnter", function(self)
       if self.rec then
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -204,8 +232,9 @@ function UI:Refresh()
   if not CB.DB or not UI.frame or not UI.frame:IsShown() then return end
 
   local base = CB.DB.ui.base or "D"
-  local limit = CB.DB.ui.limit or 10
-  local modeKey = base .. limit -- Nur für die Überschrift aus den Locales
+  -- Limit: D/H/O/DT fix 20, S/HS dynamisch (alle Einträge)
+  local isSpellList = (base == "S" or base == "HS")
+  local limit = isSpellList and 100 or 20
   -- Liste bestimmen
   local tbl = CB.DB.damage
   if base == "H" then tbl = CB.DB.heal
@@ -215,10 +244,13 @@ function UI:Refresh()
   elseif base == "DT" then tbl = CB.DB.damageTaken
   end
 
--- TITEL DYNAMISCH ZUSAMMENBAUEN
+  -- TITEL DYNAMISCH ZUSAMMENBAUEN
   local catName = CB.L["CAT_" .. base] or base
-  local topLabel = CB.L["LABEL_TOP"] or "Top"
-  UI.titleText:SetText(string.format("%s - %s %d", catName, topLabel, limit))
+  if isSpellList then
+    UI.titleText:SetText(catName)
+  else
+    UI.titleText:SetText(string.format("%s - %s 20", catName, CB.L["LABEL_TOP"] or "Top"))
+  end
 
   -- Zeilen füllen
   for i = 1, 100 do
@@ -233,7 +265,7 @@ function UI:Refresh()
 
       -- Zaubername live über ID abrufen (Spielsprache)
         local sName = "???"
-        if rec.spellId then
+        if rec.spellId and rec.spellId > 0 then
           local infoName = GetSpellInfo(rec.spellId)
           if infoName then
             sName = infoName
