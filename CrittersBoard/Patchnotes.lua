@@ -7,6 +7,25 @@ local CB = CrittersBoard
 
 CB.PATCHNOTES = {}
 
+CB.PATCHNOTES["0.6.2"] = {
+    en = {
+        title = "CrittersBoard v0.6.2 — Hotfix",
+        lines = {
+            "|cffFF4444Sync Bugfixes (Hotfix)|r",
+            "• Fixed: New player joining while a coordinator was online sometimes got 'Sync paused' and received no data — caused by a race condition where the 3-second election timer fired before the coordinator's reply arrived.",
+            "• Fixed: When the coordinator logged out and back in, other players already knew them as coordinator and stayed silent — so no new election happened and the returning player claimed coordinator again without a proper vote.",
+        },
+    },
+    de = {
+        title = "CrittersBoard v0.6.2 — Hotfix",
+        lines = {
+            "|cffFF4444Sync-Bugfixes (Hotfix)|r",
+            "• Behoben: Ein neu beitretender Spieler bekam manchmal 'Sync pausiert' und erhielt keine Daten — verursacht durch eine Race-Condition bei der der 3-Sekunden-Timer vor der Antwort des Coordinators auslöste.",
+            "• Behoben: Wenn der Coordinator aus- und wieder einloggte, kannten ihn andere Spieler noch als Coordinator und schwiegen — dadurch fand keine neue Wahl statt und der zurückkehrende Spieler übernahm ohne korrekte Abstimmung wieder die Rolle.",
+        },
+    },
+}
+
 CB.PATCHNOTES["0.6.1"] = {
     en = {
         title = "CrittersBoard v0.6.1 — Hotfix",

@@ -2,7 +2,7 @@ CrittersBoard = CrittersBoard or {}
 local CB = CrittersBoard
 
 -- Addon-Version (Anzeige, für Patchnotes-Popup)
-CB.VERSION = "0.6.1"
+CB.VERSION = "0.6.2"
 
 -- Datenbankversion: Bump = Wipe nötig (DB-Struktur geändert)
 CB.DB_VERSION = 4

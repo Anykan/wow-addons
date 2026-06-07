@@ -19,6 +19,7 @@ SYNC.sessionStart      = 0      -- GetTime() beim PLAYER_LOGIN
 SYNC.electionBids      = {}     -- Gesammelte Bids während der Wahl
 SYNC.electionTimer     = nil    -- Timer für Bid-Sammlung / Coordinator-Timeout
 SYNC.isSending         = false  -- Coordinator sendet gerade (SNAP_BUSY Schutz)
+SYNC.awaitingSync      = false  -- Wir erwarten einen Snapshot (für Race-Condition-Fix)
 
 local MAX_PAYLOAD = 220
 local vToken = "V:" .. (CB.PROTOCOL_VERSION or 1)
@@ -185,11 +186,13 @@ local function DetermineCoordinator()
             if CB.DEBUG_MODE then
                 CB:Print("|cffffff00DEBUG Wahl:|r Sende ELECT_WIN + Snapshot an " .. otherBids .. " Spieler.")
             end
+            SYNC.awaitingSync = false  -- Coordinator sendet selbst, erwartet keinen Snapshot
             ChatThrottleLib:SendAddonMessage("NORMAL", CB.PREFIX,
                 "ELECT_WIN|" .. vToken .. "|" .. myName, "GUILD")
             SendSnapshot()
         else
             CB:Print(CB.L["MSG_NO_PLAYERS_ONLINE"] or "Keine anderen Spieler online — Sync pausiert.")
+            SYNC.awaitingSync = false  -- Alleine, kein Snapshot erwartet
             SYNC.isSyncActive = false  -- FIX 1: Alleine online → kein Sync aktiv, Alerts freigeben
             if CB.DEBUG_MODE then
                 CB:Print("|cffffff00DEBUG Wahl:|r Alleine online — kein Snapshot gesendet. isSyncActive → false")
@@ -204,7 +207,8 @@ end
 -- =========================================================
 local function FinishSync()
     if not SYNC.isSyncActive then return end
-    SYNC.isSyncActive = false
+    SYNC.isSyncActive  = false
+    SYNC.awaitingSync  = false
 
     local senderCount = 0
     for _ in pairs(SYNC.knownSenders) do senderCount = senderCount + 1 end
@@ -298,9 +302,29 @@ local function OnAddonMessage(prefix, text, channel, sender)
             end
 
         elseif SYNC.coordinator then
-            -- Ich kenne den Coordinator, bin es aber nicht → still (er antwortet)
-            if CB.DEBUG_MODE then
-                CB:Print("|cffffff00DEBUG Wahl:|r Coordinator bekannt (" .. SYNC.coordinator .. ") — warte auf seine Antwort.")
+            if sender == SYNC.coordinator then
+                -- Coordinator hat sich neu eingeloggt (ELECT_LOST evtl. nicht empfangen)
+                -- Coordinator-Info löschen und an der neuen Wahl teilnehmen
+                if CB.DEBUG_MODE then
+                    CB:Print("|cffffff00DEBUG Wahl:|r Bekannter Coordinator '" .. sender .. "' hat sich neu eingeloggt — nehme an neuer Wahl teil.")
+                end
+                SYNC.coordinator   = nil
+                SYNC.isCoordinator = false
+                SYNC.electionBids[sender] = reqSessTime
+                local mySessionTime = math.floor(GetTime() - SYNC.sessionStart)
+                SYNC.electionBids[myName] = mySessionTime
+                ChatThrottleLib:SendAddonMessage("NORMAL", CB.PREFIX,
+                    string.format("ELECT_BID|%s|%s|%d", vToken, myName, mySessionTime), "GUILD")
+                if not SYNC.electionTimer then
+                    SYNC.electionTimer = C_Timer.NewTimer(3, function()
+                        DetermineCoordinator()
+                    end)
+                end
+            else
+                -- Ich kenne den Coordinator, bin es aber nicht → still (er antwortet)
+                if CB.DEBUG_MODE then
+                    CB:Print("|cffffff00DEBUG Wahl:|r Coordinator bekannt (" .. SYNC.coordinator .. ") — warte auf seine Antwort.")
+                end
             end
 
         else
@@ -369,8 +393,18 @@ local function OnAddonMessage(prefix, text, channel, sender)
         local coordinatorChanged = (SYNC.coordinator ~= winnerName)
         SYNC.coordinator   = winnerName
         SYNC.isCoordinator = (winnerName == myName)
-        if not SYNC.isCoordinator and coordinatorChanged then
-            CB:Print(string.format(CB.L["MSG_COORDINATOR_IS"] or "Coordinator: %s", winnerName))
+        if not SYNC.isCoordinator then
+            -- Race-Condition-Fix: isSyncActive wiederherstellen falls DetermineCoordinator
+            -- es bereits zurückgesetzt hat, bevor ELECT_WIN ankam
+            if SYNC.awaitingSync and not SYNC.isSyncActive then
+                SYNC.isSyncActive = true
+                if CB.DEBUG_MODE then
+                    CB:Print("|cffffff00DEBUG Wahl:|r Race-Condition erkannt — isSyncActive wiederhergestellt für SNAP_DONE.")
+                end
+            end
+            if coordinatorChanged then
+                CB:Print(string.format(CB.L["MSG_COORDINATOR_IS"] or "Coordinator: %s", winnerName))
+            end
         end
         if CB.DEBUG_MODE then
             CB:Print("|cffffff00DEBUG Coordinator:|r ELECT_WIN empfangen — Coordinator: " .. tostring(winnerName) .. (coordinatorChanged and " (neu)" or " (unverändert)"))
@@ -487,6 +521,7 @@ function CB:StartElection()
     if CB.NewerVersionWarned then return end
 
     SYNC.isSyncActive = true
+    SYNC.awaitingSync = true  -- Wir erwarten einen Snapshot vom Coordinator
     SYNC.newCount     = 0
     SYNC.knownSenders = {}
     SYNC.electionBids = {}
