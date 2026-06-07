@@ -118,8 +118,10 @@ local function SendSnapshot()
     ChatThrottleLib:SendAddonMessage("BULK", CB.PREFIX, "SNAP_DONE|" .. vToken, "GUILD")
 
     -- isSending nach geschätzter Sendezeit freigeben (1s/Chunk + 5s Puffer)
+    -- FIX 3: Coordinator beendet Sync nach dem Senden (inkl. Delta-Push-Fenster)
     C_Timer.After(totalChunks + 5, function()
         SYNC.isSending = false
+        FinishSync()  -- Coordinator resettet isSyncActive und gibt Alerts frei
     end)
 end
 
@@ -188,8 +190,9 @@ local function DetermineCoordinator()
             SendSnapshot()
         else
             CB:Print(CB.L["MSG_NO_PLAYERS_ONLINE"] or "Keine anderen Spieler online — Sync pausiert.")
+            SYNC.isSyncActive = false  -- FIX 1: Alleine online → kein Sync aktiv, Alerts freigeben
             if CB.DEBUG_MODE then
-                CB:Print("|cffffff00DEBUG Wahl:|r Alleine online — kein Snapshot gesendet. Warte auf Gildenmitglieder.")
+                CB:Print("|cffffff00DEBUG Wahl:|r Alleine online — kein Snapshot gesendet. isSyncActive → false")
             end
         end
     end
@@ -362,13 +365,15 @@ local function OnAddonMessage(prefix, text, channel, sender)
         local winnerName = parts[3]
         -- Laufenden Wahl-Timer stoppen (Coordinator hat geantwortet)
         if SYNC.electionTimer then SYNC.electionTimer:Cancel() SYNC.electionTimer = nil end
+        -- FIX 2: "Coordinator: X" nur anzeigen wenn sich der Coordinator geändert hat
+        local coordinatorChanged = (SYNC.coordinator ~= winnerName)
         SYNC.coordinator   = winnerName
         SYNC.isCoordinator = (winnerName == myName)
-        if not SYNC.isCoordinator then
+        if not SYNC.isCoordinator and coordinatorChanged then
             CB:Print(string.format(CB.L["MSG_COORDINATOR_IS"] or "Coordinator: %s", winnerName))
         end
         if CB.DEBUG_MODE then
-            CB:Print("|cffffff00DEBUG Coordinator:|r ELECT_WIN empfangen — Coordinator: " .. tostring(winnerName))
+            CB:Print("|cffffff00DEBUG Coordinator:|r ELECT_WIN empfangen — Coordinator: " .. tostring(winnerName) .. (coordinatorChanged and " (neu)" or " (unverändert)"))
         end
         return
     end
@@ -382,6 +387,10 @@ local function OnAddonMessage(prefix, text, channel, sender)
         if lostName == SYNC.coordinator then
             SYNC.coordinator   = nil
             SYNC.isCoordinator = false
+            -- FIX 4: Neue Wahl starten, da Coordinator nicht mehr online
+            C_Timer.After(1, function()
+                CB:RequestSnapshot(true)
+            end)
         end
         return
     end
@@ -390,9 +399,9 @@ local function OnAddonMessage(prefix, text, channel, sender)
     -- SNAP_BUSY: Coordinator sendet gerade, bitte warten
     -- -------------------------------------------------------
     if cmd == "SNAP_BUSY" then
-        -- 15s warten, dann erneut versuchen
+        -- FIX 5: 15s warten, dann über RequestSnapshot erneut versuchen (mit Cooldown-Bypass)
         C_Timer.After(15, function()
-            if CB.StartElection then CB:StartElection() end
+            CB:RequestSnapshot(true)
         end)
         return
     end

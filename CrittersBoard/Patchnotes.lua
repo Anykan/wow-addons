@@ -7,6 +7,35 @@ local CB = CrittersBoard
 
 CB.PATCHNOTES = {}
 
+CB.PATCHNOTES["0.6.1"] = {
+    en = {
+        title = "CrittersBoard v0.6.1 — Hotfix",
+        lines = {
+            "|cffFF4444Sync Bugfixes (Hotfix)|r",
+            "• Fixed: Coordinator and sync-complete messages appeared in an endless loop.",
+            "• Fixed: Alerts and sounds (e.g. Holy Fire) were permanently silenced after login.",
+            "• Fixed: 'Coordinator: X' was shown again for every new player joining — now only shown when the coordinator actually changes.",
+            "• Fixed: When logging in alone, isSyncActive was never reset — now correctly cleared so alerts work immediately.",
+            "• Fixed: After the coordinator logs out, the remaining players now automatically elect a new coordinator.",
+            "• Fixed: SNAP_BUSY retry no longer bypasses the cooldown guard.",
+            "• Fixed: Coordinator now properly resets sync state after sending the full snapshot.",
+        },
+    },
+    de = {
+        title = "CrittersBoard v0.6.1 — Hotfix",
+        lines = {
+            "|cffFF4444Sync-Bugfixes (Hotfix)|r",
+            "• Behoben: Coordinator- und Sync-Meldungen erschienen in einer Endlosschleife.",
+            "• Behoben: Alerts und Sounds (z.B. Heiliges Feuer) wurden nach dem Einloggen dauerhaft unterdrückt.",
+            "• Behoben: 'Coordinator: X' wurde bei jedem neu beitretenden Spieler erneut angezeigt — erscheint jetzt nur noch wenn sich der Coordinator wirklich ändert.",
+            "• Behoben: Beim Einloggen alleine blieb isSyncActive dauerhaft aktiv — wird jetzt korrekt zurückgesetzt damit Alerts sofort funktionieren.",
+            "• Behoben: Wenn der Coordinator ausloggt, starten die verbleibenden Spieler jetzt automatisch eine neue Wahl.",
+            "• Behoben: SNAP_BUSY-Retry umging bisher den Cooldown-Schutz.",
+            "• Behoben: Coordinator setzt seinen Sync-Status nach dem Senden des Snapshots nun korrekt zurück.",
+        },
+    },
+}
+
 CB.PATCHNOTES["0.6"] = {
     en = {
         title = "CrittersBoard v0.6 — What's New",
