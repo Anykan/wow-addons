@@ -58,6 +58,8 @@ local DEFAULTS = {
     -- se colaria en los valores por defecto de todo el mundo.
     barColorR = 0.84, barColorG = 0.59, barColorB = 1,
     showIcon = true, showBar = true,
+    -- Estilo de la barra de lanzamiento del juego (marco + fondo + relleno)
+    blizzStyle = true,
 }
 -- Sube cuando cambia como se aprenden las duraciones: las viejas se descartan
 -- (la 1: las antiguas podian ser la de un eco, mucho mas corta).
@@ -152,6 +154,51 @@ end
 --------------------------------------------------
 local HideSeal
 
+-- Estilo de la barra de lanzamiento del juego: mismos atlas que usa el
+-- CastingBarFrame de Blizzard (relleno, fondo y marco). Si el cliente no los
+-- tiene, se cae a la barra lisa de antes.
+local BLIZZ_FILL, BLIZZ_BG, BLIZZ_BORDER =
+    "ui-castingbar-filling-standard", "ui-castingbar-background", "ui-castingbar-frame"
+local PLAIN_FILL = "Interface\\TargetingFrame\\UI-StatusBar"
+local PLAIN_HEIGHT, BLIZZ_HEIGHT = 8, 11
+local blizzAtlasOK   -- nil = aun sin comprobar
+
+local function AtlasExists(name)
+    local getInfo = (C_Texture and C_Texture.GetAtlasInfo) or GetAtlasInfo
+    return getInfo ~= nil and getInfo(name) ~= nil
+end
+
+local function AtlasesAvailable()
+    if blizzAtlasOK == nil then
+        blizzAtlasOK = AtlasExists(BLIZZ_FILL) and AtlasExists(BLIZZ_BG) and AtlasExists(BLIZZ_BORDER)
+    end
+    return blizzAtlasOK
+end
+
+local function BlizzStyleActive()
+    return db.blizzStyle and AtlasesAvailable()
+end
+
+-- Pone una barra en el estilo activo. Se llama al crearla y cada vez que
+-- cambia la opcion, tambien para las del pool (se reusan tal cual).
+local function StyleBar(bar)
+    if BlizzStyleActive() then
+        bar:SetStatusBarTexture(BLIZZ_FILL)
+        bar:SetHeight(BLIZZ_HEIGHT)
+        bar:SetStatusBarColor(1, 1, 1)   -- el relleno ya trae su color, sin tintar
+        bar.bg:Hide()
+        bar.blizzBg:Show()
+        bar.border:Show()
+    else
+        bar:SetStatusBarTexture(PLAIN_FILL)
+        bar:SetHeight(PLAIN_HEIGHT)
+        bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB)
+        bar.bg:Show()
+        bar.blizzBg:Hide()
+        bar.border:Hide()
+    end
+end
+
 local function AcquireIcon()
     local icon = table.remove(pool)
     if not icon then
@@ -179,16 +226,29 @@ local function AcquireIcon()
         -- muestra si el tiempo del Cooldown es legible (ver SyncBar): con
         -- valores secretos no hay numeros que ponerle a una barra.
         icon.bar = CreateFrame("StatusBar", nil, barAnchor)
-        icon.bar:SetSize(db.barWidth, 8)
+        icon.bar:SetSize(db.barWidth, PLAIN_HEIGHT)
         icon.bar:SetPoint("CENTER", barAnchor, "CENTER", 0, 0)
-        icon.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-        icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB)
         icon.bar:SetMinMaxValues(0, 1)
+        -- Barra lisa (estilo antiguo)
         icon.bar.bg = icon.bar:CreateTexture(nil, "BACKGROUND")
         icon.bar.bg:SetAllPoints()
         icon.bar.bg:SetColorTexture(0, 0, 0, 0.6)
-        icon.bar.text = icon.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        -- Estilo del juego: fondo 1 px mas grande y marco 2 px mas grande que la
+        -- barra, como el CastingBarFrame de Blizzard.
+        icon.bar.blizzBg = icon.bar:CreateTexture(nil, "BACKGROUND", nil, -1)
+        icon.bar.blizzBg:SetPoint("TOPLEFT", icon.bar, "TOPLEFT", -1, 1)
+        icon.bar.blizzBg:SetPoint("BOTTOMRIGHT", icon.bar, "BOTTOMRIGHT", 1, -1)
+        icon.bar.border = icon.bar:CreateTexture(nil, "OVERLAY", nil, 1)
+        -- Solo con atlas que existan: SetAtlas con un nombre desconocido no debe pasar
+        if AtlasesAvailable() then
+            icon.bar.blizzBg:SetAtlas(BLIZZ_BG)
+            icon.bar.border:SetAtlas(BLIZZ_BORDER)
+        end
+        icon.bar.border:SetPoint("TOPLEFT", icon.bar, "TOPLEFT", -2, 2)
+        icon.bar.border:SetPoint("BOTTOMRIGHT", icon.bar, "BOTTOMRIGHT", 2, -2)
+        icon.bar.text = icon.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall", 2)
         icon.bar.text:SetPoint("CENTER")
+        StyleBar(icon.bar)
         icon.bar:Hide()
     end
     icon:Show()
@@ -504,9 +564,20 @@ local function ApplyBarWidth()
     for _, icon in ipairs(pool) do icon.bar:SetWidth(db.barWidth) end
 end
 
+-- En el estilo del juego el relleno no se tinta (el color viene del atlas)
 local function ApplyBarColor()
-    for _, icon in pairs(icons) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
-    for _, icon in ipairs(pool) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
+    local r, g, b = 1, 1, 1
+    if not BlizzStyleActive() then r, g, b = db.barColorR, db.barColorG, db.barColorB end
+    for _, icon in pairs(icons) do icon.bar:SetStatusBarColor(r, g, b) end
+    for _, icon in ipairs(pool) do icon.bar:SetStatusBarColor(r, g, b) end
+end
+
+-- Cambia entre el estilo del juego y la barra lisa; barAnchor toma la altura
+-- de la barra para que el fondo de arrastre siga marcando su hueco.
+local function ApplyBarStyle()
+    barAnchor:SetHeight(BlizzStyleActive() and BLIZZ_HEIGHT or PLAIN_HEIGHT)
+    for _, icon in pairs(icons) do StyleBar(icon.bar) end
+    for _, icon in ipairs(pool) do StyleBar(icon.bar) end
 end
 
 -- El icono (textura + swipe circular) y la barra se pueden apagar cada uno
@@ -590,6 +661,7 @@ local function Check()
         end
     end
     if not any then print("  " .. L.CHECK_NONE) end
+    print("  " .. (AtlasesAvailable() and L.CHECK_BLIZZ_OK or L.CHECK_BLIZZ_MISSING))
 end
 
 -- Abre el selector de color de Blizzard para el color de la barra. Hay dos
@@ -643,6 +715,11 @@ local function CreateOptions()
         db, Settings.VarType.Boolean, L.SHOW_BAR, DEFAULTS.showBar)
     showBar:SetValueChangedCallback(ApplyVisibility)
     Settings.CreateCheckbox(category, showBar, L.SHOW_BAR_TOOLTIP)
+
+    local blizzStyle = Settings.RegisterAddOnSetting(category, "SealTimersForever_BlizzStyle", "blizzStyle",
+        db, Settings.VarType.Boolean, L.BLIZZ_STYLE, DEFAULTS.blizzStyle)
+    blizzStyle:SetValueChangedCallback(ApplyBarStyle)
+    Settings.CreateCheckbox(category, blizzStyle, L.BLIZZ_STYLE_TOOLTIP)
 
     local scale = Settings.RegisterAddOnSetting(category, "SealTimersForever_Scale", "scale",
         db, Settings.VarType.Number, L.SIZE, DEFAULTS.scale)
@@ -710,6 +787,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
         ApplyLock()
         ApplyScale()
         ApplyBarWidth()
+        ApplyBarStyle()
         ApplyBarColor()
         ApplyVisibility()
         CreateOptions()

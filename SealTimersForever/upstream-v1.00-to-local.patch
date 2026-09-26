@@ -1,8 +1,8 @@
 diff --git a/a/Locales.lua b/b/Locales.lua
-index 6002bd6..c76ae4e 100644
+index 6002bd6..4250562 100644
 --- a/a/Locales.lua
 +++ b/b/Locales.lua
-@@ -8,6 +8,12 @@ local L = {
+@@ -8,6 +8,16 @@ local L = {
      LOCK_TOOLTIP = "Unlock to drag the seal icons anywhere on the screen.",
      SIZE = "Size",
      SIZE_TOOLTIP = "Size of the seal icons.",
@@ -12,10 +12,14 @@ index 6002bd6..c76ae4e 100644
 +    SHOW_ICON_TOOLTIP = "Show the seal icon with its circular timer swipe.",
 +    SHOW_BAR = "Show bar",
 +    SHOW_BAR_TOOLTIP = "Show the timer bar.",
++    BLIZZ_STYLE = "Game cast bar style",
++    BLIZZ_STYLE_TOOLTIP = "Draw the timer bar like the game's own cast bar (frame, background and fill). Turn it off for the plain colored bar; the bar color (/stf color) only applies then.",
++    CHECK_BLIZZ_OK = "Cast bar style: the game's cast bar textures were found.",
++    CHECK_BLIZZ_MISSING = "Cast bar style: the game's cast bar textures were NOT found, the plain bar is used.",
      CHECK_HEADER = "Your seals in combat:",
      CHECK_OPEN = "%s: readable, exact time",
      CHECK_SECRET = "%s: secret aura, tracked by its cast with the last duration seen (%s)",
-@@ -27,6 +33,12 @@ if locale == "esES" or locale == "esMX" then
+@@ -27,6 +37,16 @@ if locale == "esES" or locale == "esMX" then
      L.LOCK_TOOLTIP = "Desbloquéalo para arrastrar los iconos de los sellos a cualquier parte de la pantalla."
      L.SIZE = "Tamaño"
      L.SIZE_TOOLTIP = "Tamaño de los iconos de los sellos."
@@ -25,14 +29,18 @@ index 6002bd6..c76ae4e 100644
 +    L.SHOW_ICON_TOOLTIP = "Muestra el icono del sello con su barrido circular de tiempo."
 +    L.SHOW_BAR = "Mostrar barra"
 +    L.SHOW_BAR_TOOLTIP = "Muestra la barra de tiempo."
++    L.BLIZZ_STYLE = "Estilo de la barra de lanzamiento"
++    L.BLIZZ_STYLE_TOOLTIP = "Dibuja la barra de tiempo como la barra de lanzamiento del juego (marco, fondo y relleno). Desactívalo para la barra lisa de color; el color de la barra (/stf color) solo se aplica entonces."
++    L.CHECK_BLIZZ_OK = "Estilo de barra: se encontraron las texturas de la barra de lanzamiento del juego."
++    L.CHECK_BLIZZ_MISSING = "Estilo de barra: NO se encontraron las texturas de la barra de lanzamiento del juego, se usa la barra lisa."
      L.CHECK_HEADER = "Tus sellos en combate:"
      L.CHECK_OPEN = "%s: se lee, tiempo exacto"
      L.CHECK_SECRET = "%s: aura secreta, se sigue por su lanzamiento con la última duración vista (%s)"
 diff --git a/a/SealTimersForever.lua b/b/SealTimersForever.lua
-index 6e7efa3..e513da4 100644
+index 6e7efa3..94e9724 100644
 --- a/a/SealTimersForever.lua
 +++ b/b/SealTimersForever.lua
-@@ -47,7 +47,18 @@ local RECAST_REFRESH = 0.2
+@@ -47,7 +47,20 @@ local RECAST_REFRESH = 0.2
  local DEFAULT_DURATION = 30
  -- Morado de la marca, el mismo del titulo en todos los addons de Pirson
  local BRAND = "|cffd597ff"
@@ -48,11 +56,13 @@ index 6e7efa3..e513da4 100644
 +    -- se colaria en los valores por defecto de todo el mundo.
 +    barColorR = 0.84, barColorG = 0.59, barColorB = 1,
 +    showIcon = true, showBar = true,
++    -- Estilo de la barra de lanzamiento del juego (marco + fondo + relleno)
++    blizzStyle = true,
 +}
  -- Sube cuando cambia como se aprenden las duraciones: las viejas se descartan
  -- (la 1: las antiguas podian ser la de un eco, mucho mas corta).
  local DURATIONS_VERSION = 1
-@@ -59,7 +70,8 @@ local knownSeals = {}          -- spellID del libro de hechizos -> nombre del se
+@@ -59,7 +72,8 @@ local knownSeals = {}          -- spellID del libro de hechizos -> nombre del se
  local icons, order, pool = {}, {}, {}  -- nombre del sello -> icono
  local activeSeal               -- nombre del ultimo sello lanzado (o elegido al releer)
  local debugMode = false
@@ -62,7 +72,59 @@ index 6e7efa3..e513da4 100644
  
  --------------------------------------------------
  -- VALORES SECRETOS
-@@ -148,17 +160,36 @@ local function AcquireIcon()
+@@ -140,6 +154,51 @@ end
+ --------------------------------------------------
+ local HideSeal
+ 
++-- Estilo de la barra de lanzamiento del juego: mismos atlas que usa el
++-- CastingBarFrame de Blizzard (relleno, fondo y marco). Si el cliente no los
++-- tiene, se cae a la barra lisa de antes.
++local BLIZZ_FILL, BLIZZ_BG, BLIZZ_BORDER =
++    "ui-castingbar-filling-standard", "ui-castingbar-background", "ui-castingbar-frame"
++local PLAIN_FILL = "Interface\\TargetingFrame\\UI-StatusBar"
++local PLAIN_HEIGHT, BLIZZ_HEIGHT = 8, 11
++local blizzAtlasOK   -- nil = aun sin comprobar
++
++local function AtlasExists(name)
++    local getInfo = (C_Texture and C_Texture.GetAtlasInfo) or GetAtlasInfo
++    return getInfo ~= nil and getInfo(name) ~= nil
++end
++
++local function AtlasesAvailable()
++    if blizzAtlasOK == nil then
++        blizzAtlasOK = AtlasExists(BLIZZ_FILL) and AtlasExists(BLIZZ_BG) and AtlasExists(BLIZZ_BORDER)
++    end
++    return blizzAtlasOK
++end
++
++local function BlizzStyleActive()
++    return db.blizzStyle and AtlasesAvailable()
++end
++
++-- Pone una barra en el estilo activo. Se llama al crearla y cada vez que
++-- cambia la opcion, tambien para las del pool (se reusan tal cual).
++local function StyleBar(bar)
++    if BlizzStyleActive() then
++        bar:SetStatusBarTexture(BLIZZ_FILL)
++        bar:SetHeight(BLIZZ_HEIGHT)
++        bar:SetStatusBarColor(1, 1, 1)   -- el relleno ya trae su color, sin tintar
++        bar.bg:Hide()
++        bar.blizzBg:Show()
++        bar.border:Show()
++    else
++        bar:SetStatusBarTexture(PLAIN_FILL)
++        bar:SetHeight(PLAIN_HEIGHT)
++        bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB)
++        bar.bg:Show()
++        bar.blizzBg:Hide()
++        bar.border:Hide()
++    end
++end
++
+ local function AcquireIcon()
+     local icon = table.remove(pool)
+     if not icon then
+@@ -148,17 +207,49 @@ local function AcquireIcon()
          icon.texture = icon:CreateTexture(nil, "ARTWORK")
          icon.texture:SetAllPoints()
          icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -85,21 +147,34 @@ index 6e7efa3..e513da4 100644
 +        -- muestra si el tiempo del Cooldown es legible (ver SyncBar): con
 +        -- valores secretos no hay numeros que ponerle a una barra.
 +        icon.bar = CreateFrame("StatusBar", nil, barAnchor)
-+        icon.bar:SetSize(db.barWidth, 8)
++        icon.bar:SetSize(db.barWidth, PLAIN_HEIGHT)
 +        icon.bar:SetPoint("CENTER", barAnchor, "CENTER", 0, 0)
-+        icon.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-+        icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB)
 +        icon.bar:SetMinMaxValues(0, 1)
++        -- Barra lisa (estilo antiguo)
 +        icon.bar.bg = icon.bar:CreateTexture(nil, "BACKGROUND")
 +        icon.bar.bg:SetAllPoints()
 +        icon.bar.bg:SetColorTexture(0, 0, 0, 0.6)
-+        icon.bar.text = icon.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
++        -- Estilo del juego: fondo 1 px mas grande y marco 2 px mas grande que la
++        -- barra, como el CastingBarFrame de Blizzard.
++        icon.bar.blizzBg = icon.bar:CreateTexture(nil, "BACKGROUND", nil, -1)
++        icon.bar.blizzBg:SetPoint("TOPLEFT", icon.bar, "TOPLEFT", -1, 1)
++        icon.bar.blizzBg:SetPoint("BOTTOMRIGHT", icon.bar, "BOTTOMRIGHT", 1, -1)
++        icon.bar.border = icon.bar:CreateTexture(nil, "OVERLAY", nil, 1)
++        -- Solo con atlas que existan: SetAtlas con un nombre desconocido no debe pasar
++        if AtlasesAvailable() then
++            icon.bar.blizzBg:SetAtlas(BLIZZ_BG)
++            icon.bar.border:SetAtlas(BLIZZ_BORDER)
++        end
++        icon.bar.border:SetPoint("TOPLEFT", icon.bar, "TOPLEFT", -2, 2)
++        icon.bar.border:SetPoint("BOTTOMRIGHT", icon.bar, "BOTTOMRIGHT", 2, -2)
++        icon.bar.text = icon.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall", 2)
 +        icon.bar.text:SetPoint("CENTER")
++        StyleBar(icon.bar)
 +        icon.bar:Hide()
      end
      icon:Show()
      return icon
-@@ -172,6 +203,21 @@ local function Layout()
+@@ -172,6 +263,21 @@ local function Layout()
      end
  end
  
@@ -121,7 +196,7 @@ index 6e7efa3..e513da4 100644
  local function ShowSeal(name, texture)
      local icon = icons[name]
      if not icon then
-@@ -192,6 +238,8 @@ HideSeal = function(name)
+@@ -192,6 +298,8 @@ HideSeal = function(name)
      -- no debe quitar el sello que reutilice este icono.
      icon.hasTimer = false
      icon.cooldown:Clear()
@@ -130,7 +205,7 @@ index 6e7efa3..e513da4 100644
      icon.sealName, icon.auraInstanceID, icon.castAt = nil, nil, nil
      if activeSeal == name then activeSeal = nil end
      pool[#pool + 1] = icon
-@@ -234,6 +282,27 @@ local function LearnFromAura(name, id)
+@@ -234,6 +342,27 @@ local function LearnFromAura(name, id)
      Learn(name, duration:GetTotalDuration())
  end
  
@@ -158,7 +233,7 @@ index 6e7efa3..e513da4 100644
  local function StartTimer(name)
      local icon = icons[name]
      if not icon then return end
-@@ -254,25 +323,23 @@ local function StartTimer(name)
+@@ -254,25 +383,23 @@ local function StartTimer(name)
              cooldown:SetCooldownFromDurationObject(duration)
              icon.hasTimer = true
              Debug(name .. ": tiempo del aura (secreto)")
@@ -191,7 +266,7 @@ index 6e7efa3..e513da4 100644
  end
  
  -- El aura que seguiamos ya no esta. Si el sello se acaba de relanzar, sigue con
-@@ -417,10 +484,44 @@ local function ApplyLock()
+@@ -417,10 +544,55 @@ local function ApplyLock()
      anchor:EnableMouse(not db.locked)
      anchor.bg:SetShown(not db.locked)
      anchor.label:SetShown(not db.locked)
@@ -215,9 +290,20 @@ index 6e7efa3..e513da4 100644
 +    for _, icon in ipairs(pool) do icon.bar:SetWidth(db.barWidth) end
 +end
 +
++-- En el estilo del juego el relleno no se tinta (el color viene del atlas)
 +local function ApplyBarColor()
-+    for _, icon in pairs(icons) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
-+    for _, icon in ipairs(pool) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
++    local r, g, b = 1, 1, 1
++    if not BlizzStyleActive() then r, g, b = db.barColorR, db.barColorG, db.barColorB end
++    for _, icon in pairs(icons) do icon.bar:SetStatusBarColor(r, g, b) end
++    for _, icon in ipairs(pool) do icon.bar:SetStatusBarColor(r, g, b) end
++end
++
++-- Cambia entre el estilo del juego y la barra lisa; barAnchor toma la altura
++-- de la barra para que el fondo de arrastre siga marcando su hueco.
++local function ApplyBarStyle()
++    barAnchor:SetHeight(BlizzStyleActive() and BLIZZ_HEIGHT or PLAIN_HEIGHT)
++    for _, icon in pairs(icons) do StyleBar(icon.bar) end
++    for _, icon in ipairs(pool) do StyleBar(icon.bar) end
 +end
 +
 +-- El icono (textura + swipe circular) y la barra se pueden apagar cada uno
@@ -236,7 +322,7 @@ index 6e7efa3..e513da4 100644
  end
  
  local function CreateAnchor()
-@@ -444,9 +545,31 @@ local function CreateAnchor()
+@@ -444,9 +616,31 @@ local function CreateAnchor()
      anchor.label = anchor:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
      anchor.label:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 0, 2)
      anchor.label:SetText(BRAND .. L.TITLE .. "|r - " .. L.DRAG_HINT)
@@ -270,10 +356,13 @@ index 6e7efa3..e513da4 100644
  end
  
  --------------------------------------------------
-@@ -469,6 +592,39 @@ local function Check()
+@@ -467,6 +661,40 @@ local function Check()
+         end
+     end
      if not any then print("  " .. L.CHECK_NONE) end
- end
- 
++    print("  " .. (AtlasesAvailable() and L.CHECK_BLIZZ_OK or L.CHECK_BLIZZ_MISSING))
++end
++
 +-- Abre el selector de color de Blizzard para el color de la barra. Hay dos
 +-- APIs segun el cliente: la nueva (SetupColorPickerAndShow, Dragonflight+) y
 +-- la vieja (func/cancelFunc/SetColorRGB a mano). Forever comparte API con
@@ -305,12 +394,10 @@ index 6e7efa3..e513da4 100644
 +        ColorPickerFrame:Hide()
 +        ColorPickerFrame:Show()
 +    end
-+end
-+
+ end
+ 
  local function CreateOptions()
-     -- En morado tambien en Opciones > AddOns, como en la lista de addons
-     local category = Settings.RegisterVerticalLayoutCategory(BRAND .. "Seal Timers Forever|r")
-@@ -478,6 +634,16 @@ local function CreateOptions()
+@@ -478,6 +706,21 @@ local function CreateOptions()
      lock:SetValueChangedCallback(ApplyLock)
      Settings.CreateCheckbox(category, lock, L.LOCK_TOOLTIP)
  
@@ -324,10 +411,15 @@ index 6e7efa3..e513da4 100644
 +    showBar:SetValueChangedCallback(ApplyVisibility)
 +    Settings.CreateCheckbox(category, showBar, L.SHOW_BAR_TOOLTIP)
 +
++    local blizzStyle = Settings.RegisterAddOnSetting(category, "SealTimersForever_BlizzStyle", "blizzStyle",
++        db, Settings.VarType.Boolean, L.BLIZZ_STYLE, DEFAULTS.blizzStyle)
++    blizzStyle:SetValueChangedCallback(ApplyBarStyle)
++    Settings.CreateCheckbox(category, blizzStyle, L.BLIZZ_STYLE_TOOLTIP)
++
      local scale = Settings.RegisterAddOnSetting(category, "SealTimersForever_Scale", "scale",
          db, Settings.VarType.Number, L.SIZE, DEFAULTS.scale)
      scale:SetValueChangedCallback(ApplyScale)
-@@ -487,12 +653,22 @@ local function CreateOptions()
+@@ -487,12 +730,22 @@ local function CreateOptions()
      end)
      Settings.CreateSlider(category, scale, options, L.SIZE_TOOLTIP)
  
@@ -350,7 +442,7 @@ index 6e7efa3..e513da4 100644
          if command == "debug" then
              debugMode = not debugMode
              print(BRAND .. "Seal Timers Forever|r: " .. (debugMode and L.DEBUG_ON or L.DEBUG_OFF))
-@@ -530,6 +706,12 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
+@@ -530,6 +783,13 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
          BuildSealNames()
          ScanSpellBook()
          CreateAnchor()
@@ -358,6 +450,7 @@ index 6e7efa3..e513da4 100644
 +        ApplyLock()
 +        ApplyScale()
 +        ApplyBarWidth()
++        ApplyBarStyle()
 +        ApplyBarColor()
 +        ApplyVisibility()
          CreateOptions()

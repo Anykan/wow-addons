@@ -4,12 +4,12 @@ This folder is a **personal fork/backup** of [Seal Timers Forever](https://githu
 by **Pirson** (MIT License, see `LICENSE`) for World of Warcraft: Forever.
 
 - **Upstream base:** tag `v1.00`, commit `ea5e7692f5492d59ddcaff30a7d68a7584c17b4d`
-- **Modified on:** 2026-09-20 (files backed up on 2026-09-26)
+- **Modified on:** 2026-09-20 (timer bar) and 2026-09-26 (game cast bar style); backed up on 2026-09-26
 - **Install path:** `World of Warcraft/_classic_beta_/Interface/AddOns/SealTimersForever/`
 - **Exact diff:** [`upstream-v1.00-to-local.patch`](upstream-v1.00-to-local.patch)
   (`git apply` it on a clean upstream v1.00 to reproduce this version)
 
-Only two files differ from upstream v1.00: `SealTimersForever.lua` (+195 / -13 lines) and `Locales.lua` (+12 lines).
+Only two files differ from upstream v1.00: `SealTimersForever.lua` (+273 / -13 lines) and `Locales.lua` (+20 lines).
 `LICENSE`, `README.md` and `SealTimersForever_Camelot.toc` are unchanged (the README therefore does **not**
 describe the additions below; this file does).
 
@@ -25,7 +25,26 @@ A horizontal `StatusBar` with remaining-time text, shown under the seal icon.
 - A single `OnUpdate` (`UpdateBars`, hooked on the icon anchor) drives all bars.
 - The bar has its **own anchor frame** (`SealTimersForeverBarAnchor`), so it can be dragged anywhere,
   independent of the icon block. Position is saved separately.
-- Bar background is a black 60 % texture; bar color defaults to the addon's purple (`0.84, 0.59, 1`).
+- In the plain style (see "game cast bar style" below) the background is a black 60 % texture, the bar is 8 px high
+  and its color defaults to the addon's purple (`0.84, 0.59, 1`).
+
+## Added: game cast bar style (default on)
+
+The bar is drawn like the game's own cast bar, using the same atlases as Blizzard's `CastingBarFrame`
+(taken from the retail UI source, see `CastingBarFrame.xml`):
+
+| Part | Atlas | Placement |
+|------|-------|-----------|
+| Fill | `ui-castingbar-filling-standard` | status bar texture (gold, **not tinted**) |
+| Background | `ui-castingbar-background` | 1 px larger than the bar |
+| Frame | `ui-castingbar-frame` | 2 px larger than the bar |
+
+- The bar is 11 px high in this style (8 px in the plain style); the drag anchor follows the height.
+- The atlases are checked once (`C_Texture.GetAtlasInfo`); if any is missing the addon silently falls back to the
+  plain bar. `/stf check` reports which case applies.
+- Toggle in **Options -> AddOns -> "Game cast bar style"** (`blizzStyle`), no reload needed.
+- New functions: `AtlasesAvailable`, `BlizzStyleActive`, `StyleBar`, `ApplyBarStyle`.
+- Checked against the retail Blizzard UI source, then confirmed to look right in-game in WoW Forever (2026-09-26).
 
 ## Added: new settings
 
@@ -38,12 +57,14 @@ Saved in `SealTimersForeverDB` (new defaults in `DEFAULTS`):
 | `barColorR/G/B` | `0.84 / 0.59 / 1` | Bar color (stored as three numbers, not a table, so profiles never share the `DEFAULTS` table) |
 | `showIcon` | `true` | Show the seal icon + circular swipe |
 | `showBar` | `true` | Show the timer bar |
+| `blizzStyle` | `true` | Draw the bar like the game's cast bar (frame, background, fill) |
 
-In the **Options -> AddOns** panel: checkboxes "Show icon" and "Show bar", slider "Bar width".
+In the **Options -> AddOns** panel: checkboxes "Show icon", "Show bar" and "Game cast bar style", slider "Bar width".
 
 ## Added: `/stf color`
 
-Opens Blizzard's color picker for the bar color. Supports both the new API
+Opens Blizzard's color picker for the bar color (only visible with "Game cast bar style" turned **off**;
+the game's fill is never tinted). Supports both the new API
 (`ColorPickerFrame:SetupColorPickerAndShow`) and the old one (`func` / `cancelFunc` / `SetColorRGB`);
 cancel restores the previous color.
 
@@ -67,8 +88,13 @@ On login `CreateBarAnchor()` is called, and `ApplyLock`, `ApplyScale`, `ApplyBar
 
 ## Locales
 
-`Locales.lua` gained six keys in English and Spanish (no other languages, upstream has more):
-`BAR_WIDTH`, `BAR_WIDTH_TOOLTIP`, `SHOW_ICON`, `SHOW_ICON_TOOLTIP`, `SHOW_BAR`, `SHOW_BAR_TOOLTIP`.
+`Locales.lua` gained ten keys in English and Spanish (no other languages, upstream has more):
+`BAR_WIDTH`, `BAR_WIDTH_TOOLTIP`, `SHOW_ICON`, `SHOW_ICON_TOOLTIP`, `SHOW_BAR`, `SHOW_BAR_TOOLTIP`,
+`BLIZZ_STYLE`, `BLIZZ_STYLE_TOOLTIP`, `CHECK_BLIZZ_OK`, `CHECK_BLIZZ_MISSING`.
+
+## Changed: `/stf check`
+
+Prints one extra line saying whether the game's cast bar textures were found.
 
 ## Not included (upstream v1.01 and later)
 
