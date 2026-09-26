@@ -1,0 +1,365 @@
+diff --git a/a/Locales.lua b/b/Locales.lua
+index 6002bd6..c76ae4e 100644
+--- a/a/Locales.lua
++++ b/b/Locales.lua
+@@ -8,6 +8,12 @@ local L = {
+     LOCK_TOOLTIP = "Unlock to drag the seal icons anywhere on the screen.",
+     SIZE = "Size",
+     SIZE_TOOLTIP = "Size of the seal icons.",
++    BAR_WIDTH = "Bar width",
++    BAR_WIDTH_TOOLTIP = "Width of the timer bar under the icon, independent of its size. Set it wide for a long bar.",
++    SHOW_ICON = "Show icon",
++    SHOW_ICON_TOOLTIP = "Show the seal icon with its circular timer swipe.",
++    SHOW_BAR = "Show bar",
++    SHOW_BAR_TOOLTIP = "Show the timer bar.",
+     CHECK_HEADER = "Your seals in combat:",
+     CHECK_OPEN = "%s: readable, exact time",
+     CHECK_SECRET = "%s: secret aura, tracked by its cast with the last duration seen (%s)",
+@@ -27,6 +33,12 @@ if locale == "esES" or locale == "esMX" then
+     L.LOCK_TOOLTIP = "Desbloquéalo para arrastrar los iconos de los sellos a cualquier parte de la pantalla."
+     L.SIZE = "Tamaño"
+     L.SIZE_TOOLTIP = "Tamaño de los iconos de los sellos."
++    L.BAR_WIDTH = "Ancho de la barra"
++    L.BAR_WIDTH_TOOLTIP = "Ancho de la barra de tiempo bajo el icono, independiente de su tamaño. Ponlo alto para una barra larga."
++    L.SHOW_ICON = "Mostrar icono"
++    L.SHOW_ICON_TOOLTIP = "Muestra el icono del sello con su barrido circular de tiempo."
++    L.SHOW_BAR = "Mostrar barra"
++    L.SHOW_BAR_TOOLTIP = "Muestra la barra de tiempo."
+     L.CHECK_HEADER = "Tus sellos en combate:"
+     L.CHECK_OPEN = "%s: se lee, tiempo exacto"
+     L.CHECK_SECRET = "%s: aura secreta, se sigue por su lanzamiento con la última duración vista (%s)"
+diff --git a/a/SealTimersForever.lua b/b/SealTimersForever.lua
+index 6e7efa3..e513da4 100644
+--- a/a/SealTimersForever.lua
++++ b/b/SealTimersForever.lua
+@@ -47,7 +47,18 @@ local RECAST_REFRESH = 0.2
+ local DEFAULT_DURATION = 30
+ -- Morado de la marca, el mismo del titulo en todos los addons de Pirson
+ local BRAND = "|cffd597ff"
+-local DEFAULTS = { locked = true, scale = 1, point = "CENTER", x = 0, y = -150 }
++-- barY por defecto: justo donde quedaba la barra antes de tener su propio
++-- anclaje (2 px bajo el icono, con el icono centrado en y = -150).
++local DEFAULTS = {
++    locked = true, scale = 1, barWidth = ICON_SIZE,
++    point = "CENTER", x = 0, y = -150,
++    barPoint = "CENTER", barX = 0, barY = -176,
++    -- Numeros sueltos, no una tabla: si no, todos los perfiles sin color
++    -- guardado compartirian la MISMA tabla que DEFAULTS y un cambio de color
++    -- se colaria en los valores por defecto de todo el mundo.
++    barColorR = 0.84, barColorG = 0.59, barColorB = 1,
++    showIcon = true, showBar = true,
++}
+ -- Sube cuando cambia como se aprenden las duraciones: las viejas se descartan
+ -- (la 1: las antiguas podian ser la de un eco, mucho mas corta).
+ local DURATIONS_VERSION = 1
+@@ -59,7 +70,8 @@ local knownSeals = {}          -- spellID del libro de hechizos -> nombre del se
+ local icons, order, pool = {}, {}, {}  -- nombre del sello -> icono
+ local activeSeal               -- nombre del ultimo sello lanzado (o elegido al releer)
+ local debugMode = false
+-local anchor
++local anchor      -- bloque de iconos
++local barAnchor   -- bloque de la barra, se mueve por separado
+ 
+ --------------------------------------------------
+ -- VALORES SECRETOS
+@@ -148,17 +160,36 @@ local function AcquireIcon()
+         icon.texture = icon:CreateTexture(nil, "ARTWORK")
+         icon.texture:SetAllPoints()
+         icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
++        icon.texture:SetShown(db.showIcon)
+         icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
+         icon.cooldown:SetAllPoints()
+         icon.cooldown:SetReverse(true)
+         icon.cooldown:SetDrawEdge(false)
+         icon.cooldown:SetHideCountdownNumbers(false)
++        icon.cooldown:SetShown(db.showIcon)
+         -- Se acabo el tiempo: el sello expiro (tambien cubre retiradas que
+         -- llegaron secretas y no se pudieron leer).
+         icon.cooldown:SetScript("OnCooldownDone", function(self)
+             local parent = self:GetParent()
+             if parent.hasTimer and parent.sealName then HideSeal(parent.sealName) end
+         end)
++        -- Barra con su propio anclaje (barAnchor), no colgada del icono: asi
++        -- se puede mover a cualquier parte de la pantalla por separado. Se
++        -- llena/vacia con el mismo tiempo que el swipe circular. Solo se
++        -- muestra si el tiempo del Cooldown es legible (ver SyncBar): con
++        -- valores secretos no hay numeros que ponerle a una barra.
++        icon.bar = CreateFrame("StatusBar", nil, barAnchor)
++        icon.bar:SetSize(db.barWidth, 8)
++        icon.bar:SetPoint("CENTER", barAnchor, "CENTER", 0, 0)
++        icon.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
++        icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB)
++        icon.bar:SetMinMaxValues(0, 1)
++        icon.bar.bg = icon.bar:CreateTexture(nil, "BACKGROUND")
++        icon.bar.bg:SetAllPoints()
++        icon.bar.bg:SetColorTexture(0, 0, 0, 0.6)
++        icon.bar.text = icon.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
++        icon.bar.text:SetPoint("CENTER")
++        icon.bar:Hide()
+     end
+     icon:Show()
+     return icon
+@@ -172,6 +203,21 @@ local function Layout()
+     end
+ end
+ 
++-- Un solo OnUpdate para todas las barras (como mucho hay un par de sellos a
++-- la vez, asi que recorrer 'order' cada frame no cuesta nada).
++local function UpdateBars()
++    local now = GetTime()
++    for _, name in ipairs(order) do
++        local icon = icons[name]
++        if icon.barStart and icon.barDuration then
++            local remaining = icon.barDuration - (now - icon.barStart)
++            if remaining < 0 then remaining = 0 end
++            icon.bar:SetValue(remaining / icon.barDuration)
++            icon.bar.text:SetText(remaining < 5 and ("%.1f"):format(remaining) or ("%.0f"):format(remaining))
++        end
++    end
++end
++
+ local function ShowSeal(name, texture)
+     local icon = icons[name]
+     if not icon then
+@@ -192,6 +238,8 @@ HideSeal = function(name)
+     -- no debe quitar el sello que reutilice este icono.
+     icon.hasTimer = false
+     icon.cooldown:Clear()
++    icon.bar:Hide()
++    icon.barStart, icon.barDuration = nil, nil
+     icon.sealName, icon.auraInstanceID, icon.castAt = nil, nil, nil
+     if activeSeal == name then activeSeal = nil end
+     pool[#pool + 1] = icon
+@@ -234,6 +282,27 @@ local function LearnFromAura(name, id)
+     Learn(name, duration:GetTotalDuration())
+ end
+ 
++-- Lee start/duracion (segundos) del propio Cooldown tras fijarlo, en vez de
++-- llevar la cuenta por separado: un solo sitio decide si son legibles. Con
++-- valores secretos (IsSecret) la barra simplemente no se muestra; el swipe
++-- circular del Cooldown si sigue funcionando, eso lo gestiona el widget.
++local function SyncBar(icon)
++    if not icon.hasTimer then
++        icon.bar:Hide()
++        icon.barStart, icon.barDuration = nil, nil
++        return
++    end
++    local start, duration = icon.cooldown:GetCooldownTimes()
++    if IsSecret(start) or IsSecret(duration) or not Readable(start) or not Readable(duration) or duration == 0 then
++        icon.bar:Hide()
++        icon.barStart, icon.barDuration = nil, nil
++        return
++    end
++    icon.barStart = start / 1000
++    icon.barDuration = duration / 1000
++    icon.bar:SetShown(db.showBar)
++end
++
+ local function StartTimer(name)
+     local icon = icons[name]
+     if not icon then return end
+@@ -254,25 +323,23 @@ local function StartTimer(name)
+             cooldown:SetCooldownFromDurationObject(duration)
+             icon.hasTimer = true
+             Debug(name .. ": tiempo del aura (secreto)")
+-            return
+-        end
+-        local isZero = duration:IsZero()
+-        if isZero then
++        elseif duration:IsZero() then
+             -- Sello permanente: sin temporizador (uno de 0 s acabaria al momento)
+             icon.hasTimer = false
+             cooldown:Clear()
+             Debug(name .. ": sin duracion")
+-            return
++        else
++            cooldown:SetCooldownFromDurationObject(duration)
++            icon.hasTimer = true
++            Learn(name, duration:GetTotalDuration())
++            Debug(name .. ": tiempo del aura")
+         end
+-        cooldown:SetCooldownFromDurationObject(duration)
+-        icon.hasTimer = true
+-        Learn(name, duration:GetTotalDuration())
+-        Debug(name .. ": tiempo del aura")
+     else
+         icon.hasTimer = false
+         cooldown:Clear()
+         Debug(name .. ": sin tiempo")
+     end
++    SyncBar(icon)
+ end
+ 
+ -- El aura que seguiamos ya no esta. Si el sello se acaba de relanzar, sigue con
+@@ -417,10 +484,44 @@ local function ApplyLock()
+     anchor:EnableMouse(not db.locked)
+     anchor.bg:SetShown(not db.locked)
+     anchor.label:SetShown(not db.locked)
++    barAnchor:EnableMouse(not db.locked)
++    barAnchor.bg:SetShown(not db.locked)
++    barAnchor.label:SetShown(not db.locked)
+ end
+ 
+ local function ApplyScale()
+     anchor:SetScale(db.scale)
++    barAnchor:SetScale(db.scale)
++end
++
++-- Tambien hay que tocar los iconos del pool: se reusan tal cual al volver a
++-- mostrarse, asi que si se quedan con el ancho viejo no se corrige solos.
++-- barAnchor tambien cambia de tamano: asi el fondo (visible al desbloquear)
++-- marca el hueco real que ocupa la barra.
++local function ApplyBarWidth()
++    barAnchor:SetWidth(db.barWidth)
++    for _, icon in pairs(icons) do icon.bar:SetWidth(db.barWidth) end
++    for _, icon in ipairs(pool) do icon.bar:SetWidth(db.barWidth) end
++end
++
++local function ApplyBarColor()
++    for _, icon in pairs(icons) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
++    for _, icon in ipairs(pool) do icon.bar:SetStatusBarColor(db.barColorR, db.barColorG, db.barColorB) end
++end
++
++-- El icono (textura + swipe circular) y la barra se pueden apagar cada uno
++-- por su lado. La barra solo vuelve a aparecer si ademas hay tiempo que
++-- mostrar (icon.barStart): eso ya lo decide SyncBar, aqui solo se respeta.
++local function ApplyVisibility()
++    for _, icon in pairs(icons) do
++        icon.texture:SetShown(db.showIcon)
++        icon.cooldown:SetShown(db.showIcon)
++        icon.bar:SetShown(db.showBar and icon.barStart ~= nil)
++    end
++    for _, icon in ipairs(pool) do
++        icon.texture:SetShown(db.showIcon)
++        icon.cooldown:SetShown(db.showIcon)
++    end
+ end
+ 
+ local function CreateAnchor()
+@@ -444,9 +545,31 @@ local function CreateAnchor()
+     anchor.label = anchor:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+     anchor.label:SetPoint("BOTTOMLEFT", anchor, "TOPLEFT", 0, 2)
+     anchor.label:SetText(BRAND .. L.TITLE .. "|r - " .. L.DRAG_HINT)
++    anchor:SetScript("OnUpdate", UpdateBars)
++end
++
++-- Bloque de la barra, independiente del de los iconos: se arrastra y se
++-- guarda por separado (db.barPoint/barX/barY), igual que CreateAnchor.
++local function CreateBarAnchor()
++    barAnchor = CreateFrame("Frame", "SealTimersForeverBarAnchor", UIParent)
++    barAnchor:SetSize(db.barWidth, 8)
++    barAnchor:SetPoint(db.barPoint, UIParent, db.barPoint, db.barX, db.barY)
++    barAnchor:SetMovable(true)
++    barAnchor:SetClampedToScreen(true)
++    barAnchor:RegisterForDrag("LeftButton")
++    barAnchor:SetScript("OnDragStart", barAnchor.StartMoving)
++    barAnchor:SetScript("OnDragStop", function(self)
++        self:StopMovingOrSizing()
++        local point, _, _, x, y = self:GetPoint()
++        db.barPoint, db.barX, db.barY = point, x, y
++    end)
+ 
+-    ApplyLock()
+-    ApplyScale()
++    barAnchor.bg = barAnchor:CreateTexture(nil, "BACKGROUND")
++    barAnchor.bg:SetAllPoints()
++    barAnchor.bg:SetColorTexture(0.84, 0.59, 1, 0.35)
++    barAnchor.label = barAnchor:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
++    barAnchor.label:SetPoint("BOTTOMLEFT", barAnchor, "TOPLEFT", 0, 2)
++    barAnchor.label:SetText(BRAND .. L.TITLE .. "|r - " .. L.DRAG_HINT)
+ end
+ 
+ --------------------------------------------------
+@@ -469,6 +592,39 @@ local function Check()
+     if not any then print("  " .. L.CHECK_NONE) end
+ end
+ 
++-- Abre el selector de color de Blizzard para el color de la barra. Hay dos
++-- APIs segun el cliente: la nueva (SetupColorPickerAndShow, Dragonflight+) y
++-- la vieja (func/cancelFunc/SetColorRGB a mano). Forever comparte API con
++-- retail, pero se comprueba por si acaso en vez de asumir.
++local function OpenColorPicker()
++    local startR, startG, startB = db.barColorR, db.barColorG, db.barColorB
++    local function OnColorChanged()
++        db.barColorR, db.barColorG, db.barColorB = ColorPickerFrame:GetColorRGB()
++        ApplyBarColor()
++    end
++    local function OnCancel(previousValues)
++        db.barColorR = previousValues and previousValues.r or startR
++        db.barColorG = previousValues and previousValues.g or startG
++        db.barColorB = previousValues and previousValues.b or startB
++        ApplyBarColor()
++    end
++    if ColorPickerFrame.SetupColorPickerAndShow then
++        ColorPickerFrame:SetupColorPickerAndShow({
++            swatchFunc = OnColorChanged,
++            cancelFunc = OnCancel,
++            hasOpacity = false,
++            r = startR, g = startG, b = startB,
++        })
++    else
++        ColorPickerFrame.func = OnColorChanged
++        ColorPickerFrame.cancelFunc = OnCancel
++        ColorPickerFrame.hasOpacity = false
++        ColorPickerFrame:SetColorRGB(startR, startG, startB)
++        ColorPickerFrame:Hide()
++        ColorPickerFrame:Show()
++    end
++end
++
+ local function CreateOptions()
+     -- En morado tambien en Opciones > AddOns, como en la lista de addons
+     local category = Settings.RegisterVerticalLayoutCategory(BRAND .. "Seal Timers Forever|r")
+@@ -478,6 +634,16 @@ local function CreateOptions()
+     lock:SetValueChangedCallback(ApplyLock)
+     Settings.CreateCheckbox(category, lock, L.LOCK_TOOLTIP)
+ 
++    local showIcon = Settings.RegisterAddOnSetting(category, "SealTimersForever_ShowIcon", "showIcon",
++        db, Settings.VarType.Boolean, L.SHOW_ICON, DEFAULTS.showIcon)
++    showIcon:SetValueChangedCallback(ApplyVisibility)
++    Settings.CreateCheckbox(category, showIcon, L.SHOW_ICON_TOOLTIP)
++
++    local showBar = Settings.RegisterAddOnSetting(category, "SealTimersForever_ShowBar", "showBar",
++        db, Settings.VarType.Boolean, L.SHOW_BAR, DEFAULTS.showBar)
++    showBar:SetValueChangedCallback(ApplyVisibility)
++    Settings.CreateCheckbox(category, showBar, L.SHOW_BAR_TOOLTIP)
++
+     local scale = Settings.RegisterAddOnSetting(category, "SealTimersForever_Scale", "scale",
+         db, Settings.VarType.Number, L.SIZE, DEFAULTS.scale)
+     scale:SetValueChangedCallback(ApplyScale)
+@@ -487,12 +653,22 @@ local function CreateOptions()
+     end)
+     Settings.CreateSlider(category, scale, options, L.SIZE_TOOLTIP)
+ 
++    local barWidth = Settings.RegisterAddOnSetting(category, "SealTimersForever_BarWidth", "barWidth",
++        db, Settings.VarType.Number, L.BAR_WIDTH, DEFAULTS.barWidth)
++    barWidth:SetValueChangedCallback(ApplyBarWidth)
++    local widthOptions = Settings.CreateSliderOptions(20, 400, 10)
++    widthOptions:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value)
++        return string.format("%dpx", math.floor(value + 0.5))
++    end)
++    Settings.CreateSlider(category, barWidth, widthOptions, L.BAR_WIDTH_TOOLTIP)
++
+     Settings.RegisterAddOnCategory(category)
+ 
+     SLASH_SEALTIMERSFOREVER1 = "/stf"
+     SlashCmdList.SEALTIMERSFOREVER = function(msg)
+         local command = (msg or ""):lower():match("^%s*(%S*)")
+         if command == "check" then return Check() end
++        if command == "color" then return OpenColorPicker() end
+         if command == "debug" then
+             debugMode = not debugMode
+             print(BRAND .. "Seal Timers Forever|r: " .. (debugMode and L.DEBUG_ON or L.DEBUG_OFF))
+@@ -530,6 +706,12 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2, arg3)
+         BuildSealNames()
+         ScanSpellBook()
+         CreateAnchor()
++        CreateBarAnchor()
++        ApplyLock()
++        ApplyScale()
++        ApplyBarWidth()
++        ApplyBarColor()
++        ApplyVisibility()
+         CreateOptions()
+         self:RegisterUnitEvent("UNIT_AURA", "player")
+         self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
