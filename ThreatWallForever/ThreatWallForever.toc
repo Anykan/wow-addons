@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: ThreatWall Forever
+## Notes: Tank aggro-leak watcher: shows only enemies you are losing or have lost aggro on, click to target-swap. Also works in reverse for DD/Heal.
+## Notes-deDE: Aggro-Warner: zeigt nur Gegner, bei denen du gerade die Aggro verlierst oder verloren hast, Klick zum Zielwechsel. Funktioniert umgekehrt auch für DD/Heal.
+## Author: Anykan
+## Version: 0.1
+## SavedVariables: ThreatWallForeverDB
+
+Locales.lua
+ThreatWallForever.lua
