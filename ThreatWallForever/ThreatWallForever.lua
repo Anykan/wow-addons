@@ -35,6 +35,12 @@ local ADDON = ...
 local PREFIX = '|cff33ff99ThreatWall Forever:|r '
 local L = ThreatWallForeverLocale
 
+-- Single source of truth for the version string: the .toc's ## Version
+-- line - the one place already bumped on every release, so the title bar
+-- and the boot message never drift apart or need updating twice.
+local VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(ADDON, 'Version'))
+  or (GetAddOnMetadata and GetAddOnMetadata(ADDON, 'Version')) or '?'
+
 local DEFAULTS = {
   shown = true,
   locked = false,
@@ -99,7 +105,7 @@ end
 local db
 local frame, header, titleText, subText, gear, roleBtn, minimize, grip, mm
 local rows = {}
-local tracked = {}             -- guid -> { unit, name, markIndex, shownColor, removeAt }
+local tracked = {}             -- guid (or unit token, if the guid is unreadable) -> { unit, name, markIndex, shownColor, removeAt }
 local testMode = false
 local placePending = false
 local scroll = 0
@@ -267,23 +273,34 @@ local function collect()
   for _, unit in ipairs(candidateUnits()) do
     if engaged(unit) then
       local okG, guid = pcall(UnitGUID, unit)
+      if okG and IsSecret(guid) then guid = nil end
+      -- GUID is the normal tracking key. It can also come back nil or
+      -- "secret" itself - confirmed live in a group dungeon pull, a further
+      -- case of this client hiding info in combat - so fall back to the
+      -- unit token as the key when that happens. A token-keyed row can end
+      -- up briefly duplicated if a nameplate gets reassigned to a different
+      -- enemy mid-fight (the known nameplate-token instability), but it
+      -- still ages out normally via the grace period below once it stops
+      -- appearing, so that's a short cosmetic flicker at worst - much better
+      -- than not tracking the enemy at all.
+      local key = (okG and guid) or unit
       -- Several tokens (your target, a nameplate, a party member's target...)
       -- can all point at the same enemy. Only the first one this tick gets to
       -- speak for it, so a later, less complete read never overwrites a good
       -- one - candidateUnits() puts your own `target` first for exactly this.
-      if okG and not IsSecret(guid) and guid and not seen[guid] then
+      if not seen[key] then
         local tanking, status = myStatus(unit)
         if tanking ~= nil or status ~= nil then
           local color = classify(tanking, status)
-          local t = tracked[guid]
+          local t = tracked[key]
           local isNew = not t
           if not t then
             t = {}
-            tracked[guid] = t
+            tracked[key] = t
           end
           if db and db.debug and t.unit and t.unit ~= unit then
             say('|cff888888[debug]|r unit token changed ' .. tostring(t.unit) .. ' -> ' .. tostring(unit)
-              .. ' for ' .. tostring(not IsSecret(t.name) and t.name or guid))
+              .. ' for ' .. tostring(not IsSecret(t.name) and t.name or key))
           end
           t.unit = unit
           local okN, name = pcall(UnitName, unit)
@@ -292,7 +309,7 @@ local function collect()
           t.name = okN and name or nil
           local okM, idx = pcall(GetRaidTargetIndex, unit)
           t.markIndex = okM and idx or nil
-          seen[guid] = true
+          seen[key] = true
 
           if isNew then
             dbg('SPOTTED', (not IsSecret(t.name) and t.name or unit) .. ' spotted, tanking='
@@ -323,16 +340,16 @@ local function collect()
     end
   end
 
-  for guid, t in pairs(tracked) do
-    if not seen[guid] then
+  for key, t in pairs(tracked) do
+    if not seen[key] then
       if t.shownColor then
         t.removeAt = t.removeAt or (now + GRACE)
       else
-        tracked[guid] = nil
+        tracked[key] = nil
       end
     end
   end
-  for guid, t in pairs(tracked) do
+  for key, t in pairs(tracked) do
     if t.removeAt and now >= t.removeAt then
       -- Quieter than SPOTTED/WORSENED on purpose: a row clearing is routine
       -- and can happen a lot (e.g. switching targets), so it only goes to
@@ -340,10 +357,10 @@ local function collect()
       if db and db.debug then
         db.log = db.log or {}
         table.insert(db.log, { time = date('%H:%M:%S'),
-          msg = '[' .. CODES.CLEARED .. '] ' .. (not IsSecret(t.name) and t.name or guid) .. ' cleared, was ' .. tostring(t.shownColor) })
+          msg = '[' .. CODES.CLEARED .. '] ' .. (not IsSecret(t.name) and t.name or key) .. ' cleared, was ' .. tostring(t.shownColor) })
         while #db.log > MAX_LOG do table.remove(db.log, 1) end
       end
-      tracked[guid] = nil
+      tracked[key] = nil
     end
   end
 end
@@ -542,7 +559,7 @@ refresh = function()
       list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3] }
     end
   else
-    for guid, t in pairs(tracked) do
+    for _, t in pairs(tracked) do
       if t.shownColor then
         list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex }
       end
@@ -627,9 +644,9 @@ end
 local function updateRoleLook()
   if roleBtn.setArt then roleBtn.setArt() end
   if db.role == 'tank' then
-    titleText:SetText(L.TITLE_TANK)
+    titleText:SetText(L.TITLE_TANK .. ' ' .. VERSION)
   else
-    titleText:SetText(L.TITLE_DPS)
+    titleText:SetText(L.TITLE_DPS .. ' ' .. VERSION)
   end
 end
 
@@ -1224,9 +1241,9 @@ local function slash(msg)
     end
     if not any then say(L.NO_NAMEPLATES, 'NO_NAMEPLATES') end
     local anyTracked = false
-    for guid, t in pairs(tracked) do
+    for key, t in pairs(tracked) do
       anyTracked = true
-      say('tracked: ' .. tostring(not IsSecret(t.name) and t.name or guid)
+      say('tracked: ' .. tostring(not IsSecret(t.name) and t.name or key)
         .. ' unit=' .. tostring(t.unit) .. ' shownColor=' .. tostring(t.shownColor)
         .. ' markIndex=' .. tostring(t.markIndex) .. ' removeAt=' .. tostring(t.removeAt))
     end
@@ -1336,7 +1353,5 @@ driver:SetScript('OnEvent', function(self, event, arg1)
   end)
 
   refresh()
-  local version = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(ADDON, 'Version'))
-    or (GetAddOnMetadata and GetAddOnMetadata(ADDON, 'Version')) or '?'
-  say(string.format(L.LOADED, version), 'LOADED')
+  say(string.format(L.LOADED, VERSION), 'LOADED')
 end)
