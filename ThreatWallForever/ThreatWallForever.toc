@@ -6,5 +6,17 @@
 ## Version: 0.1
 ## SavedVariables: ThreatWallForeverDB
 
+# Lade-Reihenfolge: Config zuerst (alle Werte), dann Texte, Kern, Module
+Config.lua
 Locales.lua
-ThreatWallForever.lua
+Core.lua
+Utils.lua
+Debug.lua
+Detection.lua
+Marks.lua
+List.lua
+Window.lua
+Menu.lua
+Minimap.lua
+Hint.lua
+Slash.lua

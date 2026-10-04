@@ -1,8 +1,10 @@
-ThreatWallForeverLocale = ThreatWallForeverLocale or {}
-local L = ThreatWallForeverLocale
+-- Locales.lua — alle Texte, die Spieler sehen (EN + DE). Umschaltung über die Spielsprache.
+local _, ns = ...
+ns.L = ns.L or {}
+local L = ns.L
 
 -- =========================================================
--- ENGLISH (default / fallback)
+-- ENGLISCH (Standard / Rückfall)
 -- =========================================================
 L["ROLE_TANK"] = "Tank"
 L["ROLE_DPS"] = "DD/Heal"
