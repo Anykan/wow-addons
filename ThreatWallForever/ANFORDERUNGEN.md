@@ -187,7 +187,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - `UnitGroupRolesAssigned("partyN")`
   - Freundliche Nameplates + Symbol über dem Kopf, auch in einer Instanz
 
-## M. Hinweis-Fenster: alle nötigen Spiel-Optionen (vom Nutzer beschlossen 2026-10-04)
+## M. Hinweis-Fenster: alle nötigen Spiel-Optionen (vom Nutzer beschlossen 2026-10-04) — ✅ umgesetzt 2026-10-04 (im Spiel getestet; freundliche Nameplates werden geprüft, sobald L die Einstellung `symbolMarks` bringt; Zurückstellen alter Werte kommt mit L; Knopf „Spiel-Optionen öffnen“ per `C.HINT.SHOW_OPTIONS_BUTTON` abschaltbar, Entscheidung offen)
 - Das bestehende Hinweis-Popup beim Login (heute nur „Gegner-Nameplates an“, CVar `nameplateShowEnemies`) wird erweitert: Es nennt **alle Spiel-Optionen**, die TWF für einen sauberen Betrieb braucht.
 - Neu dazu: **Nameplates für Spieler (freundliche Nameplates)** müssen an sein (für L, Symbol über dem Kopf).
 - **Vorher genau ermitteln (Analyse + Test auf Forever):** Welche Optionen bzw. CVars braucht TWF wirklich, wofür, und was passiert, wenn eine fehlt? Kandidaten:

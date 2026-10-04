@@ -11,8 +11,8 @@ local _, ns = ...
 local C = ns.Config
 local L = ns.L
 local S = C.SETTINGS
+local D = C.DIALOG
 local T = C.TEXTURE
-local A = C.ATLAS
 local W = C.WINDOW
 
 local win
@@ -41,39 +41,17 @@ end
 
 local function showTip(owner, opt)
   if not opt.tip then return end
-  GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
-  GameTooltip:AddLine(L[opt.label])
-  GameTooltip:AddLine(L[opt.tip], S.TOOLTIP_TEXT[1], S.TOOLTIP_TEXT[2], S.TOOLTIP_TEXT[3], true)
-  GameTooltip:Show()
+  ns.showTooltip(owner, L[opt.label], L[opt.tip])
 end
 
 local function hideTip() GameTooltip:Hide() end
-
--- Flacher Knopf im TWF-Stil
-local function makeButton(parent, text, width)
-  local btn = CreateFrame('Button', nil, parent)
-  btn:SetHeight(S.BUTTON_H)
-  btn.bg = btn:CreateTexture(nil, 'BACKGROUND')
-  btn.bg:SetAllPoints()
-  btn.bg:SetTexture(T.FLAT)
-  btn.bg:SetVertexColor(unpack(S.BUTTON_BG))
-  local hl = btn:CreateTexture(nil, 'HIGHLIGHT')
-  hl:SetAllPoints()
-  hl:SetTexture(T.FLAT)
-  hl:SetVertexColor(1, 1, 1, S.ROW_HIGHLIGHT_ALPHA)
-  btn.text = btn:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  btn.text:SetPoint('CENTER')
-  btn.text:SetText(text)
-  btn:SetWidth(width or (btn.text:GetStringWidth() + 2 * S.PADDING))
-  return btn
-end
 
 -- Zeilen-Bausteine (jeder gibt die neue Y-Position zurück) ---------------------------------
 
 local function buildSection(parent, opt, y)
   y = y - S.SECTION_GAP
   local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
-  fs:SetPoint('TOPLEFT', S.PADDING, y)
+  fs:SetPoint('TOPLEFT', D.PADDING, y)
   fs:SetText(L[opt.label])
   fs:SetTextColor(unpack(C.TITLE_COLOR))
   local line = parent:CreateTexture(nil, 'ARTWORK')
@@ -81,14 +59,14 @@ local function buildSection(parent, opt, y)
   line:SetVertexColor(1, 1, 1, S.LINE_ALPHA)
   line:SetHeight(1)
   line:SetPoint('TOPLEFT', fs, 'BOTTOMLEFT', 0, -1)
-  line:SetPoint('RIGHT', parent, 'RIGHT', -S.PADDING, 0)
+  line:SetPoint('RIGHT', parent, 'RIGHT', -D.PADDING, 0)
   return y - S.SECTION_H
 end
 
 local function newRow(parent, y, height)
   local row = CreateFrame('Button', nil, parent)
-  row:SetPoint('TOPLEFT', S.PADDING, y)
-  row:SetPoint('RIGHT', parent, 'RIGHT', -S.PADDING, 0)
+  row:SetPoint('TOPLEFT', D.PADDING, y)
+  row:SetPoint('RIGHT', parent, 'RIGHT', -D.PADDING, 0)
   row:SetHeight(height)
   return row
 end
@@ -98,7 +76,7 @@ local function buildCheck(parent, opt, y)
   local hl = row:CreateTexture(nil, 'HIGHLIGHT')
   hl:SetAllPoints()
   hl:SetTexture(T.FLAT)
-  hl:SetVertexColor(1, 1, 1, S.ROW_HIGHLIGHT_ALPHA)
+  hl:SetVertexColor(1, 1, 1, D.ROW_HIGHLIGHT_ALPHA)
 
   -- Kästchen: heller Rahmen, dunkle Innenfläche, Haken darüber
   local border = row:CreateTexture(nil, 'ARTWORK', nil, 1)
@@ -139,15 +117,15 @@ local function buildRole(parent, opt, y)
   label:SetPoint('LEFT')
   label:SetText(L[opt.label])
 
-  local dps = makeButton(row, L.ROLE_DPS, S.ROLE_BUTTON_W)
+  local dps = ns.makeFlatButton(row, L.ROLE_DPS, S.ROLE_BUTTON_W)
   dps:SetPoint('RIGHT')
-  local tank = makeButton(row, L.ROLE_TANK, S.ROLE_BUTTON_W)
-  tank:SetPoint('RIGHT', dps, 'LEFT', -S.BUTTON_GAP, 0)
+  local tank = ns.makeFlatButton(row, L.ROLE_TANK, S.ROLE_BUTTON_W)
+  tank:SetPoint('RIGHT', dps, 'LEFT', -D.BUTTON_GAP, 0)
 
   local function update()
     local isTank = ns.db.role == 'tank'
-    tank.bg:SetVertexColor(unpack(isTank and S.BUTTON_BG_ACTIVE or S.BUTTON_BG))
-    dps.bg:SetVertexColor(unpack(isTank and S.BUTTON_BG or S.BUTTON_BG_ACTIVE))
+    tank.bg:SetVertexColor(unpack(isTank and D.BUTTON_BG_ACTIVE or D.BUTTON_BG))
+    dps.bg:SetVertexColor(unpack(isTank and D.BUTTON_BG or D.BUTTON_BG_ACTIVE))
   end
   local function pick(role)
     if ns.db.role ~= role then
@@ -224,8 +202,8 @@ local function buildSlider(parent, opt, y)
 end
 
 local function buildButton(parent, opt, y)
-  local btn = makeButton(parent, L[opt.label])
-  btn:SetPoint('TOPLEFT', S.PADDING, y)
+  local btn = ns.makeFlatButton(parent, L[opt.label])
+  btn:SetPoint('TOPLEFT', D.PADDING, y)
   btn:SetScript('OnClick', function()
     ns.dbg('SETTING', 'Knopf ' .. opt.action)
     ns[opt.action]()
@@ -250,47 +228,8 @@ local function updateAll()
 end
 
 local function build()
-  win = CreateFrame('Frame', S.NAME, UIParent)
-  win:SetWidth(S.WIDTH)
+  win = ns.makeDialog(S.NAME, S.WIDTH, L.SETTINGS_TITLE)
   win:SetPoint('CENTER')
-  win:SetFrameStrata('DIALOG')
-  win:SetToplevel(true)
-  win:SetClampedToScreen(true)
-  win:SetMovable(true)
-  win:EnableMouse(true)
-  if UISpecialFrames then table.insert(UISpecialFrames, S.NAME) end  -- Esc schließt
-
-  local bg = win:CreateTexture(nil, 'BACKGROUND')
-  bg:SetAllPoints()
-  if not ns.setAtlas(bg, A.WINDOW_BG) then bg:SetColorTexture(unpack(W.BG_FALLBACK)) end
-  bg:SetAlpha(S.BG_ALPHA)
-
-  -- Kopfleiste wie beim Hauptfenster; hier wird das Fenster verschoben
-  local header = CreateFrame('Frame', nil, win)
-  header:SetPoint('TOPLEFT')
-  header:SetPoint('TOPRIGHT')
-  header:SetHeight(W.HEADER_H)
-  header:EnableMouse(true)
-  header:SetScript('OnMouseDown', function() win:StartMoving() end)
-  header:SetScript('OnMouseUp', function() win:StopMovingOrSizing() end)
-  local hbg = header:CreateTexture(nil, 'BACKGROUND', nil, 1)
-  hbg:SetAllPoints()
-  if not ns.setAtlas(hbg, A.HEADER_BG, T.FLAT) then hbg:SetColorTexture(unpack(W.HEADER_FALLBACK)) end
-
-  local title = header:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
-  title:SetPoint('LEFT', W.TITLE_X, 0)
-  title:SetText(L.SETTINGS_TITLE)
-  title:SetTextColor(unpack(C.TITLE_COLOR))
-
-  local okClose, close = pcall(CreateFrame, 'Button', nil, header, 'UIPanelCloseButton')
-  if not okClose then
-    -- Rückfall, falls es die Vorlage auf diesem Client nicht gibt
-    ns.dbg('SETTING', 'Vorlage UIPanelCloseButton fehlt, nutze einfaches X')
-    close = makeButton(header, 'X', S.CLOSE_SIZE)
-  end
-  close:SetSize(S.CLOSE_SIZE, S.CLOSE_SIZE)
-  close:SetPoint('RIGHT', header, 'RIGHT', S.CLOSE_X, 0)
-  close:SetScript('OnClick', function() win:Hide() end)
 
   local y = -(W.HEADER_H + S.TOP_GAP)
   for _, opt in ipairs(C.OPTIONS) do
@@ -301,9 +240,10 @@ local function build()
       ns.dbg('SETTING', 'Unbekannter Optionstyp in Config.OPTIONS: ' .. tostring(opt.type))
     end
   end
-  win:SetHeight(-y + S.PADDING)
+  win:SetHeight(-y + D.PADDING)
   win:SetScript('OnShow', updateAll)
-  win:Hide()
+  -- Nach dem Schließen prüfen, ob eingeschaltete Funktionen weitere Spiel-Optionen brauchen (M)
+  win:SetScript('OnHide', function() ns.checkGameOptions(false) end)
   ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #C.OPTIONS .. ' Einträge)')
 end
 

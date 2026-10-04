@@ -32,10 +32,10 @@ C.CODES = {
   DEBUG_OFF = '012',
   LOADED = '013',
   HELP = '014',
-  HINT_RESET = '015',
   SETTING = '016',       -- Debug: Einstellung im Einstellungsfenster geändert
   OPTIONS_PANEL = '017', -- Debug: Seite unter Optionen → AddOns angelegt / fehlgeschlagen
   DEBUG_SET = '018',     -- /twf debug 1|0
+  GAME_OPTIONS = '019',  -- Debug: Prüfung der Spiel-Optionen
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -60,7 +60,6 @@ C.DEFAULTS = {
   minimapAngle = 200,        -- Position des Minimap-Buttons in Grad
   debug = false,
   markMethod = 1,            -- Index in Marks.lua (1–3)
-  hideNameplateHint = false,
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -244,26 +243,49 @@ C.MINIMAP = {
   RADIUS_EXTRA = 8,            -- Abstand außerhalb des Minimap-Rands
 }
 
--- Hinweis-Popup (Nameplates) --------------------------------------------------------------
+-- Gemeinsamer Fensterstil (Einstellungsfenster + Hinweis-Popup) -------------------------
+
+C.DIALOG = {
+  PADDING = 12,                -- Innenabstand links/rechts/unten
+  BG_ALPHA = 0.95,             -- Deckkraft des Fensterhintergrunds
+  ROW_HIGHLIGHT_ALPHA = 0.08,  -- Aufhellen beim Drüberfahren
+  BUTTON_H = 20,
+  BUTTON_BG = { 0.2, 0.2, 0.22, 0.9 },
+  BUTTON_BG_ACTIVE = { 0.45, 0.35, 0.05, 0.95 },  -- gewählter Knopf (z. B. Rolle)
+  BUTTON_GAP = 6,
+  CLOSE_SIZE = 24,             -- Schließen-Button (X)
+  CLOSE_X = 2,                 -- Versatz des X nach rechts
+  TOOLTIP_TEXT = { 1, 1, 1 },  -- Farbe des Erklärtexts im Tooltip
+}
+
+-- Hinweis-Popup: Prüfung der Spiel-Optionen (Hint.lua, Anforderung M) ----------------------
 
 C.HINT = {
   NAME = 'ThreatWallForeverHintPopup',
-  CHECK_NAME = 'ThreatWallForeverHintCheck',
-  CVAR = 'nameplateShowEnemies',  -- geprüfte Spiel-Option
-  CVAR_OFF = '0',                 -- Wert, wenn sie aus ist
-  OPTIONS_CATEGORY = 'Names',     -- Seite in den Spiel-Optionen
-  WIDTH = 460, HEIGHT = 230,
+  WIDTH = 380,
   OFFSET_Y = 100,                 -- über der Bildschirmmitte
-  TITLE_Y = -7,
-  TITLE_MARGIN = 80,              -- Titelbreite = Fensterbreite minus diesen Wert
-  BODY_X = 16, BODY_Y = -40,
-  BODY_SPACING = 3,
-  BTN_H = 22,
-  OK_W = 80,
-  SETTINGS_W = 150,
-  BTN_GAP = -8,
-  EDGE = 16,                      -- Abstand der Buttons/Checkbox zum Rand
-  CHECK_SIZE = 20,
+  TOP_GAP = 10,                   -- Abstand unter der Kopfleiste
+  BODY_SPACING = 3,               -- Zeilenabstand im Erklärtext
+  LIST_GAP = 10,                  -- Abstand Erklärtext → Statusliste
+  ROW_H = 20,                     -- Höhe einer Statuszeile
+  ICON_SIZE = 16,                 -- ✔/✘-Symbol
+  ICON_OK = 'Interface\\RaidFrame\\ReadyCheck-Ready',
+  ICON_BAD = 'Interface\\RaidFrame\\ReadyCheck-NotReady',
+  BUTTON_GAP_Y = 14,              -- Abstand Statusliste → Knöpfe
+  OPTIONS_CATEGORY = 'Names',     -- Seite in den Spiel-Optionen
+  SHOW_OPTIONS_BUTTON = true,     -- Knopf "Spiel-Optionen öffnen" zeigen (Entscheidung noch offen)
+}
+
+-- Spiel-Optionen, die TWF braucht (Anforderung M).
+-- names:    mögliche CVar-Namen; der erste vorhandene zählt (Namen können sich in der Beta ändern)
+-- want:     Sollwert
+-- label/tip: Schlüssel in Locales.lua
+-- neededBy: nur nötig, wenn diese Einstellung (db) an ist; fehlt sie, ist die Option immer nötig
+C.GAME_OPTIONS = {
+  { names = { 'nameplateShowEnemies' }, want = '1',
+    label = 'GOPT_ENEMIES', tip = 'GOPT_ENEMIES_TIP' },
+  { names = { 'nameplateShowFriendlyPlayers', 'nameplateShowFriends' }, want = '1',
+    label = 'GOPT_FRIENDS', tip = 'GOPT_FRIENDS_TIP', neededBy = 'symbolMarks' },  -- Symbol-Markierung (Anforderung L)
 }
 
 -- Einstellungsfenster (Settings.lua) ------------------------------------------------------
@@ -271,7 +293,6 @@ C.HINT = {
 C.SETTINGS = {
   NAME = 'ThreatWallForeverSettings',
   WIDTH = 300,                 -- Fensterbreite
-  PADDING = 12,                -- Innenabstand links/rechts/unten
   TOP_GAP = 8,                 -- Abstand unter der Kopfleiste
   ROW_H = 22,                  -- Höhe einer Optionszeile
   SECTION_H = 24,              -- Höhe einer Abschnitts-Überschrift
@@ -279,23 +300,14 @@ C.SETTINGS = {
   CHECK_SIZE = 16,             -- Kästchen der Checkbox
   CHECK_BORDER = 1,            -- Rahmenstärke des Kästchens in px
   CHECK_BG = { 0, 0, 0, 0.6 }, -- Innenfarbe des Kästchens
-  BG_ALPHA = 0.95,             -- Deckkraft des Fensterhintergrunds
   LINE_ALPHA = 0.15,           -- Trennlinie unter Abschnitts-Überschriften
   ROLE_BUTTON_W = 70,          -- Breite der Rollen-Knöpfe
-  ROW_HIGHLIGHT_ALPHA = 0.08,
   TEXT_GAP = 8,                -- Abstand Kästchen → Text
-  BUTTON_H = 20,
-  BUTTON_BG = { 0.2, 0.2, 0.22, 0.9 },
-  BUTTON_BG_ACTIVE = { 0.45, 0.35, 0.05, 0.95 },  -- gewählte Rolle
-  BUTTON_GAP = 6,
   SLIDER_ROW_H = 38,           -- Höhe einer Schieberegler-Zeile (Text oben, Regler unten)
   SLIDER_H = 6,                -- Höhe der Bahn
   THUMB_W = 10, THUMB_H = 16,  -- Griff des Schiebereglers
   TRACK_COLOR = { 0.25, 0.25, 0.28, 1 },
   VALUE_W = 44,                -- Breite der Prozentanzeige
-  CLOSE_SIZE = 24,             -- Schließen-Button (X)
-  CLOSE_X = 2,                 -- Versatz des X nach rechts
-  TOOLTIP_TEXT = { 1, 1, 1 },  -- Farbe des Erklärtexts im Tooltip
   PERCENT = 100,               -- Schieberegler-Wert ×100 = Prozentanzeige
 }
 

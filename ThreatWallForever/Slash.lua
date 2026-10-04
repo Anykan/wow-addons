@@ -29,16 +29,8 @@ local function slash(msg)
   elseif cmd == 'clearlog' then
     db.log = {}
     ns.say(L.LOG_CLEARED, 'LOG_CLEARED')
-  elseif cmd == 'hint' and arg == 'reset' then
-    db.hideNameplateHint = false
-    ns.say(L.HINT_RESET, 'HINT_RESET')
   elseif cmd == 'hint' then
-    if db.debug then
-      ns.say('cvar ' .. C.HINT.CVAR .. '=' .. tostring(ns.getCVar(C.HINT.CVAR))
-        .. ' hideNameplateHint=' .. tostring(db.hideNameplateHint))
-    end
-    local okS, errS = pcall(ns.showHintPopup)
-    if db.debug then ns.say('showHintPopup ok=' .. tostring(okS) .. ' err=' .. tostring(errS)) end
+    ns.checkGameOptions(true)
   elseif cmd == '' then
     ns.toggleWindow()
   else

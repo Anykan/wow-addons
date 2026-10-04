@@ -40,7 +40,7 @@ ns.state = {
   testMode = false,          -- Testzeilen statt echter Gegner
   placePending = false,      -- Position konnte noch nicht gespeichert werden (wird gesetzt, aber derzeit nirgends gelesen)
   scroll = 0,                -- derzeit ungenutzt (aus dem Original übernommen)
-  nameplateChecked = false,  -- Nameplate-Hinweis in dieser Sitzung schon geprüft
+  nameplateChecked = false,  -- Spiel-Optionen in dieser Sitzung schon geprüft (Hint.lua)
 }
 
 -- Fenster-Elemente, die mehrere Module brauchen (werden in Window.lua/Minimap.lua gesetzt)
@@ -103,7 +103,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
     -- PLAYER_ENTERING_WORLD ist der übliche sichere Zeitpunkt. Einmal pro Sitzung.
     if event == 'PLAYER_ENTERING_WORLD' and ns.db and not ns.state.nameplateChecked then
       ns.state.nameplateChecked = true
-      ns.checkNameplateSetting()
+      ns.checkGameOptions(false)
     end
     ns.refresh()
     return
