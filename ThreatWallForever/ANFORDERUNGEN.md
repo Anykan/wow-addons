@@ -6,7 +6,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
 
 # Teil 1 — Beschlossene Anforderungen
 
-## F. Einstellungsfenster statt Dropdown-Menü
+## F. Einstellungsfenster statt Dropdown-Menü — ✅ umgesetzt 2026-10-04 (im Spiel getestet)
 - Das Zahnrad im TWF-Fensterkopf öffnet ein **eigenes Einstellungsfenster (Pop-up)** mit allen Optionen, statt des bisherigen Dropdowns (`showMenu(gear, SETTINGS)`).
 - Die Befehle `/twf options` und `/twf config` werden **ersatzlos entfernt** (auch aus der Hilfe `L.HELP`). Das Einstellungsfenster öffnet sich nur über das Zahnrad.
 - **Minimap-Button:**
@@ -31,6 +31,13 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
 - **Schieberegler** für Deckkraft und Skalierung (statt Durchklicken), Min/Max/Schritt aus `Config.lua`.
 - TWF erscheint zusätzlich im Spiel unter **Optionen → AddOns**.
 - Aufbau: eine Seite mit Abschnitten **oder** Reiter (z. B. Allgemein / Liste / Debug), wird erst entschieden, wenn feststeht, wie viele Optionen es gibt.
+- **Entscheidungen beim Bau (2026-10-04):**
+  - Eine Seite mit Abschnitten: Allgemein (Rolle als zwei Knöpfe, Fenster fixieren, Minimap-Button) · Anzeige (Nur im Kampf, Nur in Gruppe, Alle Kämpfe, Ziel hervorheben, Warnton) · Aussehen (Schieberegler) · Werkzeuge (Testzeilen, Position zurücksetzen).
+  - Schieberegler in **10-%-Schritten** (Hintergrund 0–100 %, Skalierung 80–150 %).
+  - **Jede Option hat einen Tooltip** mit kurzer Erklärung (DE/EN).
+  - Optionen → AddOns: Seite mit **Knopf „Einstellungen öffnen“**, keine doppelten Optionen.
+  - Das Zahnrad öffnet/schließt das Fenster; Esc und X schließen; verschiebbar; Position wird nicht gespeichert.
+  - H (Debug-Befehle) wird im selben Schritt gebaut.
 
 ## G. Zweisprachig DE/EN (gilt für ALLES, was der Spieler sieht)
 - Alle sichtbaren Texte gibt es auf Deutsch und Englisch: Fenster, Einstellungsfenster, Dropdown, Tooltips, Chat-Meldungen, Popups, Hilfe.
@@ -45,7 +52,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   - die Marker-Methoden-Namen
   Diese Texte stehen nicht in den Locales, sondern direkt auf Deutsch im Code (oder in einer eigenen DE-only-Tabelle).
 
-## H. Debug-Schalter per Befehl
+## H. Debug-Schalter per Befehl — ✅ umgesetzt 2026-10-04 (im Spiel getestet)
 - `/twf debug 1`: Debug-Meldungen **an**; `/twf debug 0`: Debug-Meldungen **aus**. Der Wert wird in `db.debug` gespeichert.
 - **Automatischer `/reload` nur, wenn nötig** (`ReloadUI()`). Stand heute ist er nicht nötig: `db.debug` wird live abgefragt, der Schalter wirkt sofort (wie bisher die Menü-Checkbox). Falls eine spätere Debug-Funktion beim Laden etwas einrichtet, bekommt sie den Reload.
 - Ohne Zahl oder mit ungültigem Wert: kurze Hilfe auf Deutsch („Nutze /twf debug 1 oder 0“) plus aktueller Status, **kein** Reload.
@@ -99,6 +106,8 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
 - Die eigenen **TWF-Nameplates** sind in K beschrieben.
 - Technik (Vorschlag):
   - Ausblenden per `nameplate.UnitFrame:SetAlpha(0)` bei `NAME_PLATE_UNIT_ADDED`.
+  - **Test-Ergebnis T5h/T5i:** Blizzard setzt die Deckkraft beim Kampfbeginn zurück → zusätzlich `hooksecurefunc(UnitFrame, "SetAlpha", …)`, der jeden Wert ≠ 0 sofort wieder auf 0 setzt (getestet, funktioniert). Beim Zurückschalten auf Blizzard muss der Hook über ein Kennzeichen deaktiviert werden (Hooks lassen sich nicht entfernen).
+  - Zauberleiste des Ziels (K): Blizzards eigene Leiste `UnitFrame.CastBarsContainer` mit `SetIgnoreParentAlpha(true)` sichtbar lassen (getestet, funktioniert, keine Fehler). Eigene Leiste geht nicht (`UnitCastingInfo` geheim, Blizzard-Vorlage im Addon-Frame wirft Fehler).
   - Das Ziel (für die Zauberleiste) wird über einen Frame-Vergleich erkannt (`nameplate == C_NamePlate.GetNamePlateForUnit("target")`), also ohne geheime Werte; Wechsel bei `PLAYER_TARGET_CHANGED`.
   - Eigenes Modul `Nameplates.lua`; alle Werte in `Config.lua`.
 - Offene Fragen:
@@ -123,6 +132,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
 - **Optik des Balkens: im Stil des Zauberbalkens von SealTimersForever** (Blizzard-Cast-Bar-Look, gefällt dem Nutzer).
   - **Wiederverwenden (Regel 2):** In SealTimersForever gibt es schon `AtlasesAvailable()`, `StyleBar()` und `ApplyBarStyle()` mit den Atlanten `ui-castingbar-filling-standard` (Füllung, gold), `ui-castingbar-background` (±1 px), `ui-castingbar-frame` (±2 px), Höhe 11 px, Fallback auf eine schlichte Leiste, wenn ein Atlas fehlt. Den Ansatz übernehmen und in TWF als eigenes Hilfsmodul aufbauen. Alle Werte (Atlasnamen, Ränder, Höhe) kommen in `Config.lua`.
   - **Gelb/Gold** = die originale Füllung `ui-castingbar-filling-standard`.
+  - **Getestet (T8c) ✔:** Grün = `ui-castingbar-filling-channel`, Rot = `ui-castingbar-interrupted`, Gold = `ui-castingbar-filling-standard`; alle drei vorhanden und passend.
   - **Rot und Grün im selben Stil, wenn möglich:** Blizzard hat dafür vermutlich eigene Cast-Bar-Füllungen, z. B. für unterbrochene (rot) und kanalisierte (grün) Zauber. Ob es die auf Forever gibt und wie sie heißen, muss getestet werden (`C_Texture.GetAtlasInfo`).
   - Fallback, falls es keine roten/grünen Atlanten gibt: die goldene Füllung entsättigen und einfärben, oder eine schlichte Leiste in Rot/Grün. Das wird nach dem Test entschieden.
 - Umschalten Tank ↔ DD/Heal (Button im TWF-Fenster) wirkt sofort auch auf die Nameplates.
@@ -159,11 +169,10 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Ist die Aggro wieder weg, verschwindet das Symbol.
   - Zweck: Du siehst sofort, **von welchem Mob** du die Aggro hast.
   - Du selbst bekommst im DD/Heal-Modus **kein** Symbol über den Kopf, nur der Mob (bestätigt).
-  - Der Mob bekommt das **„Kampf“-Symbol mit den zwei gekreuzten Schwertern** (bestätigt), unabhängig von deiner Rolle.
-    - Kandidaten: die Datei `Interface\CharacterFrame\UI-StateIcon` (Kampf-Symbol am Spielerporträt, rechte obere Hälfte, Ausschnitt 0.5–1 / 0–0.5) oder der moderne Atlas `UI-HUD-UnitFrame-Player-CombatIcon`. Auf Forever testen, was es gibt.
+  - Der Mob bekommt das **DD-Rollensymbol** (`ui-lfg-roleicon-dps`), unabhängig von deiner Rolle. (Ursprünglich Kampf-Symbol mit gekreuzten Schwertern; nach Test T8c als „hässlich“ verworfen, Nutzer-Entscheid 2026-10-04.)
     - Steht als eigener Eintrag im Symbolsatz in `Config.lua` (z. B. `AGGRO_SELF`), also genauso austauschbar.
 - **Symbole: vorerst Rollensymbole (bestätigt), leicht austauschbar.**
-  - Der Symbolsatz steht als **Tabelle in `Config.lua`** (Single Source): Rolle → Grafik, z. B. `TANK = "ui-lfg-roleicon-tank"`, `HEALER = "ui-lfg-roleicon-healer"`, `DAMAGER = "ui-lfg-roleicon-dps"`, plus `NONE` für „keine Rolle gesetzt“ = **das Kampf-Symbol (gekreuzte Schwerter)** (bestätigt), also dieselbe Grafik wie `AGGRO_SELF`.
+  - Der Symbolsatz steht als **Tabelle in `Config.lua`** (Single Source): Rolle → Grafik, z. B. `TANK = "ui-lfg-roleicon-tank"`, `HEALER = "ui-lfg-roleicon-healer"`, `DAMAGER = "ui-lfg-roleicon-dps"`, plus `NONE` für „keine Rolle gesetzt“ = **DD-Rollensymbol** (statt Kampf-Symbol, nach T8c), also dieselbe Grafik wie `AGGRO_SELF`.
   - Jeder Eintrag darf zusätzlich einen **Bildausschnitt** (TexCoords) haben, für Dateien mit mehreren Symbolen in einem Bild.
   - Jede Grafik darf ein **Atlas-Name oder ein Dateipfad** sein (auch eigene `.tga`/`.blp` im Addon-Ordner); der Code erkennt das selbst (`C_Texture.GetAtlasInfo`). Gibt es einen Atlas nicht, wird automatisch das Ersatzsymbol genommen.
   - Größe, Versatz über der Nameplate bzw. dem Kopf stehen ebenfalls in `Config.lua`.
@@ -172,7 +181,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Ermittlung des neuen Ziels: pro Gruppenmitglied `UnitDetailedThreatSituation(partyN/raidN, mob)` prüfen, wer `isTanking` ist (nicht geheim, weil Gruppen-Token).
 - Offene Fragen:
   - **Instanzen:** Erlaubt Blizzard dort keine freundlichen Nameplates, kommt das Symbol stattdessen ans Gruppenfenster → testen.
-  - **Rolle erkennen:** `UnitGroupRolesAssigned` liefert in Classic oft „NONE“, weil keiner eine Rolle gewählt hat. Dann wird das **Kampf-Symbol** gezeigt (entschieden). Forever 1.60.1 hat laut API-Änderungen Rollenabfrage (Role Poll) eingebaut → testen, was `UnitGroupRolesAssigned` dort liefert.
+  - **Rolle erkennen:** `UnitGroupRolesAssigned` liefert in Classic oft „NONE“, weil keiner eine Rolle gewählt hat. Dann wird das **DD-Rollensymbol** gezeigt (entschieden, nach T8c). Forever 1.60.1 hat laut API-Änderungen Rollenabfrage (Role Poll) eingebaut → testen, was `UnitGroupRolesAssigned` dort liefert.
 - Tests dazu:
   - `UnitDetailedThreatSituation("partyN", mob)` im Kampf (Test 3 der alten Liste)
   - `UnitGroupRolesAssigned("partyN")`
@@ -186,12 +195,13 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   | Option (Spielmenü) | CVar | wofür | Status |
   |---|---|---|---|
   | Gegner-Nameplates | `nameplateShowEnemies` | Erkennung, TWF-Nameplates (J/K) | heute schon im Hinweis |
-  | Freundliche Nameplates | `nameplateShowFriends` | Symbol über dem Spieler (L) | **neu** |
+  | Freundliche Nameplates | `nameplateShowFriendlyPlayers` (Forever, T9); `nameplateShowFriends` gibt es dort nicht | Symbol über dem Spieler (L) | **neu** |
   | Nameplates immer anzeigen (nicht nur im Kampf) | `nameplateShowAll` | Gegner erkennen, bevor sie angreifen? | prüfen, ob nötig |
   | Sichtweite der Nameplates | `nameplateMaxDistance` | wie weit TWF Gegner sieht | prüfen |
   | Nameplates hinter Wänden | `nameplateOccludedAlphaMult` | nur Optik, für TWF evtl. egal | prüfen |
   | Ggf. Gegner-Begleiter/Totems/Minions | `nameplateShowEnemyPets` u. a. | prüfen | prüfen |
 
+- **Robust gegen Umbenennungen (Beta):** Pro Option steht in `Config.lua` eine Liste möglicher CVar-Namen; TWF nimmt den ersten, den es gibt.
 - Das Ergebnis der Analyse kommt als **feste Liste in `Config.lua`** (Single Source): CVar, Sollwert, wofür, ab welcher Funktion nötig.
 - **Prüfung beim Start (bestätigt):** Bei jedem Login bzw. `/reload` prüft TWF, ob alle Spiel-Optionen so stehen, wie das Addon sie braucht. Das Popup erscheint nur, wenn etwas fehlt.
 - **Erneute Prüfung beim Schließen des Einstellungsfensters (bestätigt):** Wurde z. B. eine Funktion eingeschaltet, die eine weitere Spiel-Option braucht, erscheint der Hinweis direkt danach.

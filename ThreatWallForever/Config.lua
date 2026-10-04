@@ -33,6 +33,9 @@ C.CODES = {
   LOADED = '013',
   HELP = '014',
   HINT_RESET = '015',
+  SETTING = '016',       -- Debug: Einstellung im Einstellungsfenster geändert
+  OPTIONS_PANEL = '017', -- Debug: Seite unter Optionen → AddOns angelegt / fehlgeschlagen
+  DEBUG_SET = '018',     -- /twf debug 1|0
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -219,9 +222,6 @@ C.MENU = {
   MIN_WIDTH = 140,
   WIDTH_EXTRA = 44,            -- Platz für Haken und Rand neben dem Text
   ANCHOR_Y = -2,               -- Abstand unter dem auslösenden Button
-  ALPHA_STEPS = { 0, 0.2, 0.4, 0.6, 0.8, 1 },       -- Hintergrund-Stufen
-  SCALE_STEPS = { 0.8, 0.9, 1, 1.1, 1.25, 1.5 },    -- Skalierungs-Stufen
-  PERCENT = 100,               -- Anzeige als Prozent
 }
 
 -- Rahmen (Backdrop) für Menü und Rollen-Button
@@ -264,4 +264,73 @@ C.HINT = {
   BTN_GAP = -8,
   EDGE = 16,                      -- Abstand der Buttons/Checkbox zum Rand
   CHECK_SIZE = 20,
+}
+
+-- Einstellungsfenster (Settings.lua) ------------------------------------------------------
+
+C.SETTINGS = {
+  NAME = 'ThreatWallForeverSettings',
+  WIDTH = 300,                 -- Fensterbreite
+  PADDING = 12,                -- Innenabstand links/rechts/unten
+  TOP_GAP = 8,                 -- Abstand unter der Kopfleiste
+  ROW_H = 22,                  -- Höhe einer Optionszeile
+  SECTION_H = 24,              -- Höhe einer Abschnitts-Überschrift
+  SECTION_GAP = 6,             -- zusätzlicher Abstand vor einer Überschrift
+  CHECK_SIZE = 16,             -- Kästchen der Checkbox
+  CHECK_BORDER = 1,            -- Rahmenstärke des Kästchens in px
+  CHECK_BG = { 0, 0, 0, 0.6 }, -- Innenfarbe des Kästchens
+  BG_ALPHA = 0.95,             -- Deckkraft des Fensterhintergrunds
+  LINE_ALPHA = 0.15,           -- Trennlinie unter Abschnitts-Überschriften
+  ROLE_BUTTON_W = 70,          -- Breite der Rollen-Knöpfe
+  ROW_HIGHLIGHT_ALPHA = 0.08,
+  TEXT_GAP = 8,                -- Abstand Kästchen → Text
+  BUTTON_H = 20,
+  BUTTON_BG = { 0.2, 0.2, 0.22, 0.9 },
+  BUTTON_BG_ACTIVE = { 0.45, 0.35, 0.05, 0.95 },  -- gewählte Rolle
+  BUTTON_GAP = 6,
+  SLIDER_ROW_H = 38,           -- Höhe einer Schieberegler-Zeile (Text oben, Regler unten)
+  SLIDER_H = 6,                -- Höhe der Bahn
+  THUMB_W = 10, THUMB_H = 16,  -- Griff des Schiebereglers
+  TRACK_COLOR = { 0.25, 0.25, 0.28, 1 },
+  VALUE_W = 44,                -- Breite der Prozentanzeige
+  CLOSE_SIZE = 24,             -- Schließen-Button (X)
+  CLOSE_X = 2,                 -- Versatz des X nach rechts
+  TOOLTIP_TEXT = { 1, 1, 1 },  -- Farbe des Erklärtexts im Tooltip
+  PERCENT = 100,               -- Schieberegler-Wert ×100 = Prozentanzeige
+}
+
+-- Optionen im Einstellungsfenster (Reihenfolge = Anzeige-Reihenfolge).
+-- type:   'section' Überschrift · 'role' zwei Rollen-Knöpfe · 'check' Checkbox ·
+--         'slider' Schieberegler · 'button' Knopf
+-- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
+-- label/tip: Schlüssel in Locales.lua · action: Funktion in ns, die der Knopf aufruft
+-- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent)
+C.OPTIONS = {
+  { type = 'section', label = 'SEC_GENERAL' },
+  { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
+  { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
+  { type = 'check', key = 'minimap', label = 'MENU_MINIMAP', tip = 'TIP_MINIMAP' },
+
+  { type = 'section', label = 'SEC_DISPLAY' },
+  { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
+  { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
+  { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
+  { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
+  { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+
+  { type = 'section', label = 'SEC_LOOK' },
+  { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
+  { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
+
+  { type = 'section', label = 'SEC_TOOLS' },
+  { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
+  { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
+}
+
+-- Seite unter Optionen → AddOns
+C.OPTIONS_PANEL = {
+  TITLE_X = 16, TITLE_Y = -16,
+  TEXT_Y = -12,                -- Abstand Text unter dem Titel
+  BUTTON_W = 180, BUTTON_H = 24,
+  BUTTON_Y = -16,              -- Abstand Knopf unter dem Text
 }

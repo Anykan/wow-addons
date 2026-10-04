@@ -18,9 +18,9 @@ local function slash(msg)
     ns.say(db.locked and L.LOCKED_ON or L.LOCKED_OFF, db.locked and 'LOCKED_ON' or 'LOCKED_OFF')
   elseif cmd == 'reset' then
     ns.resetPlace()
-  elseif cmd == 'options' or cmd == 'config' then
-    ns.showMenu(ns.frame:IsShown() and ns.ui.gear or ns.ui.mm, ns.SETTINGS)
   elseif cmd == 'debug' then
+    ns.setDebugFromCommand(arg)
+  elseif cmd == 'dump' then
     ns.debugDump()
   elseif cmd == 'mark' then
     ns.cycleMarkMethod()

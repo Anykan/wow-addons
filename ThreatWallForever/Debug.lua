@@ -1,8 +1,8 @@
 --[[
   Debug.lua — Debug-Meldungen, Debug-Log und Rohdaten-Dump (nur für den Entwickler).
 
-  Laufendes, ereignisbasiertes Debugging: standardmäßig aus, eine Checkbox im
-  Menü, schreibt nur, wenn sich wirklich etwas ändert (kein Dauer-Spam).
+  Laufendes, ereignisbasiertes Debugging: standardmäßig aus, Schalter per
+  /twf debug 1|0, schreibt nur, wenn sich wirklich etwas ändert (kein Dauer-Spam).
 
   Zeilen landen zusätzlich mit Uhrzeit in ThreatWallForeverDB.log, begrenzt auf
   die letzten Config.MAX_LOG Einträge. Der Client kann keine Dateien schreiben;
@@ -32,17 +32,20 @@ function ns.dbg(codeKey, msg)
   ns.logLine(line)
 end
 
--- Menüpunkt "Debug-Meldungen"
-function ns.toggleDebug()
+-- Debug ein-/ausschalten (/twf debug 1|0). Ohne gültige Zahl: kurze Hilfe + Status.
+-- Kein /reload nötig: db.debug wird bei jeder Meldung live abgefragt.
+function ns.setDebugFromCommand(arg)
   local db = ns.db
-  db.debug = not db.debug
-  ns.say(db.debug and L.DEBUG_ON or L.DEBUG_OFF, db.debug and 'DEBUG_ON' or 'DEBUG_OFF')
-  ns.applyLook()
-  ns.updateMinimap()
-  ns.refresh()
+  if arg == '1' or arg == '0' then
+    db.debug = (arg == '1')
+    ns.say('[' .. C.CODES.DEBUG_SET .. '] Debug-Meldungen ' .. (db.debug and 'AN' or 'AUS') .. '.')
+  else
+    ns.say('Nutze /twf debug 1 (an) oder /twf debug 0 (aus). Aktuell: ' .. (db.debug and 'AN' or 'AUS')
+      .. '. Momentaufnahme: /twf dump')
+  end
 end
 
--- Rohdaten-Dump (/twf debug): eine Zeile pro gefundenem Gegner-Token plus die
+-- Rohdaten-Dump (/twf dump): eine Zeile pro gefundenem Gegner-Token plus die
 -- interne Liste der verfolgten Gegner.
 function ns.debugDump()
   local any = false

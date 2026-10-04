@@ -17,6 +17,7 @@ Marks.lua
 List.lua
 Window.lua
 Menu.lua
+Settings.lua
 Minimap.lua
 Hint.lua
 Slash.lua

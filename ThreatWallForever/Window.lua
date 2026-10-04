@@ -85,6 +85,8 @@ function ns.applyLook()
   updateRoleLook()
   if db.locked or db.minimized then ui.grip:Hide() else ui.grip:Show() end
   for i, row in ipairs(ns.rows) do ns.layoutRow(row, i) end
+  -- offenes Einstellungsfenster an geänderte Werte anpassen (z. B. /twf lock)
+  ns.updateSettingsWindow()
 end
 
 -- Aktionen (Menü, Befehle, Kopf-Buttons) ---------------------------------------------------
@@ -217,7 +219,7 @@ local function buildFrame()
     gear:SetNormalTexture(T.OPTIONS)
     gear:SetHighlightTexture(T.OPTIONS, 'ADD')
   end
-  gear:SetScript('OnClick', function(self) ns.showMenu(self, ns.SETTINGS) end)
+  gear:SetScript('OnClick', function() ns.toggleSettings() end)
 
   -- Rollen-Button: Zahnrad und Minimieren sind fertige Grafiken mit Rahmen, die
   -- ein selbstgebauter Rahmen nur annähern kann. Deshalb zuerst die passenden

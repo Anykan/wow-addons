@@ -1,4 +1,4 @@
--- Minimap.lua — Minimap-Button: Linksklick ein-/ausblenden, Rechtsklick Menü, Ziehen verschiebt.
+-- Minimap.lua — Minimap-Button: Linksklick ein-/ausblenden, Rechtsklick Fenster fixieren, Ziehen verschiebt.
 
 local _, ns = ...
 local C = ns.Config
@@ -63,7 +63,7 @@ local function buildMinimapButton()
   end)
   mm:SetScript('OnDragStop', function(self) self:SetScript('OnUpdate', nil) end)
   mm:SetScript('OnClick', function(self, button)
-    if button == 'RightButton' then ns.showMenu(self, ns.SETTINGS) else ns.toggleWindow() end
+    if button == 'RightButton' then ns.showMenu(self, ns.MINIMAP_MENU) else ns.toggleWindow() end
   end)
   mm:SetScript('OnEnter', function(self)
     GameTooltip:SetOwner(self, 'ANCHOR_LEFT')

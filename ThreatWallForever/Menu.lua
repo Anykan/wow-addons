@@ -1,9 +1,9 @@
 --[[
-  Menu.lua — das kleine selbstgebaute Dropdown-Menü (Zahnrad, Minimap-Rechtsklick).
+  Menu.lua — das kleine selbstgebaute Dropdown-Menü (heute nur Minimap-Rechtsklick).
 
   Selbstgebaut aus demselben Grund wie bei anderen Forever-Addons: Die
   eingebauten Dropdown-Elemente sind auf den Builds dieses Clients nicht
-  einheitlich. (Wird später durch das Einstellungsfenster ersetzt, Anforderung F.)
+  einheitlich. Alle Optionen stehen im Einstellungsfenster (Settings.lua).
 ]]
 
 local _, ns = ...
@@ -90,42 +90,14 @@ function ns.showMenu(anchor, items)
   menu:Show()
 end
 
--- Bausteine für Menüeinträge -------------------------------------------------------------
+-- Einträge -------------------------------------------------------------------------------
 
-local function toggle(key)
-  return function() ns.db[key] = not ns.db[key] ns.applyLook() ns.updateMinimap() ns.refresh() end
-end
-local function checked(key)
-  return function() return ns.db[key] end
-end
-local function cycle(key, values)
-  local db = ns.db
-  local at = 1
-  for i, v in ipairs(values) do if db[key] == v then at = i break end end
-  db[key] = values[at % #values + 1]
-end
-local function cycler(label, key, values, suffix, mult)
-  return {
-    text = function() return label .. ': ' .. math.floor(ns.db[key] * (mult or 1) + 0.5) .. (suffix or '') end,
-    click = function() cycle(key, values) ns.applyLook() ns.refresh() end,
-  }
-end
-
--- Einträge des Einstellungsmenüs
-ns.SETTINGS = {
-  { text = function() return L.MENU_TITLE end, title = true, click = function() end },
-  { text = function() return string.format(L.MENU_ROLE, ns.roleName()) end, click = function() ns.toggleRole() end },
-  { text = function() return L.MENU_LOCK end, checked = checked('locked'), click = toggle('locked') },
-  { text = function() return L.MENU_COMBAT_ONLY end, checked = checked('combatOnly'), click = toggle('combatOnly') },
-  { text = function() return L.MENU_GROUP_ONLY end, checked = checked('groupOnly'), click = toggle('groupOnly') },
-  { text = function() return L.MENU_SHOW_ALL end, checked = checked('showAll'), click = toggle('showAll') },
-  { text = function() return L.MENU_HIGHLIGHT end, checked = checked('highlightTarget'), click = toggle('highlightTarget') },
-  { text = function() return L.MENU_SOUND end, checked = checked('sound'), click = toggle('sound') },
-  { text = function() return L.MENU_DEBUG end, checked = checked('debug'), click = function() ns.toggleDebug() end },
-  cycler(L.MENU_BACKGROUND, 'alpha', M.ALPHA_STEPS, '%', M.PERCENT),
-  cycler(L.MENU_SCALE, 'scale', M.SCALE_STEPS, '%', M.PERCENT),
-  { text = function() return L.MENU_MINIMAP end, checked = checked('minimap'), click = toggle('minimap') },
-  { text = function() return L.MENU_TEST end, checked = function() return ns.state.testMode end,
-    click = function() ns.state.testMode = not ns.state.testMode ns.db.shown = true ns.refresh() end },
-  { text = function() return L.MENU_RESET end, click = function() ns.resetPlace() end, close = true },
+-- Minimap-Rechtsklick: nur "Fenster fixieren" (Anforderung F)
+ns.MINIMAP_MENU = {
+  { text = function() return L.MENU_LOCK end, checked = function() return ns.db.locked end,
+    click = function()
+      ns.db.locked = not ns.db.locked
+      ns.dbg('SETTING', 'Fenster fixieren = ' .. tostring(ns.db.locked) .. ' (Minimap-Menü)')
+      ns.applyLook() ns.updateMinimap() ns.refresh()
+    end },
 }
