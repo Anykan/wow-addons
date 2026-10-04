@@ -37,6 +37,7 @@ local function afterChange(opt, v)
   ns.applyLook()
   ns.updateMinimap()
   ns.refresh()
+  ns.notifyModules('OnSettingChanged', opt.key or opt.state)
 end
 
 local function showTip(owner, opt)

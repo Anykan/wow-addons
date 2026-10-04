@@ -47,22 +47,21 @@ ns.state = {
 ns.ui = {}
 
 -- Modul-Anmeldung ------------------------------------------------------------------
--- Module melden sich mit ns.RegisterModule(name, modul) an. Beim Login ruft der
--- Core OnLogin() jedes Moduls in Lade-Reihenfolge (= TOC-Reihenfolge) auf.
--- Ein Fehler in einem Modul wird wie üblich angezeigt, hält die anderen aber
--- nicht auf. Weitere Rückrufe (z. B. OnSettingChanged) kommen dazu, sobald ein
--- Modul sie braucht.
+-- Module melden sich mit ns.RegisterModule(name, modul) an. Der Core ruft ihre
+-- Rückrufe in Lade-Reihenfolge (= TOC-Reihenfolge) auf. Ein Fehler in einem Modul
+-- wird wie üblich angezeigt, hält die anderen aber nicht auf.
 ns.modules = {}
 
 function ns.RegisterModule(name, module)
   ns.modules[#ns.modules + 1] = { name = name, module = module }
 end
 
-local function callModules(hook)
+-- Rückrufe: OnLogin (beim Login), OnTick (im TWF-Takt), OnSettingChanged(key)
+function ns.notifyModules(hook, ...)
   for _, entry in ipairs(ns.modules) do
     local fn = entry.module[hook]
     if fn then
-      local ok, err = pcall(fn)
+      local ok, err = pcall(fn, ...)
       if not ok then geterrorhandler()(err) end
     end
   end
@@ -122,7 +121,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
   end
 
   -- Fenster, Minimap-Button und Befehle aufbauen (in TOC-Reihenfolge)
-  callModules('OnLogin')
+  ns.notifyModules('OnLogin')
 
   for _, e in ipairs({
     'PLAYER_ENTERING_WORLD', 'PLAYER_TARGET_CHANGED', 'GROUP_ROSTER_UPDATE',
@@ -142,6 +141,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
         ns.stopMove()
       end
       ns.refresh()
+      ns.notifyModules('OnTick')
     end
   end)
 

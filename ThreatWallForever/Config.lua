@@ -36,6 +36,7 @@ C.CODES = {
   OPTIONS_PANEL = '017', -- Debug: Seite unter Optionen → AddOns angelegt / fehlgeschlagen
   DEBUG_SET = '018',     -- /twf debug 1|0
   GAME_OPTIONS = '019',  -- Debug: Prüfung der Spiel-Optionen
+  NAMEPLATES = '020',    -- Debug: TWF-Nameplates
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -60,6 +61,7 @@ C.DEFAULTS = {
   minimapAngle = 200,        -- Position des Minimap-Buttons in Grad
   debug = false,
   markMethod = 1,            -- Index in Marks.lua (1–3)
+  twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -243,6 +245,37 @@ C.MINIMAP = {
   RADIUS_EXTRA = 8,            -- Abstand außerhalb des Minimap-Rands
 }
 
+-- TWF-Nameplates (Nameplates.lua, Anforderungen J + K) --------------------------------------
+
+C.NAMEPLATES = {
+  LEVEL = 5,                   -- Frame-Ebene über der Blizzard-Nameplate
+  WIDTH = 110, HEIGHT = 10,    -- Rückfallgröße, falls Blizzards Lebensleiste nicht gefunden wird
+  BG_INSET = 1,                -- Hintergrund ragt so viele px über den Balken (wie Blizzards Zauberbalken)
+  BORDER_INSET = 2,            -- Rahmen ragt so viele px über den Balken
+  NAME_Y = 2,                  -- Abstand des Namens über dem Balken
+  PCT_X = -3,                  -- Abstand der Prozentanzeige vom rechten Balkenrand
+  PCT_LAYER = 7,               -- Zeichen-Unterebene der Prozentzahl (über dem Rahmen)
+  PCT_FORMAT = '%.0f%%',       -- Anzeige des Lebens in Prozent
+  ADD_DELAY = 0,               -- Sekunden Verzögerung nach "Nameplate erscheint" (0 = nächster Frame; Blizzard richtet sie erst ein)
+  WORLD_DELAY = 1,             -- Sekunden nach Betreten der Welt bis zur kompletten Neuprüfung
+  -- Füllung je Ampelfarbe (Atlanten im Stil von Blizzards Zauberbalken, getestet in T8c)
+  FILL = {
+    green = 'ui-castingbar-filling-channel',
+    yellow = 'ui-castingbar-filling-standard',
+    red = 'ui-castingbar-interrupted',
+    blue = 'ui-castingbar-filling-standard',   -- entsättigt + blau getönt (siehe TINT)
+    grey = 'ui-castingbar-filling-standard',   -- entsättigt + grau getönt
+  },
+  -- Farben ohne eigene Blizzard-Füllung: goldene Füllung entsättigen und tönen (R, G, B)
+  TINT = {
+    blue = { 0.35, 0.55, 1 },  -- im Kampf, aber nicht mit dir/deiner Gruppe
+    grey = { 0.6, 0.6, 0.6 },  -- dein Ziel außerhalb des Kampfs
+  },
+  BAR_BG = 'ui-castingbar-background',
+  BAR_BORDER = 'ui-castingbar-frame',
+  PLAIN_FILL = 'Interface\\TargetingFrame\\UI-StatusBar',  -- Rückfall, falls die Atlanten fehlen
+}
+
 -- Gemeinsamer Fensterstil (Einstellungsfenster + Hinweis-Popup) -------------------------
 
 C.DIALOG = {
@@ -329,6 +362,9 @@ C.OPTIONS = {
   { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
   { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
   { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+
+  { type = 'section', label = 'SEC_NAMEPLATES' },
+  { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
 
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },

@@ -82,17 +82,28 @@ function ns.myStatus(unit)
 end
 
 -- Tank-Modus: das Problem ist, die Aggro zu verlieren. DD/Heal-Modus: das
--- Problem ist, zu viel davon zu ziehen. Beide lesen denselben Statuswert, nur umgedreht.
+-- Problem ist, zu viel davon zu ziehen. Beide lesen denselben Statuswert, nur
+-- umgedreht. Beide Zwischenstufen (INSECURE, HIGH) sind in beiden Modi gelb
+-- (Anforderung K, gilt für Liste und Nameplates).
 function ns.classify(tanking, status)
   if ns.db.role == 'tank' then
     if status == S.SECURE then return 'green' end
-    if status == S.INSECURE then return 'yellow' end
-    return 'red' -- 0, 1 oder unlesbar: du hast kaum oder keine Kontrolle über ihn
+    if status == S.INSECURE or status == S.HIGH then return 'yellow' end
+    return 'red' -- 0 oder unlesbar: du hast kaum oder keine Kontrolle über ihn
   else
-    if tanking or status == S.SECURE or status == S.INSECURE then return 'red' end
-    if status == S.HIGH then return 'yellow' end
+    if status == S.SECURE then return 'red' end
+    if status == S.INSECURE or status == S.HIGH then return 'yellow' end
+    if tanking then return 'red' end -- Status unlesbar, aber du tankst
     return 'green'
   end
+end
+
+-- Ampelfarbe für eine Einheit (gemeinsam für Liste und Nameplates).
+-- nil = keine Bedrohungsdaten (z. B. Gegner kämpft nicht mit dir/deiner Gruppe).
+function ns.unitColor(unit)
+  local tanking, status = ns.myStatus(unit)
+  if tanking == nil and status == nil then return nil end
+  return ns.classify(tanking, status)
 end
 
 -- Ist Farbe a schlimmer als Farbe b?

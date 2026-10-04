@@ -15,6 +15,7 @@ Debug.lua
 Detection.lua
 Marks.lua
 List.lua
+Nameplates.lua
 Window.lua
 Menu.lua
 Settings.lua

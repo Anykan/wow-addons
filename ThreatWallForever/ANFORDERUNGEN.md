@@ -90,7 +90,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   - **Fehler isolieren:** Ein Fehler in einem Modul darf die anderen nicht mitreißen (Modul-Aufrufe im Core per `pcall`, Fehler ins Debug-Log).
 - **Reihenfolge:** Erst den bestehenden Code ohne Verhaltensänderung in Module aufteilen (Refactoring) und im Spiel testen, danach die beschlossenen neuen Funktionen (F–M) als eigene Module bauen.
 
-## J. Checkbox „TWF-Nameplates“: Umschalten Blizzard ↔ TWF (vom Nutzer beschlossen 2026-10-04)
+## J. Checkbox „TWF-Nameplates“: Umschalten Blizzard ↔ TWF (vom Nutzer beschlossen 2026-10-04) — ✅ umgesetzt 2026-10-04 (im Spiel getestet)
 - Im Einstellungsfenster gibt es eine Checkbox **„TWF-Nameplates“** (EN: „TWF nameplates“). Tooltip erklärt: an = TWF-Nameplates statt Blizzard, aus = Blizzard-Original.
 - Ist sie an: Die originalen Gegner-Nameplates **und die freundlichen Nameplates** (siehe L) werden **optisch** ausgeblendet. Sie bleiben im Spiel eingeschaltet, damit TWF weiter die Daten bekommt.
 - **Auch der anvisierte Gegner** bekommt im TWF-Modus eine **TWF-Nameplate** (bestätigt), keine Blizzard-Nameplate mehr. Sie hat zusätzlich eine **eigene Zauberleiste** (siehe K).
@@ -114,7 +114,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   - Was passiert mit Problem-Gegnern (rot/gelb) und den Ideen A/C? (Bleiben Ideen, solange nicht anders entschieden.)
 - Vorher testen (Test 2): Funktioniert `SetAlpha(0)`/`(1)` außerhalb und **im Kampf**? Bleibt die ausgeblendete Nameplate anklickbar? (`SetAlpha(1)` wird zum Zurückschalten auf Blizzard gebraucht.)
 
-## K. TWF-Nameplate: Lebensbalken in Ampelfarbe (vom Nutzer beschlossen 2026-10-04)
+## K. TWF-Nameplate: Lebensbalken in Ampelfarbe (vom Nutzer beschlossen 2026-10-04) — ✅ umgesetzt 2026-10-04 (im Spiel getestet)
 - Die TWF-Nameplate zeigt den **Lebensbalken des Gegners**.
 - Die **Farbe des Balkens ist die Ampelfarbe** des Aggro-Status, mit derselben Logik wie die Liste (`classify()`, eine einzige Quelle):
 
