@@ -55,6 +55,7 @@ local DEFAULTS = {
   combatOnly = false,
   groupOnly = true,
   showAll = false,
+  highlightTarget = true,   -- pulsing frame on the row of your current target
   sound = true,
   minimap = true,
   minimapAngle = 200,
@@ -77,6 +78,9 @@ local COLOR = {
   green = { 0.25, 0.75, 0.25 },
 }
 local RANK = { red = 2, yellow = 1, green = 0 }
+-- Pale blue-white: stands apart from the red/yellow/green row colors.
+local TARGET_GLOW = { 0.55, 0.85, 1 }
+local GLOW_EDGE = 2
 
 -- Atlas / fallback helpers -----------------------------------------------------
 
@@ -507,8 +511,57 @@ local function buildRow(i)
   row.name:SetJustifyH('LEFT')
   row.name:SetWordWrap(false)
 
+  -- Frame around the row that holds your current target. Plain flat textures
+  -- only (no atlas), in a child frame so one alpha animation pulses all four edges.
+  row.glow = CreateFrame('Frame', nil, row)
+  row.glow:SetAllPoints()
+  for _, edge in ipairs({
+    { 'TOPLEFT', 'TOPRIGHT', nil, GLOW_EDGE },
+    { 'BOTTOMLEFT', 'BOTTOMRIGHT', nil, GLOW_EDGE },
+    { 'TOPLEFT', 'BOTTOMLEFT', GLOW_EDGE, nil },
+    { 'TOPRIGHT', 'BOTTOMRIGHT', GLOW_EDGE, nil },
+  }) do
+    local line = row.glow:CreateTexture(nil, 'OVERLAY')
+    line:SetTexture(FLAT)
+    line:SetVertexColor(TARGET_GLOW[1], TARGET_GLOW[2], TARGET_GLOW[3], 1)
+    line:SetPoint(edge[1])
+    line:SetPoint(edge[2])
+    if edge[3] then line:SetWidth(edge[3]) end
+    if edge[4] then line:SetHeight(edge[4]) end
+  end
+  row.glow:Hide()
+  -- The pulse is cosmetic: if this client's animation API differs, the frame
+  -- just stays steady instead of failing.
+  pcall(function()
+    local anim = row.glow:CreateAnimationGroup()
+    local alpha = anim:CreateAnimation('Alpha')
+    alpha:SetFromAlpha(1)
+    alpha:SetToAlpha(0.4)
+    alpha:SetDuration(0.7)
+    alpha:SetSmoothing('IN_OUT')
+    anim:SetLooping('BOUNCE')
+    row.glowAnim = anim
+  end)
+
   rows[i] = row
   return row
+end
+
+-- On: pulsing frame + a slightly brighter row. Off: plain row.
+local function setTargetHighlight(row, on)
+  if on then
+    if not row.glow:IsShown() then
+      row.glow:Show()
+      if row.glowAnim then pcall(row.glowAnim.Play, row.glowAnim) end
+    end
+    row.bg:SetVertexColor(1, 1, 1, 0.18)
+  else
+    if row.glow:IsShown() then
+      if row.glowAnim then pcall(row.glowAnim.Stop, row.glowAnim) end
+      row.glow:Hide()
+    end
+    row.bg:SetVertexColor(1, 1, 1, 0.05)
+  end
 end
 
 local function layoutRow(row, i)
@@ -525,6 +578,9 @@ local function drawRow(row, e)
   setDot(row.dot, e.color)
   setMark(row.mark, e.markIndex)
   if not pcall(row.name.SetText, row.name, e.name or '?') then row.name:SetText('?') end
+  -- Your own target is always read through the `target` token first (it leads
+  -- candidateUnits()), so the row whose unit is `target` is the one you hold.
+  setTargetHighlight(row, db.highlightTarget and e.unit == 'target')
   row:Show()
 end
 
@@ -555,13 +611,14 @@ refresh = function()
 
   local list = {}
   if testMode then
-    for _, t in ipairs(TEST) do
-      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3] }
+    for i, t in ipairs(TEST) do
+      -- First test row stands in for "your target" so the highlight can be previewed
+      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil }
     end
   else
     for _, t in pairs(tracked) do
       if t.shownColor then
-        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex }
+        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit }
       end
     end
     table.sort(list, function(a, b)
@@ -927,6 +984,7 @@ local SETTINGS = {
   { text = function() return L.MENU_COMBAT_ONLY end, checked = checked('combatOnly'), click = toggle('combatOnly') },
   { text = function() return L.MENU_GROUP_ONLY end, checked = checked('groupOnly'), click = toggle('groupOnly') },
   { text = function() return L.MENU_SHOW_ALL end, checked = checked('showAll'), click = toggle('showAll') },
+  { text = function() return L.MENU_HIGHLIGHT end, checked = checked('highlightTarget'), click = toggle('highlightTarget') },
   { text = function() return L.MENU_SOUND end, checked = checked('sound'), click = toggle('sound') },
   { text = function() return L.MENU_DEBUG end, checked = checked('debug'), click = toggleDebug },
   cycler(L.MENU_BACKGROUND, 'alpha', { 0, 0.2, 0.4, 0.6, 0.8, 1 }, '%', 100),
