@@ -106,6 +106,32 @@ function ns.unitColor(unit)
   return ns.classify(tanking, status)
 end
 
+-- Alle Gruppen-Token, du selbst zuerst (party1..4 bzw. raid1..40)
+function ns.groupUnits()
+  local list = { 'player' }
+  if IsInRaid() then
+    local okN, n = pcall(GetNumGroupMembers)
+    n = (okN and not ns.IsSecret(n)) and n or 0
+    for i = 1, n do list[#list + 1] = 'raid' .. i end
+  elseif IsInGroup() then
+    local okN, n = pcall(GetNumSubgroupMembers)
+    n = (okN and not ns.IsSecret(n)) and n or 0
+    for i = 1, n do list[#list + 1] = 'party' .. i end
+  end
+  return list
+end
+
+-- Wer hält diesen Mob? Gibt den Gruppen-Token zurück ('player', 'party2', …) oder nil.
+-- Gruppen-Token sind nicht geheim (getestet in T6). Im Schlachtzug steht 'player'
+-- vorn, deshalb wirst du nicht als raidN zurückgegeben.
+function ns.aggroHolder(mob)
+  for _, u in ipairs(ns.groupUnits()) do
+    local ok, tanking = pcall(UnitDetailedThreatSituation, u, mob)
+    if ok and ns.plain(tanking) then return u end
+  end
+  return nil
+end
+
 -- Ist Farbe a schlimmer als Farbe b?
 function ns.worse(a, b)
   return (C.RANK[a] or 0) > (C.RANK[b] or 0)

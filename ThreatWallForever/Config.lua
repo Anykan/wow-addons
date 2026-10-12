@@ -37,6 +37,7 @@ C.CODES = {
   DEBUG_SET = '018',     -- /twf debug 1|0
   GAME_OPTIONS = '019',  -- Debug: Prüfung der Spiel-Optionen
   NAMEPLATES = '020',    -- Debug: TWF-Nameplates
+  SYMBOLS = '021',       -- Debug: Symbol-Markierung (Aggro-Halter)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -62,6 +63,7 @@ C.DEFAULTS = {
   debug = false,
   markMethod = 1,            -- Index in Marks.lua (1–3)
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
+  symbolMarks = true,        -- Symbol-Markierung Mob ↔ Aggro-Halter (Anforderung L)
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -203,11 +205,11 @@ C.ROW = {
   GLOW_DURATION = 0.7,         -- Sekunden pro Pulsschritt
 }
 
--- Testzeilen (/twf test): Name, Farbe, Raid-Symbol
+-- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Symbol-Markierung (Schlüssel in C.SYMBOLS)
 C.TEST_ROWS = {
-  { 'Grillmaster', 'red', 8 },
-  { 'Adds Rechts', 'yellow', 3 },
-  { 'Adds Links', 'yellow', nil },
+  { 'Grillmaster', 'red', 8, 'HEALER' },
+  { 'Adds Rechts', 'yellow', 3, 'DAMAGER' },
+  { 'Adds Links', 'yellow', nil, nil },
 }
 
 -- Dropdown-Menü ---------------------------------------------------------------------------
@@ -274,6 +276,37 @@ C.NAMEPLATES = {
   BAR_BG = 'ui-castingbar-background',
   BAR_BORDER = 'ui-castingbar-frame',
   PLAIN_FILL = 'Interface\\TargetingFrame\\UI-StatusBar',  -- Rückfall, falls die Atlanten fehlen
+}
+
+-- Symbol-Markierung (Symbols.lua, Anforderung L) -------------------------------------------
+
+-- Symbolsatz: hier austauschen, sonst nirgends. Jeder Eintrag ist ein Atlas-Name oder ein
+-- Dateipfad, oder eine Tabelle { texture = ..., coords = { links, rechts, oben, unten } }
+-- für Dateien mit mehreren Symbolen in einem Bild.
+C.SYMBOLS = {
+  TANK = 'ui-lfg-roleicon-tank',
+  HEALER = 'ui-lfg-roleicon-healer',
+  DAMAGER = 'ui-lfg-roleicon-dps',
+  NONE = 'ui-lfg-roleicon-dps',        -- Halter ohne gesetzte Rolle (Kampf-Symbol nach T8c verworfen)
+  AGGRO_SELF = 'ui-lfg-roleicon-dps',  -- DD/Heal-Modus: Mob, von dem du die Aggro hast
+}
+
+C.SYMBOL_LAYOUT = {
+  MOB_SIZE = 16,               -- Symbol am Mob (links neben dem Balken)
+  MOB_GAP = 4,                 -- Abstand Symbol → Balken
+  PLAYER_SIZE = 24,            -- Symbol über dem Kopf des Mitspielers
+  PLAYER_Y = 4,                -- Höhe über der freundlichen Nameplate
+  LIST_SIZE = 14,              -- Symbol in der TWF-Liste
+  LEVEL = 8,                   -- Frame-Ebene über der Nameplate (über dem TWF-Balken)
+  RAID_INTERVAL = 1,           -- Sekunden zwischen Halter-Abfragen im Schlachtzug (gedrosselt)
+  GROUP_SIZE = 20,             -- Symbol am Gruppenfenster des Mitspielers (immer zusätzlich)
+  GROUP_X = -4,                -- Abstand vom rechten Rand des Gruppenfensters
+  GROUP_LEVEL = 10,            -- Frame-Ebene über dem Gruppenfenster
+  PARTY_FRAMES = 5,            -- CompactPartyFrameMember1..N
+  RAID_FRAMES = 40,            -- CompactRaidFrame1..N (Schlachtzug, ohne Gruppen-Sortierung)
+  RAID_GROUPS = 8,             -- CompactRaidGroupXMemberY (Schlachtzug, nach Gruppen sortiert)
+  RAID_GROUP_SIZE = 5,
+  PARTY_MEMBERS = 4,           -- PartyFrame.MemberFrame1..N (Rückfall, falls Blizzard umstellt)
 }
 
 -- Gemeinsamer Fensterstil (Einstellungsfenster + Hinweis-Popup) -------------------------
@@ -365,6 +398,7 @@ C.OPTIONS = {
 
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
+  { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
 
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },

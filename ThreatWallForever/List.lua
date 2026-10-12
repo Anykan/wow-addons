@@ -70,9 +70,14 @@ local function buildRow(i)
     row.dot:AddMaskTexture(mask)
   end
 
+  -- Symbol-Markierung (Anforderung L): Rollensymbol des Aggro-Halters
+  row.sym = row:CreateTexture(nil, 'ARTWORK')
+  row.sym:SetSize(C.SYMBOL_LAYOUT.LIST_SIZE, C.SYMBOL_LAYOUT.LIST_SIZE)
+  row.sym:SetPoint('LEFT', row.dot, 'RIGHT', ROW.GAP, 0)
+
   row.mark = row:CreateTexture(nil, 'ARTWORK')
   row.mark:SetSize(ROW.MARK_SIZE, ROW.MARK_SIZE)
-  row.mark:SetPoint('LEFT', row.dot, 'RIGHT', ROW.GAP, 0)
+  row.mark:SetPoint('LEFT', row.sym, 'RIGHT', ROW.GAP, 0)
 
   row.name = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
   row.name:SetPoint('LEFT', row.mark, 'RIGHT', ROW.GAP, 0)
@@ -149,6 +154,14 @@ local function drawRow(row, e)
   row.entry = e
   setDot(row.dot, e.color)
   ns.setMark(row.mark, e.markIndex)
+  -- Symbolfeld: bei ausgeschalteter Markierung ohne Breite, damit die Zeile wie früher aussieht
+  if ns.db.symbolMarks then
+    row.sym:SetWidth(C.SYMBOL_LAYOUT.LIST_SIZE)
+    row.sym:SetShown(e.symbol and ns.setSymbolTexture(row.sym, e.symbol) or false)
+  else
+    row.sym:SetWidth(0)
+    row.sym:Hide()
+  end
   if not pcall(row.name.SetText, row.name, e.name or '?') then row.name:SetText('?') end
   -- Dein eigenes Ziel wird immer zuerst über den Token `target` gelesen (er
   -- steht in candidateUnits() vorn), also ist die Zeile mit unit == 'target' deins.
@@ -189,12 +202,13 @@ function ns.refresh()
   if testMode then
     for i, t in ipairs(C.TEST_ROWS) do
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
-      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil }
+      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil, symbol = t[4] }
     end
   else
     for _, t in pairs(ns.tracked) do
       if t.shownColor then
-        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit }
+        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit,
+          symbol = ns.symbolFor(t.unit) }
       end
     end
     table.sort(list, function(a, b)

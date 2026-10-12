@@ -189,6 +189,49 @@ local function buildPopup()
   applyBtn:SetScript('OnClick', applyMissing)
 end
 
+-- Zurückstellen ------------------------------------------------------------------------------
+
+local pendingRestore = {}   -- Funktionen, deren Optionen nach dem Kampf zurückgestellt werden
+local regenFrame
+
+local function restoreNow(featureKey)
+  local saved = ns.db.savedCVars
+  if not saved then return end
+  for _, opt in ipairs(C.GAME_OPTIONS) do
+    if opt.neededBy == featureKey then
+      for _, name in ipairs(opt.names) do
+        if saved[name] ~= nil then
+          local ok = ns.setCVar(name, saved[name])
+          ns.dbg('GAME_OPTIONS', 'Zurückgestellt: ' .. name .. ' = ' .. tostring(saved[name]) .. (ok and '' or ' (FEHLGESCHLAGEN)'))
+          saved[name] = nil
+        end
+      end
+    end
+  end
+end
+
+-- Optionen, die TWF nur für diese Funktion eingeschaltet hat, auf den alten Wert zurück.
+-- Im Kampf geht das nicht → nach dem Kampf nachholen, falls die Funktion dann noch aus ist.
+function ns.restoreGameOptions(featureKey)
+  if not InCombatLockdown() then
+    restoreNow(featureKey)
+    return
+  end
+  pendingRestore[featureKey] = true
+  ns.dbg('GAME_OPTIONS', 'Zurückstellen nach dem Kampf vorgemerkt: ' .. featureKey)
+  if not regenFrame then
+    regenFrame = CreateFrame('Frame')
+    regenFrame:SetScript('OnEvent', function(self)
+      self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+      for key in pairs(pendingRestore) do
+        if not ns.db[key] then restoreNow(key) end
+      end
+      wipe(pendingRestore)
+    end)
+  end
+  regenFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
+end
+
 -- Öffentlich ------------------------------------------------------------------------------
 
 -- Prüfen und bei Bedarf das Popup zeigen. force = true zeigt es immer (/twf hint).

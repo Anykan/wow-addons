@@ -16,6 +16,8 @@ Detection.lua
 Marks.lua
 List.lua
 Nameplates.lua
+Symbols.lua
+GroupFrames.lua
 Window.lua
 Menu.lua
 Settings.lua
