@@ -74,8 +74,14 @@ local function buildRow(i)
   row.mark:SetSize(ROW.MARK_SIZE, ROW.MARK_SIZE)
   row.mark:SetPoint('LEFT', row.dot, 'RIGHT', ROW.GAP, 0)
 
+  -- Aggro-Ziel (Anforderung L): Rollensymbol des Halters vor dem Mobnamen.
+  -- Die genaue Position setzt drawRow (abhängig von den eingeschalteten Feldern).
+  row.sym = row:CreateTexture(nil, 'ARTWORK')
+  row.sym:SetSize(C.SYMBOL_LAYOUT.LIST_SIZE, C.SYMBOL_LAYOUT.LIST_SIZE)
+  row.sym:SetPoint('LEFT', row.mark, 'RIGHT', ROW.GAP, 0)
+
   row.name = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  row.name:SetPoint('LEFT', row.mark, 'RIGHT', ROW.GAP, 0)
+  row.name:SetPoint('LEFT', row.sym, 'RIGHT', C.SYMBOL_LAYOUT.LIST_GAP, 0)
   row.name:SetPoint('RIGHT', ROW.NAME_RIGHT, 0)
   row.name:SetJustifyH('LEFT')
   row.name:SetWordWrap(false)
@@ -148,7 +154,23 @@ end
 local function drawRow(row, e)
   row.entry = e
   setDot(row.dot, e.color)
-  ns.setMark(row.mark, e.markIndex)
+  -- Reihenfolge: Ampelpunkt → (Schlachtzugsymbol) → (Rollensymbol) → Name.
+  -- Felder, die abgeschaltet sind, nehmen keinen Platz weg.
+  local left = row.dot
+  if ROW.SHOW_RAID_MARK then
+    ns.setMark(row.mark, e.markIndex)
+    left = row.mark
+  else
+    row.mark:Hide()
+  end
+  if ns.db.symbolMarks then
+    row.sym:SetPoint('LEFT', left, 'RIGHT', ROW.GAP, 0)
+    row.sym:SetShown(e.symbol and ns.setSymbolTexture(row.sym, e.symbol) or false)
+    row.name:SetPoint('LEFT', row.sym, 'RIGHT', C.SYMBOL_LAYOUT.LIST_GAP, 0)
+  else
+    row.sym:Hide()
+    row.name:SetPoint('LEFT', left, 'RIGHT', ROW.GAP, 0)
+  end
   if not pcall(row.name.SetText, row.name, e.name or '?') then row.name:SetText('?') end
   -- Dein eigenes Ziel wird immer zuerst über den Token `target` gelesen (er
   -- steht in candidateUnits() vorn), also ist die Zeile mit unit == 'target' deins.
@@ -189,12 +211,13 @@ function ns.refresh()
   if testMode then
     for i, t in ipairs(C.TEST_ROWS) do
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
-      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil }
+      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil, symbol = t[4] }
     end
   else
     for _, t in pairs(ns.tracked) do
       if t.shownColor then
-        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit }
+        list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit,
+          symbol = ns.symbolFor(t.unit) }
       end
     end
     table.sort(list, function(a, b)

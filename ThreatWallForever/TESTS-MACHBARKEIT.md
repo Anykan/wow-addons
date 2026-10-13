@@ -124,6 +124,15 @@ Erwartet: JA.
 | T10 | ✘ `C_NamePlate.GetNamePlateForUnit("party1")` → Fehler: „Raid<n>/Party<n> unit tokens are not allowed for this call“ | – | Gruppen-Token sind für Nameplates verboten → Nameplate des Mitspielers über `nameplateN` + `UnitIsUnit` oder über `target` suchen (T10b) — **T10b:** Freundliche Nameplate des Mitspielers existiert (`nameplate1` = Nightwalker, Name lesbar). `UnitIsUnit("nameplate1","party1")` liefert aber **nil** statt true. Über `target`: Plate JA, UnitFrame JA. → **T10c ✔:** `UnitGUID("nameplate1")` = `UnitGUID("party1")` = `Player-4618-00929A23`, beide lesbar (nicht geheim); `UnitIsUnit` bleibt nil. **Zuordnung per GUID-Vergleich ist machbar.** **Instanz ✔:** freundliche Nameplate von Nightwalker vorhanden (`nameplate9`), Name + GUID lesbar. **Aber:** In der Instanz sind bei den Gegner-Nameplates (`nameplate3–8`) **Name UND GUID GEHEIM** → TWF-Code muss geheime Namen/GUIDs überall vertragen (Anzeige per SetText ok, kein Vergleich/Sortieren) |
 | T11 | ✔ `Settings.RegisterCanvasLayoutCategory` vorhanden | – | **Eintrag unter Optionen → AddOns (F) machbar** |
 
+## Nachtrag beim Bau von L (2026-10-04)
+- In einer Instanz: `C_NamePlate.GetNamePlates(true)` → 6 Nameplates, davon **4 gesperrt** (`IsForbidden`). Betroffen sind die **freundlichen** Nameplates (Mitspieler-Balken blieben sichtbar, Gegner funktionierten).
+- Folge: Freundliche Nameplates können in Instanzen weder ausgeblendet werden noch ein Symbol tragen → Ersatz für das Symbol über dem Kopf: Gruppenfenster.
+
+## Nachtrag beim Test von L neu (2026-10-13)
+- `UnitDetailedThreatSituation(einheit, "nameplateN")`: **alle Rückgaben GEHEIM** (für `party1` und für `player`). Über `"target"` war „tankt“ lesbar (T6).
+- `UnitThreatSituation("party1", "nameplateN")` → **3, lesbar**. Die einfache Status-Stufe (0–3) ist also auch über Nameplate-Token nutzbar.
+- Folge: `ns.aggroHolder` nutzt zuerst die ausführliche Abfrage, sonst die Stufe (≥ 2 = tankt, 3 hat Vorrang).
+
 ## Zusammenfassung (2026-10-04)
 | Anforderung | Ergebnis | Weg |
 |---|---|---|

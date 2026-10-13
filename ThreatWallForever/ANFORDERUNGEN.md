@@ -151,7 +151,26 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   - Weitere Inhalte (z. B. Symbole): folgen ggf.
 - **Technisches Risiko (Test 3):** `UnitHealth`/`UnitHealthMax` könnten im Kampf geheim sein. Prüfen, ob dann wenigstens `StatusBar:SetValue(geheimerWert)` funktioniert. Wenn beides nicht geht, muss eine Alternative besprochen werden.
 
-## L. Rollensymbol: Mob ↔ neues Aggro-Ziel (vom Nutzer beschlossen 2026-10-04, erste Ausbaustufe von Idee D)
+## L (neu). Aggro-Ziel am Mob (vom Nutzer beschlossen 2026-10-12, ersetzt Version 1)
+Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundlichen Nameplates, kein Gruppenfenster.
+- **Tank-Modus:**
+  - Greift der Mob **nicht dich** an (Heiler, DD oder ein zweiter Tank hat ihn), steht als **zweite Zeile über dem Mobnamen**: **Rollensymbol + Name des Angegriffenen**.
+  - Bei einem zweiten Tank: Tank-Symbol + sein Name.
+  - Der **eigene Name steht nie** dort. Greift der Mob dich an, bleibt die Zeile leer.
+  - Spielername in **Klassenfarbe** (zum Start).
+- **DD/Heal-Modus:**
+  - Bei jedem Mob im Kampf **nur das Rollensymbol** dessen, der ihn hält (Tank, DD, Heiler), **mittig über** dem Mobnamen, ohne Name.
+  - Hältst du den Mob selbst: **erst mal nichts**.
+- **Ohne gesetzte Rolle:** DD-Symbol.
+- **TWF-Liste:** bleibt, wie sie ist; **zusätzlich** das Symbol vor dem Mobnamen (kein Spielername).
+- **Ein-/ausschaltbar:** Checkbox „Aggro-Ziel anzeigen“ (`symbolMarks`, Standard an) im Abschnitt Nameplates.
+- Symbolsatz und Größen in `Config.lua` (`C.SYMBOLS`, `C.SYMBOL_LAYOUT`), leicht austauschbar.
+- Umsetzung: `Symbols.lua` (Zeile über dem Mobnamen), `Detection.lua` (`ns.aggroHolder`), Symbolfeld in `List.lua`.
+- Stand: ✅ umgesetzt, im Spiel getestet und committet am 2026-10-13. Offen: Test in einer Instanz.
+- Beim Test angepasst: Symbol über dem Mob 20 px, Spielername in normaler Schriftgröße, Symbol in der Liste 18 px mit 5 px Abstand; Schlachtzugsymbol in der Liste abgeschaltet (`C.ROW.SHOW_RAID_MARK = false`), bis forever-bugs#166 behoben ist.
+
+## L (alt, Version 1) — ZURÜCKGENOMMEN 2026-10-12
+**Stand:** Version 1 war gebaut und teilgetestet, ist aber wieder aus `master` entfernt. Der Code liegt zur Ansicht im Git-Zweig `archiv/twf-symbole-v1` (Commit `d7687a8`). Alles Folgende beschreibt Version 1 und ist **keine gültige Anforderung mehr**, bis der Nutzer ein neues Konzept festlegt.
 Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“).
 - **Szenario:** Ich tanke eine Gruppe Gegner und verliere bei einem Mob die Aggro.
   - Auf der **TWF-Nameplate dieses Mobs** erscheint das **Rollensymbol seines neuen Ziels**, z. B. das Heiler-Kreuz, wenn der Mob zum Heiler läuft.
@@ -182,12 +201,14 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Offene Fragen:
   - **Instanzen:** Erlaubt Blizzard dort keine freundlichen Nameplates, kommt das Symbol stattdessen ans Gruppenfenster → testen.
   - **Rolle erkennen:** `UnitGroupRolesAssigned` liefert in Classic oft „NONE“, weil keiner eine Rolle gewählt hat. Dann wird das **DD-Rollensymbol** gezeigt (entschieden, nach T8c). Forever 1.60.1 hat laut API-Änderungen Rollenabfrage (Role Poll) eingebaut → testen, was `UnitGroupRolesAssigned` dort liefert.
+- **Bekannte Grenze (Blizzard-Sperre, gemessen 2026-10-04):** In Instanzen sind freundliche Nameplates gesperrt (`IsForbidden`). Dort bleiben Mitspieler-Balken im Original sichtbar, und das Symbol über dem Kopf geht nicht. Ersatz: Symbol **immer zusätzlich am Gruppenfenster** (Nutzer-Entscheid „immer“), Modul `GroupFrames.lua`, kompakte Party-/Raidfenster.
 - Tests dazu:
   - `UnitDetailedThreatSituation("partyN", mob)` im Kampf (Test 3 der alten Liste)
   - `UnitGroupRolesAssigned("partyN")`
   - Freundliche Nameplates + Symbol über dem Kopf, auch in einer Instanz
 
 ## M. Hinweis-Fenster: alle nötigen Spiel-Optionen (vom Nutzer beschlossen 2026-10-04) — ✅ umgesetzt 2026-10-04 (im Spiel getestet; freundliche Nameplates werden geprüft, sobald L die Einstellung `symbolMarks` bringt; Zurückstellen alter Werte kommt mit L; Knopf „Spiel-Optionen öffnen“ per `C.HINT.SHOW_OPTIONS_BUTTON` abschaltbar, Entscheidung offen)
+**Änderung 2026-10-12:** Freundliche Nameplates werden **nicht mehr verlangt** (Nutzer-Entscheid, Schritt zurück zusammen mit L). Geprüft werden derzeit nur die Gegner-Nameplates. Hatte TWF die freundlichen Nameplates eingeschaltet, stellt es einmalig den alten Wert zurück.
 - Das bestehende Hinweis-Popup beim Login (heute nur „Gegner-Nameplates an“, CVar `nameplateShowEnemies`) wird erweitert: Es nennt **alle Spiel-Optionen**, die TWF für einen sauberen Betrieb braucht.
 - Neu dazu: **Nameplates für Spieler (freundliche Nameplates)** müssen an sein (für L, Symbol über dem Kopf).
 - **Vorher genau ermitteln (Analyse + Test auf Forever):** Welche Optionen bzw. CVars braucht TWF wirklich, wofür, und was passiert, wenn eine fehlt? Kandidaten:
@@ -212,6 +233,21 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - `/twf hint` **bleibt** als Test-Befehl (bestätigt).
   - **(bestätigt)** `/twf hint` öffnet das Popup **immer**, auch wenn alles passt, damit man die Statusliste (✔/✘) zum Testen sieht. Er erscheint nicht in der Spieler-Hilfe.
 - Texte im Popup zweisprachig (G).
+
+## TODO (nächste Sitzung)
+- L (neu) noch in einer **Instanz** prüfen (Test 17) und die Debug-Zeilen ansehen (Test 18), siehe `TESTS-L-AGGROZIEL.md`.
+- Idee I1 (Farbverlauf) testen, siehe unten.
+
+## Ideen zum späteren Testen
+- **I1 Farbverlauf des Lebensbalkens nach Bedrohung** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, erst testen): Statt der festen Ampelstufen ein Verlauf grün → gelb/orange → rot nach dem Bedrohungs-Prozentwert (den zeigt Blizzards Tooltip am Gegner). Rechnen mit geheimen Werten ist verboten; möglicher Weg: **Farbkurve** (`C_CurveUtil.CreateColorCurve`, Punkte 0/50/100 %), das Spiel wertet den geheimen Wert aus (`K:Evaluate(prozent):GetRGB()`), TWF reicht nur die Farbe an den Balken. Braucht eine neutrale, einfärbbare Füllung (wie heute Blau/Grau). Vorher im Kampf testen (Zeilen stehen im Chat-Verlauf vom 2026-10-13 und hier):
+  1. `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("S bereit")`
+  2. `/run local a,b,c,d,e=UnitDetailedThreatSituation("player","target")print("tankt",S(a),"status",S(b),"prozent",S(c),"roh%",S(d),"wert",S(e))` → „prozent“ GEHEIM/Zahl = weiter, nil = Idee tot
+  3. `/run print("Kurve:",C_CurveUtil and C_CurveUtil.CreateColorCurve and"JA"or"nein")`
+  4. `/run K=C_CurveUtil.CreateColorCurve()K:AddPoint(0,CreateColor(0,1,0))K:AddPoint(50,CreateColor(1,.8,0))K:AddPoint(100,CreateColor(1,0,0))Q=Q or UIParent:CreateTexture()Q:SetSize(40,40)Q:SetPoint("CENTER",0,120)Q:SetColorTexture(1,1,1)print("bereit")`
+  5. `/run local _,_,p=UnitDetailedThreatSituation("player","target")print("Ergebnis:",pcall(function()Q:SetVertexColor(K:Evaluate(p):GetRGB())end))` → true + Quadrat ändert die Farbe = machbar
+
+## Offene Bugs
+- **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04):** Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## TODO vor Veröffentlichung
 - Beschreibung überarbeiten: TOC-Notes (EN + DE) versprechen noch „Klick zum Zielwechsel“, das stimmt nicht mehr. Dazu die CurseForge-Beschreibung neu schreiben.

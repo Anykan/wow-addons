@@ -106,6 +106,42 @@ function ns.unitColor(unit)
   return ns.classify(tanking, status)
 end
 
+-- Alle Gruppen-Token, du selbst zuerst (party1..4 bzw. raid1..40)
+function ns.groupUnits()
+  local list = { 'player' }
+  if IsInRaid() then
+    local okN, n = pcall(GetNumGroupMembers)
+    n = (okN and not ns.IsSecret(n)) and n or 0
+    for i = 1, n do list[#list + 1] = 'raid' .. i end
+  elseif IsInGroup() then
+    local okN, n = pcall(GetNumSubgroupMembers)
+    n = (okN and not ns.IsSecret(n)) and n or 0
+    for i = 1, n do list[#list + 1] = 'party' .. i end
+  end
+  return list
+end
+
+-- Wer hält diesen Mob? Gibt den Gruppen-Token zurück ('player', 'party2', …) oder nil.
+-- Im Schlachtzug steht 'player' vorn, deshalb wirst du nicht als raidN zurückgegeben.
+--
+-- Zwei Wege, weil der Client je nach Mob-Token unterschiedlich viel verrät (getestet 2026-10-13):
+--  1. UnitDetailedThreatSituation → "tankt ja/nein". Über `target` lesbar (T6), über
+--     `nameplateN` geheim.
+--  2. UnitThreatSituation → Stufe 0–3, auch über `nameplateN` lesbar. Ab Stufe INSECURE (2)
+--     tankt die Einheit den Mob; SECURE (3) hat Vorrang.
+function ns.aggroHolder(mob)
+  local insecure
+  for _, u in ipairs(ns.groupUnits()) do
+    local ok, tanking = pcall(UnitDetailedThreatSituation, u, mob)
+    if ok and ns.plain(tanking) then return u end
+    local ok2, st = pcall(UnitThreatSituation, u, mob)
+    st = ok2 and ns.plain(st) or nil
+    if st == S.SECURE then return u end
+    if st == S.INSECURE and not insecure then insecure = u end
+  end
+  return insecure
+end
+
 -- Ist Farbe a schlimmer als Farbe b?
 function ns.worse(a, b)
   return (C.RANK[a] or 0) > (C.RANK[b] or 0)

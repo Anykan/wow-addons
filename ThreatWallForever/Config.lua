@@ -37,6 +37,7 @@ C.CODES = {
   DEBUG_SET = '018',     -- /twf debug 1|0
   GAME_OPTIONS = '019',  -- Debug: Prüfung der Spiel-Optionen
   NAMEPLATES = '020',    -- Debug: TWF-Nameplates
+  SYMBOLS = '021',       -- Debug: Aggro-Ziel am Mob (wer hält welchen Mob)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -62,6 +63,7 @@ C.DEFAULTS = {
   debug = false,
   markMethod = 1,            -- Index in Marks.lua (1–3)
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
+  symbolMarks = true,        -- Aggro-Ziel am Mob und in der Liste anzeigen (Anforderung L)
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -194,6 +196,8 @@ C.ROW = {
   DOT_SIZE = 12,               -- Ampelpunkt
   DOT_X = 6,
   MARK_SIZE = 14,              -- Raid-Symbol
+  SHOW_RAID_MARK = false,      -- Schlachtzugsymbol in der Liste zeigen. Aus, bis der Client-Bug behoben ist
+                               -- (forever-bugs#166: Symbol-Nummer im Kampf geheim). Code bleibt in Marks.lua.
   GAP = 4,                     -- Abstand Punkt → Symbol → Name
   NAME_RIGHT = -6,
   TARGET_GLOW = { 0.55, 0.85, 1 }, -- Rahmenfarbe Ziel (hell blau-weiß, hebt sich von der Ampel ab)
@@ -203,11 +207,11 @@ C.ROW = {
   GLOW_DURATION = 0.7,         -- Sekunden pro Pulsschritt
 }
 
--- Testzeilen (/twf test): Name, Farbe, Raid-Symbol
+-- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS)
 C.TEST_ROWS = {
-  { 'Grillmaster', 'red', 8 },
-  { 'Adds Rechts', 'yellow', 3 },
-  { 'Adds Links', 'yellow', nil },
+  { 'Grillmaster', 'red', 8, 'HEALER' },
+  { 'Adds Rechts', 'yellow', 3, 'DAMAGER' },
+  { 'Adds Links', 'yellow', nil, nil },
 }
 
 -- Dropdown-Menü ---------------------------------------------------------------------------
@@ -276,6 +280,30 @@ C.NAMEPLATES = {
   PLAIN_FILL = 'Interface\\TargetingFrame\\UI-StatusBar',  -- Rückfall, falls die Atlanten fehlen
 }
 
+-- Aggro-Ziel am Mob (Symbols.lua, Anforderung L) -------------------------------------------
+
+-- Symbolsatz: hier austauschen, sonst nirgends. Jeder Eintrag ist ein Atlas-Name oder ein
+-- Dateipfad, oder eine Tabelle { texture = ..., coords = { links, rechts, oben, unten } }
+-- für Dateien mit mehreren Symbolen in einem Bild.
+C.SYMBOLS = {
+  TANK = 'ui-lfg-roleicon-tank',
+  HEALER = 'ui-lfg-roleicon-healer',
+  DAMAGER = 'ui-lfg-roleicon-dps',
+  NONE = 'ui-lfg-roleicon-dps',        -- Halter ohne gesetzte Rolle
+}
+
+C.SYMBOL_LAYOUT = {
+  ICON_SIZE = 20,              -- Symbol in der Zeile über dem Mobnamen
+  LINE_FONT = 'GameFontHighlight',  -- Schrift des Spielernamens (größer: 'GameFontHighlightLarge', kleiner: 'GameFontHighlightSmall')
+  ICON_GAP = 3,                -- Abstand Symbol → Spielername
+  LINE_Y = 1,                  -- Abstand der Zeile über dem Mobnamen
+  LIST_SIZE = 18,              -- Symbol in der TWF-Liste (Zeilenhöhe ist 20)
+  LIST_GAP = 5,                -- Abstand Symbol → Mobname in der Liste
+  LEVEL = 8,                   -- Frame-Ebene über der Nameplate (über dem TWF-Balken)
+  RAID_INTERVAL = 1,           -- Sekunden zwischen Halter-Abfragen im Schlachtzug (gedrosselt)
+  NAME_FALLBACK_COLOR = { 1, 1, 1 },  -- Spielername, falls die Klassenfarbe nicht lesbar ist
+}
+
 -- Gemeinsamer Fensterstil (Einstellungsfenster + Hinweis-Popup) -------------------------
 
 C.DIALOG = {
@@ -314,11 +342,11 @@ C.HINT = {
 -- want:     Sollwert
 -- label/tip: Schlüssel in Locales.lua
 -- neededBy: nur nötig, wenn diese Einstellung (db) an ist; fehlt sie, ist die Option immer nötig
+-- (Freundliche Nameplates werden seit 2026-10-12 nicht mehr verlangt. Auf Forever hieße die CVar
+--  nameplateShowFriendlyPlayers, siehe TESTS-MACHBARKEIT.md T9.)
 C.GAME_OPTIONS = {
   { names = { 'nameplateShowEnemies' }, want = '1',
     label = 'GOPT_ENEMIES', tip = 'GOPT_ENEMIES_TIP' },
-  { names = { 'nameplateShowFriendlyPlayers', 'nameplateShowFriends' }, want = '1',
-    label = 'GOPT_FRIENDS', tip = 'GOPT_FRIENDS_TIP', neededBy = 'symbolMarks' },  -- Symbol-Markierung (Anforderung L)
 }
 
 -- Einstellungsfenster (Settings.lua) ------------------------------------------------------
@@ -365,6 +393,7 @@ C.OPTIONS = {
 
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
+  { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
 
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },

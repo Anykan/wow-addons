@@ -189,11 +189,36 @@ local function buildPopup()
   applyBtn:SetScript('OnClick', applyMissing)
 end
 
+-- Aufräumen ---------------------------------------------------------------------------------
+
+-- Spiel-Optionen, die TWF früher für eine Funktion eingeschaltet hat, die es nicht mehr
+-- gibt oder die gerade aus ist, auf den gemerkten alten Wert zurückstellen. TWF soll
+-- nichts zurücklassen (Beispiel: freundliche Nameplates aus der zurückgenommenen
+-- Symbol-Markierung). Im Kampf nicht möglich → beim nächsten Prüfen erneut versuchen.
+local function restoreOrphaned()
+  local saved = ns.db.savedCVars
+  if not saved or InCombatLockdown() then return end
+  local stillNeeded = {}
+  for _, opt in ipairs(C.GAME_OPTIONS) do
+    if isNeeded(opt) then
+      for _, name in ipairs(opt.names) do stillNeeded[name] = true end
+    end
+  end
+  for name, old in pairs(saved) do
+    if not stillNeeded[name] then
+      local ok = ns.setCVar(name, old)
+      ns.dbg('GAME_OPTIONS', 'Zurückgestellt: ' .. name .. ' = ' .. tostring(old) .. (ok and '' or ' (FEHLGESCHLAGEN)'))
+      saved[name] = nil
+    end
+  end
+end
+
 -- Öffentlich ------------------------------------------------------------------------------
 
 -- Prüfen und bei Bedarf das Popup zeigen. force = true zeigt es immer (/twf hint).
 function ns.checkGameOptions(force)
   if not ns.db then return end
+  restoreOrphaned()
   local results, missing = evaluate()
   ns.dbg('GAME_OPTIONS', 'Prüfung: ' .. (missing and 'es fehlt etwas' or 'alles ok') .. (force and ' (erzwungen)' or ''))
   if missing or force then
