@@ -124,7 +124,7 @@ end
 -- Wer hält diesen Mob? Gibt den Gruppen-Token zurück ('player', 'party2', …) oder nil.
 -- Im Schlachtzug steht 'player' vorn, deshalb wirst du nicht als raidN zurückgegeben.
 --
--- Zwei Wege, weil der Client je nach Mob-Token unterschiedlich viel verrät (getestet 2026-10-13):
+-- Drei Wege, weil der Client je nach Mob-Token unterschiedlich viel verrät (getestet 2026-10-13):
 --  1. UnitDetailedThreatSituation → "tankt ja/nein". Über `target` lesbar (T6), über
 --     `nameplateN` geheim.
 --  2. UnitThreatSituation → Stufe 0–3, auch über `nameplateN` lesbar. Ab Stufe INSECURE (2)
@@ -139,7 +139,20 @@ function ns.aggroHolder(mob)
     if st == S.SECURE then return u end
     if st == S.INSECURE and not insecure then insecure = u end
   end
-  return insecure
+  if insecure then return insecure end
+
+  --  3. Ziel des Mobs: Bist du selbst noch nicht im Kampf mit ihm, liefert der Client keine
+  --     Bedrohungswerte (nil). Dann zählt, wen der Mob anvisiert, aber nur, wenn es ein
+  --     Gruppen-/Raidmitglied ist (GUID-Vergleich; in Instanzen evtl. geheim, dann nil).
+  local okT, targetGUID = pcall(UnitGUID, mob .. 'target')
+  targetGUID = okT and ns.plain(targetGUID) or nil
+  if targetGUID then
+    for _, u in ipairs(ns.groupUnits()) do
+      local okG, guid = pcall(UnitGUID, u)
+      if okG and ns.plain(guid) == targetGUID then return u end
+    end
+  end
+  return nil
 end
 
 -- Ist Farbe a schlimmer als Farbe b?

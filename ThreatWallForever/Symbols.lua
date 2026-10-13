@@ -130,9 +130,12 @@ local function showLine(nameplate, key, holder, showName)
   end
   f:SetWidth(width)
 
-  -- Über dem Mobnamen der TWF-Nameplate; ohne TWF-Nameplate über Blizzards Nameplate
+  -- Über dem Mobnamen der TWF-Nameplate. Ohne TWF-Nameplate über Blizzards Mobnamen,
+  -- sonst über Blizzards Lebensleiste (die Nameplate selbst sitzt leicht versetzt).
   local plate = nameplate.twfPlate
-  local anchor = (plate and plate:IsShown() and plate.name) or nameplate
+  local uf = nameplate.UnitFrame
+  local anchor = (plate and plate:IsShown() and plate.name)
+    or (uf and (uf.name or uf.healthBar or uf.HealthBar)) or nameplate
   f:ClearAllPoints()
   f:SetPoint('BOTTOM', anchor, 'TOP', 0, Y.LINE_Y)
   f:Show()

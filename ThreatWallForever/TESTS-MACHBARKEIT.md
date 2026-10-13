@@ -132,6 +132,7 @@ Erwartet: JA.
 - `UnitDetailedThreatSituation(einheit, "nameplateN")`: **alle Rückgaben GEHEIM** (für `party1` und für `player`). Über `"target"` war „tankt“ lesbar (T6).
 - `UnitThreatSituation("party1", "nameplateN")` → **3, lesbar**. Die einfache Status-Stufe (0–3) ist also auch über Nameplate-Token nutzbar.
 - Folge: `ns.aggroHolder` nutzt zuerst die ausführliche Abfrage, sonst die Stufe (≥ 2 = tankt, 3 hat Vorrang).
+- Ist man selbst **nicht im Kampf** mit dem Mob (blauer Balken), liefert `UnitThreatSituation("party1", "nameplateN")` **nil**. `UnitGUID("nameplateN" .. "target")` ist dann lesbar und gleich `UnitGUID("party1")` → dritter Weg in `ns.aggroHolder`: Ziel des Mobs per GUID mit den Gruppenmitgliedern vergleichen (draußen getestet, Instanz offen).
 
 ## Zusammenfassung (2026-10-04)
 | Anforderung | Ergebnis | Weg |

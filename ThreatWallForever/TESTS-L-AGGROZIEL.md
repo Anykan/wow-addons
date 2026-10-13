@@ -1,6 +1,6 @@
 # ThreatWall Forever — Test: Aggro-Ziel am Mob (Anforderung L neu)
 
-Stand 2026-10-13: im Spiel getestet (1, 3–16 ✔), committet. Offen: 2 (nicht ausdrücklich bestätigt), 17 (Instanz), 18 (Debug-Zeilen).
+Stand 2026-10-13: im Spiel getestet (1, 3–15 ✔), committet (`0170e72`). Offen: 2 (nicht ausdrücklich bestätigt), 16 (Blizzard-Original), 17 (Instanz), 18 (Debug-Zeilen).
 Mitgetestet wird die Rücknahme der freundlichen Nameplates (M) und das einmalige Zurückstellen.
 
 **Vor dem Test:** Spiel **komplett neu starten** (die TOC hat sich geändert, `/reload` reicht nicht).
@@ -30,7 +30,7 @@ Debug bei Bedarf: `/twf debug 1` (aus: `/twf debug 0`), Momentaufnahme: `/twf du
 | 13 | DD/Heal-Modus: Mob, den **du** hältst | nichts | ✔ |
 | 14 | Mitspieler setzt seine Rolle zurück (keine Rolle) | **DD-Symbol** statt Rollen-Symbol | ✔ |
 | 15 | Checkbox „Aggro-Ziel anzeigen“ **aus** | Zeile über Mobs und Symbole in der Liste sofort weg; **an** = wieder da | ✔ |
-| 16 | Checkbox „TWF-Nameplates“ **aus** (Blizzard-Original) | Zeile erscheint über Blizzards Nameplate (Position ggf. unschön → notieren) | ✔ |
+| 16 | Checkbox „TWF-Nameplates“ **aus** (Blizzard-Original) | Zeile erscheint über Blizzards Nameplate (Position ggf. unschön → notieren) | offen |
 | 17 | **In einer Instanz** | 8–13 funktionieren gleich; über Mitspielern **keine** Blizzard-Balken mehr | offen |
 | 18 | `/twf debug 1`, Mitspieler zieht Aggro | Zeile „[021] Halter von nameplateN: party1“, beim Zurückholen „… : player“ | offen |
 
