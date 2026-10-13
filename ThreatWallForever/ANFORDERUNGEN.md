@@ -162,8 +162,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - Bei jedem Mob im Kampf **nur das Rollensymbol** dessen, der ihn hält (Tank, DD, Heiler), **mittig über** dem Mobnamen, ohne Name.
   - Hältst du den Mob selbst: **erst mal nichts**.
 - **Ohne gesetzte Rolle:** DD-Symbol.
-- **Auch beim blauen Balken** (Nutzer-Wunsch 2026-10-13): Kämpft ein Gruppen-/Raidmitglied mit einem Mob und du bist selbst noch nicht im Kampf, wird das Aggro-Ziel ebenfalls angezeigt. Da der Client dann keine Bedrohungswerte liefert, zählt das **Ziel des Mobs** (nur wenn es ein Gruppen-/Raidmitglied ist).
-  - **Bekannte Grenze:** In **Instanzen** geht das beim blauen Balken nicht (Ziel des Mobs dort komplett geheim, getestet 2026-10-13). Sobald man selbst im Kampf ist, erscheint das Aggro-Ziel auch dort.
+- **Beim blauen Balken keine Anzeige** (Nutzer-Entscheid 2026-10-13): Bist du selbst nicht im Kampf mit dem Mob, erscheinen weder Symbol noch Name. (Kurz eingebaut war ein Weg über das Ziel des Mobs; wieder entfernt, weil er in Instanzen nicht geht und es überall gleich sein soll.)
 - **TWF-Liste:** bleibt, wie sie ist; **zusätzlich** das Symbol vor dem Mobnamen (kein Spielername).
 - **Ein-/ausschaltbar:** Checkbox „Aggro-Ziel anzeigen“ (`symbolMarks`, Standard an) im Abschnitt Nameplates.
 - Symbolsatz und Größen in `Config.lua` (`C.SYMBOLS`, `C.SYMBOL_LAYOUT`), leicht austauschbar.
@@ -236,9 +235,24 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **(bestätigt)** `/twf hint` öffnet das Popup **immer**, auch wenn alles passt, damit man die Statusliste (✔/✘) zum Testen sieht. Er erscheint nicht in der Spieler-Hilfe.
 - Texte im Popup zweisprachig (G).
 
+## N. Name bei Gegnern außerhalb des Kampfs (vom Nutzer beschlossen 2026-10-13)
+- Problem: Aus der Ferne zeigt das Spiel den Namen über dem Gegner. Kommt man näher, erscheint die Nameplate (deren Blizzard-Optik TWF ausblendet), und der Name ist weg, bis der Kampf beginnt und die TWF-Nameplate erscheint.
+- **Anforderung:** Gegner **außerhalb des Kampfs** zeigen im TWF-Modus **nur ihren Namen** (kein Balken), **so wie im Original**: **rot** für feindliche, **gelb** für passive/neutrale Gegner.
+- Sobald der Kampf beginnt, erscheint wie bisher die TWF-Nameplate mit Balken.
+- Umsetzung (2026-10-13): TWF zeichnet den Namen **selbst**, in derselben Schrift und an derselben Stelle wie bei der vollen TWF-Nameplate, nur ohne Balken; Farbe über `UnitSelectionColor(unit)` (lesbar getestet: Farbe, Reaktion, Feind). Blizzards eigener Namenstext der Nameplate (`UnitFrame.name`) war ein erster Versuch und ist **grau**, deshalb verworfen.
+- Stand: ✅ umgesetzt, im Spiel getestet, Baseline `twf-baseline-2026-10-13`.
+
+## O. Hinter Wänden keine TWF-Nameplates (vom Nutzer beschlossen 2026-10-13)
+- **Präzisiert vom Nutzer (2026-10-13):** Hinter Wänden soll nur der **Name der Zwischenebene** verschwinden (Gegner außerhalb des Kampfs, nicht anvisiert). Das **Schlachtzugsymbol bleibt sichtbar**. (Erste Fassung „gar nichts anzeigen“ war zu weit gegriffen.)
+- Hintergrund: Blizzard dunkelt Nameplates hinter Wänden nur ab (`nameplateOccludedAlphaMult`, beim Nutzer 0.4). Der TWF-Name im Nur-Name-Zustand ignoriert Blizzards Deckkraft (für kräftiges Rot) und wäre hinter Wänden voll sichtbar.
+- Umsetzung (2026-10-13): `nameplate:GetAlpha()` ist lesbar (gemessen: frei 0,6, hinter einem Baum 0,23). `ns.isOccluded()` in `Nameplates.lua` erkennt verdeckte Nameplates an der Deckkraft (Schwelle `C.NAMEPLATES.OCCLUDED_ALPHA = 0.5`); dann blendet TWF den Namen im Nur-Name-Zustand aus. Schlachtzugsymbol, Balken (Kampf/Ziel) und Aggro-Zeile bleiben wie sie sind. Die Spiel-Option wird nicht verändert.
+- Stand: ✅ umgesetzt, im Spiel getestet, Baseline `twf-baseline-2026-10-13`. Balken im Kampf/beim Ziel bleiben hinter Wänden sichtbar (vom Nutzer bestätigt).
+
 ## TODO (nächste Sitzung)
-- L (neu) noch in einer **Instanz** prüfen (Test 17) und die Debug-Zeilen ansehen (Test 18), siehe `TESTS-L-AGGROZIEL.md`.
-- Idee I1 (Farbverlauf) testen, siehe unten.
+- Idee I1 (Farbverlauf des Balkens) testen, siehe unten.
+- Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bei Gelegenheit.
+- In einer **Instanz** die Neuerungen vom 13.10. gegenprüfen: Name der Zwischenebene (Farbe über `UnitSelectionColor`), Schlachtzugsymbol umsetzen (Anker evtl. geheim), Erkennung „hinter Wand“ (`GetAlpha`).
+- Siehe auch „TODO vor Veröffentlichung“.
 
 ## Ideen zum späteren Testen
 - **I1 Farbverlauf des Lebensbalkens nach Bedrohung** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, erst testen): Statt der festen Ampelstufen ein Verlauf grün → gelb/orange → rot nach dem Bedrohungs-Prozentwert (den zeigt Blizzards Tooltip am Gegner). Rechnen mit geheimen Werten ist verboten; möglicher Weg: **Farbkurve** (`C_CurveUtil.CreateColorCurve`, Punkte 0/50/100 %), das Spiel wertet den geheimen Wert aus (`K:Evaluate(prozent):GetRGB()`), TWF reicht nur die Farbe an den Balken. Braucht eine neutrale, einfärbbare Füllung (wie heute Blau/Grau). Vorher im Kampf testen (Zeilen stehen im Chat-Verlauf vom 2026-10-13 und hier):
@@ -249,9 +263,10 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   5. `/run local _,_,p=UnitDetailedThreatSituation("player","target")print("Ergebnis:",pcall(function()Q:SetVertexColor(K:Evaluate(p):GetRGB())end))` → true + Quadrat ändert die Farbe = machbar
 
 ## Offene Bugs
-- **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04):** Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
+- **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## TODO vor Veröffentlichung
+- **In die Beschreibung (CurseForge + TOC-Notes) aufnehmen** (Nutzer-Wunsch 2026-10-13): Bedeutung der Balkenfarben. Vor allem **Blau** = der Gegner kämpft, ist aber von TWF noch nicht erfasst, weil man selbst noch nicht mit ihm im Kampf ist; man muss aktiv in den Kampf eingreifen, erst dann zeigt TWF Ampelfarbe und Aggro-Ziel. Grau = eigenes Ziel außerhalb des Kampfs. (Steht bereits in den Tooltips der Optionen „TWF-Nameplates“ und „Aggro-Ziel anzeigen“.)
 - Beschreibung überarbeiten: TOC-Notes (EN + DE) versprechen noch „Klick zum Zielwechsel“, das stimmt nicht mehr. Dazu die CurseForge-Beschreibung neu schreiben.
 
 ## Weitere Anforderungen

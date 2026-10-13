@@ -7,6 +7,10 @@
           eine TWF-Nameplate: Lebensbalken in Ampelfarbe im Zauberbalken-Stil,
           Name darüber, Leben in % im Balken. Dein Ziel bekommt zusätzlich Blizzards
           eigene Zauberleiste.
+          Gegner außerhalb des Kampfs zeigen nur ihren Namen in der Farbe des Spiels
+          (rot feindlich, gelb passiv; Anforderung N). Blizzards eigener Namenstext
+          der Nameplate ist grau und wird deshalb nicht verwendet.
+          Schlachtzugsymbole bleiben sichtbar (Bug B1).
     aus – alles im Blizzard-Original, TWF-Nameplates ausgeblendet.
 
   Erkenntnisse aus TESTS-MACHBARKEIT.md:
@@ -68,6 +72,51 @@ local function setCastbar(uf, on)
   local cb = uf and uf.CastBarsContainer
   if cb and cb.SetIgnoreParentAlpha then pcall(cb.SetIgnoreParentAlpha, cb, on) end
 end
+
+-- Gleicher Trick für weitere Blizzard-Teile der Nameplate (Feldnamen getestet 2026-10-13):
+-- Sie bleiben sichtbar, obwohl ihre Nameplate unsichtbar ist. Blizzard zeichnet sie selbst,
+-- also stimmen Aussehen und Farben mit dem Original, und TWF liest nichts Geheimes.
+local function keepVisible(region, on)
+  if region and region.SetIgnoreParentAlpha then pcall(region.SetIgnoreParentAlpha, region, on) end
+end
+
+-- Schlachtzugsymbol (Totenkopf, Stern …): im TWF-Modus immer sichtbar lassen (Bug B1)
+local function setRaidIcon(uf, on)
+  keepVisible(uf and uf.RaidTargetFrame, on)
+end
+
+-- Blizzards Schlachtzugsymbol an die TWF-Anzeige setzen: über dem Namen, solange nur der
+-- Name zu sehen ist, sonst links vor dem Balken. Die ursprünglichen Anker werden einmal
+-- gemerkt, damit das Symbol im Blizzard-Modus wieder an seine alte Stelle kommt.
+-- Alles in pcall: Es ist Blizzards Element, und gelesene Anker können geheim sein.
+local function placeRaidIcon(uf, p, nameOnly)
+  local r = uf and uf.RaidTargetFrame
+  if not r then return end
+  if not r.twfOrig then
+    r.twfOrig = {}
+    pcall(function()
+      for i = 1, r:GetNumPoints() do r.twfOrig[i] = { r:GetPoint(i) } end
+    end)
+  end
+  pcall(function()
+    r:ClearAllPoints()
+    if nameOnly then
+      r:SetPoint('BOTTOM', p.name, 'TOP', 0, N.RAID_ICON_Y)
+    else
+      r:SetPoint('RIGHT', p, 'LEFT', -N.RAID_ICON_GAP, 0)
+    end
+  end)
+end
+
+local function restoreRaidIcon(uf)
+  local r = uf and uf.RaidTargetFrame
+  if not (r and r.twfOrig and #r.twfOrig > 0) then return end
+  pcall(function()
+    r:ClearAllPoints()
+    for _, point in ipairs(r.twfOrig) do r:SetPoint(unpack(point)) end
+  end)
+end
+
 
 -- TWF-Nameplate ------------------------------------------------------------------------------
 
@@ -159,12 +208,40 @@ local function fill(p, unit)
       p.pct:SetFormattedText(N.PCT_FORMAT, UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
     end)
   p.pct:SetShown(okP and true or false)
+end
+
+-- Position des Namens: über dem Balken, oder (wenn nur der Name zu sehen ist) an der
+-- Stelle des Balkens, damit er nicht höher schwebt als der Name aus der Ferne.
+local function placeName(p, nameOnly)
+  p.name:ClearAllPoints()
+  if nameOnly then
+    p.name:SetPoint('CENTER', p, 'CENTER', 0, N.NAME_ONLY_Y)
+  else
+    p.name:SetPoint('BOTTOM', p, 'TOP', 0, N.NAME_Y)
+  end
+end
+
+-- Name setzen (kann geheim sein: nur weiterreichen). reactionColor = true färbt ihn so,
+-- wie das Spiel den Gegner einfärbt (rot feindlich, gelb passiv), sonst weiß.
+local function fillName(p, unit, reactionColor)
   if not pcall(function() p.name:SetText(UnitName(unit)) end) then p.name:SetText('') end
+  local colored = reactionColor and pcall(function()
+    p.name:SetTextColor(UnitSelectionColor(unit))
+  end)
+  if not colored then p.name:SetTextColor(unpack(C.WHITE)) end
 end
 
 local function hidePlate(nameplate)
   if nameplate.twfPlate then nameplate.twfPlate:Hide() end
   setCastbar(nameplate.UnitFrame, false)
+end
+
+-- Liegt die Nameplate hinter einer Wand? Blizzard dunkelt verdeckte Nameplates ab; die
+-- Deckkraft ist lesbar (getestet 2026-10-13). Ist sie einmal geheim, gilt "nicht verdeckt".
+function ns.isOccluded(nameplate)
+  local ok, alpha = pcall(nameplate.GetAlpha, nameplate)
+  alpha = ok and ns.plain(alpha) or nil
+  return alpha ~= nil and alpha < N.OCCLUDED_ALPHA
 end
 
 -- Eine Nameplate aktualisieren
@@ -180,8 +257,11 @@ local function update(nameplate, targetPlate)
   if not (okH and hostile) then
     -- Spieler und freundliche Einheiten: Blizzard unsichtbar, keine TWF-Nameplate
     hidePlate(nameplate)
+    setRaidIcon(uf, false)
+    restoreRaidIcon(uf)
     return
   end
+  setRaidIcon(uf, true)
 
   -- Ziel per Frame-Vergleich erkennen: liest keinen geheimen Wert
   local isTarget = (nameplate == targetPlate)
@@ -190,17 +270,35 @@ local function update(nameplate, targetPlate)
     colorKey = ns.unitColor(unit) or 'blue'
   elseif isTarget then
     colorKey = 'grey'
-  else
-    hidePlate(nameplate)
-    return
   end
 
   local p = getPlate(nameplate)
   place(p, nameplate, uf)
+  if not colorKey then
+    -- Außerhalb des Kampfs und nicht dein Ziel (Anforderung N): nur der Name, kein Balken.
+    -- Gleiche Schrift und Stelle wie bei der vollen TWF-Nameplate, Farbe wie im Spiel.
+    p.bar:Hide()
+    p:SetIgnoreParentAlpha(N.NAME_ONLY_FULL_ALPHA)
+    placeName(p, true)
+    fillName(p, unit, true)
+    -- Hinter Wänden wird nur dieser Name ausgeblendet (Anforderung O). Das
+    -- Schlachtzugsymbol bleibt sichtbar und behält seinen Platz über dem Namen.
+    p.name:SetShown(not ns.isOccluded(nameplate))
+    p:Show()
+    setCastbar(uf, false)
+    placeRaidIcon(uf, p, true)
+    return
+  end
+  p.bar:Show()
+  p:SetIgnoreParentAlpha(false)   -- mit Balken gilt wieder Blizzards Deckkraft (Ziel heller als der Rest)
   setColor(p, colorKey)
   fill(p, unit)
+  placeName(p, false)
+  fillName(p, unit, false)
+  p.name:Show()
   p:Show()
   setCastbar(uf, isTarget)
+  placeRaidIcon(uf, p, false)
 end
 
 local function currentTargetPlate()
@@ -230,7 +328,12 @@ end
 local function restoreAll()
   for _, nameplate in ipairs(C_NamePlate.GetNamePlates(false) or {}) do
     hidePlate(nameplate)
-    if nameplate.UnitFrame then showBlizzard(nameplate.UnitFrame) end
+    local uf = nameplate.UnitFrame
+    if uf then
+      setRaidIcon(uf, false)
+      restoreRaidIcon(uf)
+      showBlizzard(uf)
+    end
   end
 end
 
@@ -249,7 +352,12 @@ events:SetScript('OnEvent', function(_, event, unit)
     end)
   elseif event == 'NAME_PLATE_UNIT_REMOVED' then
     local ok, nameplate = pcall(C_NamePlate.GetNamePlateForUnit, unit)
-    if ok and nameplate then hidePlate(nameplate) end
+    if ok and nameplate then
+      -- Nameplates werden wiederverwendet: sauber zurücklassen
+      hidePlate(nameplate)
+      setRaidIcon(nameplate.UnitFrame, false)
+      restoreRaidIcon(nameplate.UnitFrame)
+    end
   elseif event == 'PLAYER_ENTERING_WORLD' then
     -- Nach Login/Ladebildschirm alles noch einmal prüfen, wenn Blizzard fertig ist
     C_Timer.After(N.WORLD_DELAY, function()

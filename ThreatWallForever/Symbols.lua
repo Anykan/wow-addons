@@ -160,7 +160,9 @@ local function updateAll()
   for _, nameplate in ipairs(plates) do
     local unit = unitOf(nameplate)
     local key, holder
-    if unit and ns.engaged(unit) then key, holder = ns.symbolFor(unit) end
+    -- Nur bei Mobs, zu denen du selbst Bedrohungsdaten hast. Beim blauen Balken (du bist
+    -- nicht im Kampf mit ihm) wird nichts angezeigt (Nutzer-Entscheid 2026-10-13).
+    if unit and ns.engaged(unit) and ns.unitColor(unit) then key, holder = ns.symbolFor(unit) end
     if key then
       showLine(nameplate, key, holder, showName)
     else

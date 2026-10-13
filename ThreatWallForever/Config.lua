@@ -257,7 +257,15 @@ C.NAMEPLATES = {
   BG_INSET = 1,                -- Hintergrund ragt so viele px über den Balken (wie Blizzards Zauberbalken)
   BORDER_INSET = 2,            -- Rahmen ragt so viele px über den Balken
   NAME_Y = 2,                  -- Abstand des Namens über dem Balken
+  OCCLUDED_ALPHA = 0.5,        -- Nameplate gilt als "hinter einer Wand", wenn Blizzards Deckkraft darunter liegt.
+                               -- Gemessen: frei 0.6 (Ziel 1.0), verdeckt 0.24 (Ziel 0.4). Anforderung O.
+  NAME_ONLY_FULL_ALPHA = true, -- Nur-Name-Zustand: volle Deckkraft. Blizzard dimmt Nameplates, die nicht dein Ziel
+                               -- sind; dadurch wirkte das Rot blasser als der Name aus der Ferne.
+  NAME_ONLY_Y = 0,             -- Nur-Name-Zustand: Name sitzt dort, wo sonst der Balken ist (Mitte);
+                               -- hier nach oben (+) oder unten (−) nachstellen, bis er zur Fernansicht passt
   PCT_X = -3,                  -- Abstand der Prozentanzeige vom rechten Balkenrand
+  RAID_ICON_Y = 2,             -- Schlachtzugsymbol über dem Namen (nur Name sichtbar): Abstand nach oben
+  RAID_ICON_GAP = 4,           -- Schlachtzugsymbol links vor dem Balken: Abstand zum Balken
   PCT_LAYER = 7,               -- Zeichen-Unterebene der Prozentzahl (über dem Rahmen)
   PCT_FORMAT = '%.0f%%',       -- Anzeige des Lebens in Prozent
   ADD_DELAY = 0,               -- Sekunden Verzögerung nach "Nameplate erscheint" (0 = nächster Frame; Blizzard richtet sie erst ein)
