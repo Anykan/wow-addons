@@ -249,18 +249,44 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Stand: ✅ umgesetzt, im Spiel getestet, Baseline `twf-baseline-2026-10-13`. Balken im Kampf/beim Ziel bleiben hinter Wänden sichtbar (vom Nutzer bestätigt).
 
 ## TODO (nächste Sitzung)
-- Idee I1 (Farbverlauf des Balkens) testen, siehe unten.
 - Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bei Gelegenheit.
-- In einer **Instanz** die Neuerungen vom 13.10. gegenprüfen: Name der Zwischenebene (Farbe über `UnitSelectionColor`), Schlachtzugsymbol umsetzen (Anker evtl. geheim), Erkennung „hinter Wand“ (`GetAlpha`).
+- ✅ Die Neuerungen vom 13.10. (Name außerhalb des Kampfs, Schlachtzugsymbol, Name hinter Wänden) wurden laut Nutzer **auch in der Instanz getestet** (bestätigt 2026-10-13).
 - Siehe auch „TODO vor Veröffentlichung“.
 
-## Ideen zum späteren Testen
+## Ideen (keine Anforderungen)
+**Alles hier ist nur besprochen** (Nutzer, 2026-10-13: „alles, was wir gerade reden, ist Ideen“). Eine Idee wird erst zur Anforderung, wenn der Nutzer das ausdrücklich sagt. Einiges muss vorher im Spiel getestet werden.
+
 - **I1 Farbverlauf des Lebensbalkens nach Bedrohung** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, erst testen): Statt der festen Ampelstufen ein Verlauf grün → gelb/orange → rot nach dem Bedrohungs-Prozentwert (den zeigt Blizzards Tooltip am Gegner). Rechnen mit geheimen Werten ist verboten; möglicher Weg: **Farbkurve** (`C_CurveUtil.CreateColorCurve`, Punkte 0/50/100 %), das Spiel wertet den geheimen Wert aus (`K:Evaluate(prozent):GetRGB()`), TWF reicht nur die Farbe an den Balken. Braucht eine neutrale, einfärbbare Füllung (wie heute Blau/Grau). Vorher im Kampf testen (Zeilen stehen im Chat-Verlauf vom 2026-10-13 und hier):
   1. `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("S bereit")`
   2. `/run local a,b,c,d,e=UnitDetailedThreatSituation("player","target")print("tankt",S(a),"status",S(b),"prozent",S(c),"roh%",S(d),"wert",S(e))` → „prozent“ GEHEIM/Zahl = weiter, nil = Idee tot
   3. `/run print("Kurve:",C_CurveUtil and C_CurveUtil.CreateColorCurve and"JA"or"nein")`
   4. `/run K=C_CurveUtil.CreateColorCurve()K:AddPoint(0,CreateColor(0,1,0))K:AddPoint(50,CreateColor(1,.8,0))K:AddPoint(100,CreateColor(1,0,0))Q=Q or UIParent:CreateTexture()Q:SetSize(40,40)Q:SetPoint("CENTER",0,120)Q:SetColorTexture(1,1,1)print("bereit")`
   5. `/run local _,_,p=UnitDetailedThreatSituation("player","target")print("Ergebnis:",pcall(function()Q:SetVertexColor(K:Evaluate(p):GetRGB())end))` → true + Quadrat ändert die Farbe = machbar
+
+- **I2 Fremde Gegner erkennbar machen** (Idee des Nutzers für den nächsten Fix, 2026-10-13; **noch keine Anforderung**): Im Blizzard-Original sieht man an der Nameplate, ob ein kämpfender Gegner der eigenen Gruppe „gehört“ (EP/Beute) oder jemand anderem; fremde Gegner sind dort meist **grau**. Bei den TWF-Nameplates fehlt diese Information. Technik-Idee: `UnitIsTapDenied(unit)` (wahr = gehört anderen); vorher im Kampf testen, ob der Wert über `nameplateN` lesbar oder geheim ist. Zu klären: TWF nutzt Grau heute für „dein Ziel außerhalb des Kampfs“ und Blau für „kämpft, aber nicht mit dir“ → Farbbelegung neu ordnen.
+  - Testzeile (fremden Gegner im Kampf anvisieren): `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("fremd (target):",S(UnitIsTapDenied("target")))` und für alle Nameplates: `/run for _,p in ipairs(C_NamePlate.GetNamePlates())do local u=p.namePlateUnitToken print(u,S(UnitIsTapDenied(u)))end`
+
+- **I3 Weitere Sprachen** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, Details werden erst geklärt, wenn es umgesetzt wird): Spielertexte zusätzlich auf **Spanisch, Französisch, Russisch und Chinesisch**. Umschaltung wie bisher über die Spielsprache, Englisch bleibt der Rückfall, Debug-Texte bleiben Deutsch.
+
+- **I4 Drei Fenster: Problem-Liste, Fokus-Liste, Ziel-Liste** (Idee des Nutzers, 2026-10-13; **keine Anforderung**):
+  - **Fenster 1, wie heute:** das TWF-Fenster mit den Problem-Gegnern. Bleibt unverändert.
+  - **Fenster 2, Fokus (neu, per Option einschaltbar):** klassische Bedrohungsliste für das **Fokus-Ziel**. Das Fokus-Ziel wird dafür als Quelle aufgenommen.
+  - **Fenster 3, Ziel (neu, per Option einschaltbar):** klassische Bedrohungsliste für das **aktuelle Ziel**, ein Single-Target-Fenster analog Omen.
+  - „Klassische Liste“ = pro Gruppenmitglied eine Zeile bzw. ein Balken für **einen** Gegner, sortiert nach Bedrohung.
+  - Beide neuen Fenster sind **einzeln schaltbar**, Standard: aus.
+  - Zu klären mit dem Nutzer: Was steht in einer Zeile (Name in Klassenfarbe, Balken, Prozent, Kennzeichen für den Tank)? Wie viele Zeilen (z. B. Top 5/10 im Schlachtzug)? Gleicher Look wie das TWF-Fenster? Jedes Fenster einzeln verschiebbar/skalierbar/fixierbar, mit eigener gespeicherter Position? Was zeigt ein Fenster, wenn es kein Fokus bzw. kein Ziel gibt (ausblenden)? Gelten „Nur im Kampf“ / „Nur in Gruppe“ auch für die neuen Fenster?
+  - Vorher testen: Welche Werte gibt der Client über `focus` und `target` für die **einzelnen Gruppenmitglieder** heraus? Über `target` war „tankt ja/nein“ lesbar, über `nameplateN` nur die einfache Stufe. Sind **Bedrohungs-Prozent** der Gruppenmitglieder lesbar oder geheim? (Die Mitbewerber melden, dass Werte z. B. bei Bossen geheim sind und die Liste dann unsortiert bleibt.) Geheime Werte lassen sich evtl. direkt an Balken/Text weiterreichen (wie beim Leben), dann aber ohne Sortierung.
+  - Aufbau: **ein** Modul für die klassische Liste (z. B. `ThreatList.lua`), das zweimal verwendet wird (Quelle `focus` bzw. `target`), kein doppelter Code (Regel 2). Fenster-Rahmen vom bestehenden TWF-Fenster wiederverwenden. Werte in `Config.lua`, Texte in allen Sprachen, abgeschaltete Fenster kosten keine Leistung.
+
+- **I5 Eigene Balkenfarbe, wenn ein anderer Tank den Mob hält** (Idee aus der Konkurrenzanalyse, vom Nutzer als „sehr gute Idee“ bewertet, 2026-10-13; **keine Anforderung**):
+  - Heute ist ein Mob im Tank-Modus **rot**, sobald du ihn nicht hältst, auch wenn ihn der zweite Tank sicher hat. Das ist ein Fehlalarm, vor allem in Schlachtzügen mit zwei Tanks.
+  - Neu: Hält ein **anderer Spieler mit der Rolle Tank** den Mob, bekommt der Balken eine eigene Farbe (Vorschlag: Lila, wie bei „Forever: Threat (Plates & Bar)“).
+  - Technik ist vorhanden: `ns.aggroHolder` + `UnitGroupRolesAssigned` (wie beim Aggro-Ziel). Eine Quelle für Liste und Nameplate.
+  - Zu klären: genaue Farbe; ob der Mob dann in der **Liste** überhaupt erscheint (kein Problem → eher nicht, außer bei „Alle Kämpfe zeigen“); ob der Warnton ausbleibt; Verhalten im DD/Heal-Modus (dort ist „Tank hält ihn“ schon grün); Füllung im Zauberbalken-Stil (lila gibt es nicht als Atlas → entsättigt + getönt wie Blau/Grau).
+
+- **I6 Schlachtzugsymbol auch in der Liste anzeigen** (Idee des Nutzers, 2026-10-13; **keine Anforderung**): An der TWF-Nameplate ist das Symbol jetzt sichtbar, in der Liste fehlt es noch (dort per `C.ROW.SHOW_RAID_MARK = false` abgeschaltet).
+  - Hürde: An der Nameplate zeichnet **Blizzard** das Symbol selbst (`UnitFrame.RaidTargetFrame`), dort muss TWF nichts lesen. Für die Liste braucht TWF die **Symbol-Nummer** (`GetRaidTargetIndex`), und die war im Kampf geheim (forever-bugs#166, Stand 13.10. offen). Blizzards Element lässt sich nicht einfach in die Liste kopieren.
+  - Wege zum Testen: (1) erneut prüfen, ob die Nummer inzwischen lesbar ist; (2) Nummer **merken, solange sie lesbar ist** (außerhalb des Kampfs bzw. beim Ereignis `RAID_TARGET_UPDATE`) und im Kampf aus dem Merkzettel anzeigen, Zuordnung über GUID bzw. Token (in Instanzen ist die Gegner-GUID geheim → dort evtl. nur über den Token); (3) prüfen, ob sich ein geheimer Index direkt an eine Textur weiterreichen lässt (bisher nein, siehe `Marks.lua`).
 
 ## Offene Bugs
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
