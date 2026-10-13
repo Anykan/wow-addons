@@ -92,6 +92,7 @@ Eigenes Addon (MIT): Es zeigt nur Gegner mit einem Aggro-Problem. Im Tank-Modus 
 
 - **Stand 2026-10-04:** Ziel-Hervorhebung committet (`ea02f9a`), Modul-Umbau ohne Verhaltensänderung committet (`d33eeab`, Tag `twf-modulumbau`, im Spiel getestet). Rückweg davor: Tag `twf-vor-modulumbau`. Alle Commits nur lokal, **nicht gepusht**.
 
+- **ThreatWall Forever 0.1 am 2026-10-13 bei CurseForge hochgeladen** (vom Nutzer; wartet auf Freischaltung). Lizenz MIT, Verteilung über Drittanbieter erlaubt (Empfehlung), Logo aus `ThreatWallForever/logo/`, Beschreibung und Patchnotes farbig (HTML, DE dann EN).
 - **Release 0.1 vorbereitet (2026-10-13):** Code bereinigt (`b927ffe`), Patchnotes + CurseForge-Beschreibung + Paket-Skript (`9a96b70`), Abschlusstest bestanden. Baseline-Tag `twf-baseline-2026-10-13` zeigt jetzt auf `9a96b70`. Paket: `release/ThreatWallForever-0.1.zip`. **Noch nicht gepusht, noch nicht auf CurseForge.**
 - (überholt) Baseline 2026-10-13 vor dem Bereinigen: Commit `db689f2`, im Spiel getestet, Spielordner = Repo. Enthält: Aggro-Ziel am Mob (L neu), Name außerhalb des Kampfs (N), Schlachtzugsymbole (B1 behoben), Name hinter Wänden aus (O), freundliche Nameplates nicht mehr verlangt. Lokal, **nicht gepusht**. Offen: Idee I1, Instanz-Gegenprüfung, „TODO vor Veröffentlichung“.
 - **Stand 2026-10-12 abends:** Neues Markierungskonzept „Aggro-Ziel am Mob“ (L neu) gebaut, im Spielordner, uncommittet. **Nächster Schritt: Test im Spiel nach `ThreatWallForever/TESTS-L-AGGROZIEL.md`, dann committen.**

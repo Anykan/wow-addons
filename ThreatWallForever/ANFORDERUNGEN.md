@@ -271,7 +271,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - ✅ `PATCHNOTES.html` (HTML, erst Deutsch, dann Englisch).
 - ✅ `CURSEFORGE-BESCHREIBUNG.html` (erst Deutsch, dann Englisch), inkl. Bedeutung der Balkenfarben (Blau = noch nicht erfasst, aktiv eingreifen).
 - ✅ Release-Paket `wow-addons/release/ThreatWallForever-0.1.zip` (nur Lua-Dateien, TOC, LICENSE; ohne Doku).
-- Offen (macht der Nutzer bzw. braucht sein Okay): Abschlusstest im Spiel, Push zu GitHub, Upload bei CurseForge.
+- ✅ Abschlusstest bestanden, `master` + Baseline-Tag gepusht, **Upload bei CurseForge durch den Nutzer am 2026-10-13** (wartet auf Freischaltung).
+- ✅ Logo (`logo/`, gebaut mit `release/logo-bauen.py`), Beschreibung und Patchnotes farbig gestaltet. KI-Hinweis: CurseForge verlangt keine Kennzeichnung von KI-Code (nur bei irreführenden Vorschaubildern); freiwilliger Satz in der Beschreibung wurde vorgeschlagen, Entscheidung offen.
 - ✅ Entschieden: Der Knopf „Spiel-Optionen öffnen“ im Hinweis-Popup **bleibt** (`C.HINT.SHOW_OPTIONS_BUTTON = true`). Regel 5: Rechenschritte (`+ 0.5`, `/ 2`, `2 *`) sind erlaubt.
 
 ## Weitere Anforderungen
