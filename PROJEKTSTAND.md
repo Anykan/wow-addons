@@ -90,8 +90,15 @@ Eigenes Addon (MIT): Es zeigt nur Gegner mit einem Aggro-Problem. Im Tank-Modus 
 - **Schlachtzug-Symbole:** `GetRaidTargetIndex` ist im Kampf "secret". Gemeldet als [forever-bugs#166](https://github.com/ClassicWoWCommunity/forever-bugs/issues/166), Status offen. Drei Varianten sind im Code und per `/twf mark` umschaltbar.
 - **Threat-Prozent-Balken:** verworfen, weil `percent` im Kampf `nil` liefert.
 
+- **Stand 2026-10-04:** Ziel-Hervorhebung committet (`ea02f9a`), Modul-Umbau ohne Verhaltensänderung committet (`d33eeab`, Tag `twf-modulumbau`, im Spiel getestet). Rückweg davor: Tag `twf-vor-modulumbau`. Alle Commits nur lokal, **nicht gepusht**.
+
+- **Baseline 2026-10-13:** Tag `twf-baseline-2026-10-13` (Commit `db689f2`), im Spiel getestet, Spielordner = Repo. Enthält: Aggro-Ziel am Mob (L neu), Name außerhalb des Kampfs (N), Schlachtzugsymbole (B1 behoben), Name hinter Wänden aus (O), freundliche Nameplates nicht mehr verlangt. Lokal, **nicht gepusht**. Offen: Idee I1, Instanz-Gegenprüfung, „TODO vor Veröffentlichung“.
+- **Stand 2026-10-12 abends:** Neues Markierungskonzept „Aggro-Ziel am Mob“ (L neu) gebaut, im Spielordner, uncommittet. **Nächster Schritt: Test im Spiel nach `ThreatWallForever/TESTS-L-AGGROZIEL.md`, dann committen.**
+- **Stand 2026-10-12:** Symbol-Markierung (L) wieder aus `master` entfernt, Code archiviert im Zweig `archiv/twf-symbole-v1` (`d7687a8`); Nutzer überdenkt das Markierungskonzept. Freundliche Nameplates werden nicht mehr verlangt. Rücknahme liegt im Spielordner, Test + Commit offen.
+- **Stand Abend 2026-10-04:** Umgesetzt + committet: Modulumbau (`d33eeab`), Einstellungsfenster + Debug (F, H, `7f24307`), Prüfung Spiel-Optionen (M, `b6629a6`), TWF-Nameplates (J, K, `2683447`). **L (Symbol-Markierung) gebaut, teilgetestet, NICHT committet.** Nächste Schritte + Bugs: `ThreatWallForever/ANFORDERUNGEN.md` → „TODO (nächste Sitzung)“ und „Offene Bugs“. Alles lokal, nicht gepusht.
+
 ### Offen
-- [ ] Highlight im Kampf testen, danach committen oder verwerfen
+- [x] Highlight im Kampf testen, danach committen oder verwerfen
 - [ ] die 2 lokalen Commits und den Tag pushen
 - [ ] Issue #166 auf eine Antwort prüfen
 - [ ] vor Veröffentlichung: TOC-Beschreibung + CurseForge-Text überarbeiten (Klick zum Zielwechsel stimmt nicht mehr)
