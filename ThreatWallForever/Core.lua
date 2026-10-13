@@ -6,29 +6,29 @@
   das Schlimmste zuerst. Mit "Alle Kämpfe zeigen" kommen alle Gegner im Kampf
   dazu, auch grüne ohne Problem.
 
-  Zwei Modi (Button im Fensterkopf oder Menü):
+  Zwei Modi (Rollen-Button im Fensterkopf oder Einstellungsfenster):
     Tank-Modus    - Gegner, bei denen du die Aggro VERLIERST (oder nie hattest).
     DD/Heal-Modus - Gegner, bei denen DU zu viel Aggro ziehst.
   Beide lesen denselben Wert (UnitDetailedThreatSituation, Status 0–3);
   nur die Farbzuordnung ist umgedreht.
 
   Zeilen sind einfache, nicht-sichere Buttons: nur Anzeige und Tooltip, kein
-  Klick-zum-Anvisieren (siehe ANFORDERUNGEN.md / Memory: nameplateN-Token sind
-  nicht anvisierbar; frühere Ursache war Client-Bug forever-bugs#74).
+  Klick-zum-Anvisieren aus der Liste (nameplateN-Token lassen sich nicht anvisieren).
+  Anvisiert wird über die TWF-Nameplates, die auf Blizzards Klickfläche liegen.
 
   Dieser Client liefert im Kampf teils "geheime" Werte, die man anzeigen, aber
   nicht vergleichen darf. Ist ein Wert geheim, wird der Gegner in diesem
   Durchlauf übersprungen statt geraten.
 
-  Aufbau: siehe ANFORDERUNGEN.md, Anforderung I. Dieses Modul enthält den
+  Aufbau: Config.lua enthält alle Werte, Locales.lua alle Texte (EN/DE). Jedes weitere
+  Modul hat genau eine Aufgabe und meldet sich hier an. Dieses Modul enthält den
   gemeinsamen Namespace, die Modul-Anmeldung und den Start/Takt.
+  Entwickler-Befehle: /twf debug 1|0, /twf dump, /twf hint, /twf mark, /twf clearlog.
 ]]
 
 local ADDON, ns = ...
 local C = ns.Config
 local L = ns.L
-
-ns.ADDON = ADDON
 
 -- Version kommt aus der .toc (## Version) – einzige Stelle, die bei jedem
 -- Release erhöht wird; Titelleiste und Startmeldung können so nie abweichen.
@@ -38,8 +38,6 @@ ns.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetada
 -- Laufzeit-Zustand, den mehrere Module teilen
 ns.state = {
   testMode = false,          -- Testzeilen statt echter Gegner
-  placePending = false,      -- Position konnte noch nicht gespeichert werden (wird gesetzt, aber derzeit nirgends gelesen)
-  scroll = 0,                -- derzeit ungenutzt (aus dem Original übernommen)
   nameplateChecked = false,  -- Spiel-Optionen in dieser Sitzung schon geprüft (Hint.lua)
 }
 
@@ -93,7 +91,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
       ns.db = db
       for k, v in pairs(C.DEFAULTS) do if db[k] == nil then db[k] = v end end
       if ns.frame then
-        ns.state.placePending = not ns.placeFrame()
+        ns.placeFrame()
         ns.applyLook()
         ns.updateMinimap()
       end

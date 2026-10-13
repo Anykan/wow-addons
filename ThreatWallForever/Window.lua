@@ -25,11 +25,7 @@ end
 function ns.savePlace()
   local db, frame = ns.db, ns.frame
   local left, top, w, h = frame:GetLeft(), frame:GetTop(), frame:GetWidth(), frame:GetHeight()
-  if not (ns.num(left) and ns.num(top)) then
-    ns.state.placePending = true
-    return
-  end
-  ns.state.placePending = false
+  if not (ns.num(left) and ns.num(top)) then return end
   local scale = frame:GetScale()
   if not ns.num(scale) then scale = db.scale or 1 end
   db.left, db.top = left * scale, top * scale
@@ -89,7 +85,7 @@ function ns.applyLook()
   ns.updateSettingsWindow()
 end
 
--- Aktionen (Menü, Befehle, Kopf-Buttons) ---------------------------------------------------
+-- Aktionen (Einstellungsfenster, Befehle, Kopf-Buttons) -----------------------------------
 
 function ns.toggleWindow()
   ns.db.shown = not ns.db.shown
@@ -124,9 +120,6 @@ local function buildFrame()
   elseif not restored then
     frame:SetSize(db.width, db.height)
     frame:SetPoint('CENTER', UIParent, 'CENTER', 0, 0)
-    ns.state.placePending = true
-  else
-    ns.state.placePending = true
   end
   frame:SetFrameStrata('MEDIUM')
   frame:SetClampedToScreen(true)

@@ -47,8 +47,8 @@ local function setMark_IconFiles(tex, index)
 end
 
 local MARK_METHODS = { setMark_Manual, setMark_Blizzard, setMark_IconFiles }
--- Namen nur für die Entwickler-Ausgabe von /twf mark
-ns.MARK_METHOD_NAMES = { 'Manual math', 'Blizzard API', 'Icon files' }
+-- Namen nur für die Entwickler-Ausgabe von /twf mark (Debug-Texte sind nur Deutsch)
+ns.MARK_METHOD_NAMES = { 'Eigene Rechnung', 'Blizzard-Funktion', 'Einzeldateien' }
 
 function ns.setMark(tex, index)
   if not index then

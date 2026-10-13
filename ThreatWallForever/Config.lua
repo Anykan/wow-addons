@@ -21,15 +21,13 @@ C.CODES = {
   SPOTTED = '001',       -- Debug: neuer Problem-Gegner gefunden
   WORSENED = '002',      -- Debug: Zustand eines Gegners hat sich verschlechtert
   CLEARED = '003',       -- Debug: Zeile nach Ablauf der Gnadenfrist entfernt
-  NO_NAMEPLATES = '004', -- /twf debug: nichts Sichtbares zum Prüfen
+  NO_NAMEPLATES = '004', -- /twf dump: nichts Sichtbares zum Prüfen
   NO_THREAT_API = '005', -- dieser Client hat gar keine Bedrohungs-API
   LOCKED_HINT = '006',   -- Fenster verschieben versucht, obwohl gesperrt
   LOCKED_ON = '007',
   LOCKED_OFF = '008',
   ROLE_SET = '009',
   LOG_CLEARED = '010',
-  DEBUG_ON = '011',
-  DEBUG_OFF = '012',
   LOADED = '013',
   HELP = '014',
   SETTING = '016',       -- Debug: Einstellung im Einstellungsfenster geändert
@@ -106,7 +104,7 @@ C.TOOLTIP_COLOR = {
   green = { 0.3, 1, 0.3 },
 }
 
-C.TITLE_COLOR = { 1, 0.82, 0 }        -- Gold für Fenstertitel und Menü-Überschrift
+C.TITLE_COLOR = { 1, 0.82, 0 }        -- Gold für Fenstertitel und Abschnitts-Überschriften
 C.EMPTY_TEXT_COLOR = { 0.55, 0.55, 0.55 }
 C.WHITE = { 1, 1, 1 }
 
@@ -214,7 +212,7 @@ C.TEST_ROWS = {
   { 'Adds Links', 'yellow', nil, nil },
 }
 
--- Dropdown-Menü ---------------------------------------------------------------------------
+-- Dropdown-Menü (Minimap-Rechtsklick) -----------------------------------------------------
 
 C.MENU = {
   NAME = 'ThreatWallForeverMenu',
@@ -229,7 +227,7 @@ C.MENU = {
   ANCHOR_Y = -2,               -- Abstand unter dem auslösenden Button
 }
 
--- Rahmen (Backdrop) für Menü und Rollen-Button
+-- Rahmen (Backdrop) für das Dropdown-Menü und den Rollen-Button
 C.BACKDROP = {
   EDGE_SIZE = 12,
   INSET = 3,
@@ -342,7 +340,7 @@ C.HINT = {
   ICON_BAD = 'Interface\\RaidFrame\\ReadyCheck-NotReady',
   BUTTON_GAP_Y = 14,              -- Abstand Statusliste → Knöpfe
   OPTIONS_CATEGORY = 'Names',     -- Seite in den Spiel-Optionen
-  SHOW_OPTIONS_BUTTON = true,     -- Knopf "Spiel-Optionen öffnen" zeigen (Entscheidung noch offen)
+  SHOW_OPTIONS_BUTTON = true,     -- Knopf "Spiel-Optionen öffnen" zeigen (bleibt, Nutzer-Entscheid 2026-10-13)
 }
 
 -- Spiel-Optionen, die TWF braucht (Anforderung M).

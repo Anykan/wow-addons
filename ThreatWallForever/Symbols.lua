@@ -14,8 +14,6 @@
 
   Wer einen Mob hält, ermittelt Detection.lua (ns.aggroHolder), eine Quelle für
   Liste und Nameplates. Symbolsatz und Größen stehen in Config.lua.
-  (Version 1 mit Symbol über dem Mitspieler und am Gruppenfenster: Git-Zweig
-  archiv/twf-symbole-v1.)
 ]]
 
 local _, ns = ...

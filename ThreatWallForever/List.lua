@@ -42,8 +42,6 @@ local function rowTooltip(row)
       GameTooltip:AddLine(L.TT_DPS_GREEN, unpack(TC.green))
     end
   end
-  -- L.TT_CLICK ("Klicken zum Anvisieren") bewusst weggelassen: Klicken tut
-  -- derzeit nichts, ein Tooltip, der es verspricht, wäre irreführend.
   GameTooltip:Show()
 end
 

@@ -144,7 +144,7 @@ function ns.showTooltip(owner, titleText, bodyText)
   GameTooltip:Show()
 end
 
--- Rahmen (Backdrop) für Menü und Rollen-Button
+-- Rahmen (Backdrop) für das Dropdown-Menü und den Rollen-Button
 function ns.backdrop(f, alpha)
   if not f.SetBackdrop then return end
   local B = C.BACKDROP

@@ -4,7 +4,7 @@
 
   Das Fenster baut sich automatisch aus Config.OPTIONS auf. Eine neue Option ist
   also nur eine neue Zeile dort (plus Texte in Locales.lua). Jede Änderung wirkt
-  sofort, wie früher im Dropdown-Menü.
+  sofort.
 ]]
 
 local _, ns = ...
@@ -29,10 +29,10 @@ local function setValue(opt, v)
   if opt.state then ns.state[opt.state] = v else ns.db[opt.key] = v end
 end
 
--- Nach jeder Änderung: alles neu anwenden (wie früher im Menü)
+-- Nach jeder Änderung: alles neu anwenden
 local function afterChange(opt, v)
   ns.dbg('SETTING', 'Einstellung ' .. tostring(opt.key or opt.state or opt.action) .. ' = ' .. tostring(v))
-  -- Testzeilen sollen auch sichtbar sein, wenn das Fenster ausgeblendet war (wie früher)
+  -- Testzeilen sollen auch sichtbar sein, wenn das Fenster ausgeblendet war
   if opt.state == 'testMode' then ns.db.shown = true end
   ns.applyLook()
   ns.updateMinimap()

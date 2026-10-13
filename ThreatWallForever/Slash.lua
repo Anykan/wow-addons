@@ -25,7 +25,7 @@ local function slash(msg)
   elseif cmd == 'mark' then
     ns.cycleMarkMethod()
     local names = ns.MARK_METHOD_NAMES
-    ns.say('marker method: ' .. names[db.markMethod] .. ' (' .. db.markMethod .. '/' .. #names .. ')')
+    ns.say('Symbol-Methode: ' .. names[db.markMethod] .. ' (' .. db.markMethod .. '/' .. #names .. ')')
   elseif cmd == 'clearlog' then
     db.log = {}
     ns.say(L.LOG_CLEARED, 'LOG_CLEARED')

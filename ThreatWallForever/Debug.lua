@@ -12,7 +12,6 @@
 
 local _, ns = ...
 local C = ns.Config
-local L = ns.L
 
 -- Eine Zeile ins Log schreiben (älteste fliegen raus, wenn das Log voll ist)
 function ns.logLine(line)
@@ -61,18 +60,18 @@ function ns.debugDump()
       local okM, idx = pcall(GetRaidTargetIndex, unit)
       local markOk = idx ~= nil and pcall(SetRaidTargetIconTexture, UIParent:CreateTexture(), idx)
       local function show(v) return v == nil and 'nil' or tostring(v) end
-      ns.say(unit .. ' hostile=' .. show(okH and hostile) .. ' combat=' .. show(okC and inCombat)
-        .. ' engaged=' .. tostring(isEngaged) .. ' tanking=' .. show(tanking) .. ' status=' .. show(status)
-        .. ' mark=' .. show(okM and idx) .. ' markOk=' .. tostring(markOk))
+      ns.say(unit .. ' feindlich=' .. show(okH and hostile) .. ' kampf=' .. show(okC and inCombat)
+        .. ' erfasst=' .. tostring(isEngaged) .. ' tankt=' .. show(tanking) .. ' status=' .. show(status)
+        .. ' symbol=' .. show(okM and idx) .. ' symbolOk=' .. tostring(markOk))
     end
   end
-  if not any then ns.say(L.NO_NAMEPLATES, 'NO_NAMEPLATES') end
+  if not any then ns.say('Keine Gegner-Einheit gefunden. Gegner anvisieren oder in Nameplate-Reichweite gehen.', 'NO_NAMEPLATES') end
   local anyTracked = false
   for key, t in pairs(ns.tracked) do
     anyTracked = true
-    ns.say('tracked: ' .. tostring(not ns.IsSecret(t.name) and t.name or key)
-      .. ' unit=' .. tostring(t.unit) .. ' shownColor=' .. tostring(t.shownColor)
-      .. ' markIndex=' .. tostring(t.markIndex) .. ' removeAt=' .. tostring(t.removeAt))
+    ns.say('verfolgt: ' .. tostring(not ns.IsSecret(t.name) and t.name or key)
+      .. ' einheit=' .. tostring(t.unit) .. ' farbe=' .. tostring(t.shownColor)
+      .. ' symbolNr=' .. tostring(t.markIndex) .. ' entfernenUm=' .. tostring(t.removeAt))
   end
-  if not anyTracked then ns.say('tracked table is empty.') end
+  if not anyTracked then ns.say('Die Liste der verfolgten Gegner ist leer.') end
 end

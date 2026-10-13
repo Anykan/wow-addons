@@ -188,8 +188,8 @@ function ns.collect()
             tracked[key] = t
           end
           if db and db.debug and t.unit and t.unit ~= unit then
-            ns.say('|cff888888[debug]|r unit token changed ' .. tostring(t.unit) .. ' -> ' .. tostring(unit)
-              .. ' for ' .. tostring(not IsSecret(t.name) and t.name or key))
+            ns.say('|cff888888[debug]|r Einheiten-Token gewechselt ' .. tostring(t.unit) .. ' -> ' .. tostring(unit)
+              .. ' bei ' .. tostring(not IsSecret(t.name) and t.name or key))
           end
           t.unit = unit
           local okN, name = pcall(UnitName, unit)
@@ -201,7 +201,7 @@ function ns.collect()
           seen[key] = true
 
           if isNew then
-            ns.dbg('SPOTTED', (not IsSecret(t.name) and t.name or unit) .. ' spotted, tanking='
+            ns.dbg('SPOTTED', (not IsSecret(t.name) and t.name or unit) .. ' entdeckt, tankt='
               .. tostring(tanking) .. ' status=' .. tostring(status) .. ' -> ' .. color)
           end
 
@@ -215,7 +215,7 @@ function ns.collect()
             -- zu Rot/Gelb löst den Warnton aus – grün werden ist eine gute Nachricht.
             if color ~= 'green' and ns.worse(color, t.shownColor) then
               if not isNew then
-                ns.dbg('WORSENED', (not IsSecret(t.name) and t.name or unit) .. ' worsened '
+                ns.dbg('WORSENED', (not IsSecret(t.name) and t.name or unit) .. ' verschlechtert '
                   .. tostring(t.shownColor) .. ' -> ' .. color)
               end
               playAlert()
@@ -243,7 +243,7 @@ function ns.collect()
       -- Routine und passiert oft (z. B. beim Zielwechsel), deshalb nur ins Log,
       -- nicht in den Chat.
       if db and db.debug then
-        ns.logLine('[' .. C.CODES.CLEARED .. '] ' .. (not IsSecret(t.name) and t.name or key) .. ' cleared, was ' .. tostring(t.shownColor))
+        ns.logLine('[' .. C.CODES.CLEARED .. '] ' .. (not IsSecret(t.name) and t.name or key) .. ' entfernt, war ' .. tostring(t.shownColor))
       end
       tracked[key] = nil
     end

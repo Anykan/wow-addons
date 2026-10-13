@@ -193,8 +193,7 @@ end
 
 -- Spiel-Optionen, die TWF früher für eine Funktion eingeschaltet hat, die es nicht mehr
 -- gibt oder die gerade aus ist, auf den gemerkten alten Wert zurückstellen. TWF soll
--- nichts zurücklassen (Beispiel: freundliche Nameplates aus der zurückgenommenen
--- Symbol-Markierung). Im Kampf nicht möglich → beim nächsten Prüfen erneut versuchen.
+-- nichts zurücklassen. Im Kampf nicht möglich → beim nächsten Prüfen erneut versuchen.
 local function restoreOrphaned()
   local saved = ns.db.savedCVars
   if not saved or InCombatLockdown() then return end

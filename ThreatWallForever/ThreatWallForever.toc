@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: ThreatWall Forever
-## Notes: Tank aggro-leak watcher: shows only enemies you are losing or have lost aggro on, click to target-swap. Also works in reverse for DD/Heal.
-## Notes-deDE: Aggro-Warner: zeigt nur Gegner, bei denen du gerade die Aggro verlierst oder verloren hast, Klick zum Zielwechsel. Funktioniert umgekehrt auch für DD/Heal.
+## Notes: Aggro watcher for tanks and DD/healers: a compact list of the enemies with an aggro problem, plus nameplates colored by threat that show who a mob is attacking.
+## Notes-deDE: Aggro-Warner für Tanks und DD/Heiler: eine kompakte Liste der Gegner mit Aggro-Problem, dazu Nameplates in Ampelfarbe, die zeigen, wen ein Mob angreift.
 ## Author: Anykan
 ## Version: 0.1
 ## SavedVariables: ThreatWallForeverDB
