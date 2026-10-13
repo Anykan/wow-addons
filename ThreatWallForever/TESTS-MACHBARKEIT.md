@@ -136,6 +136,7 @@ Erwartet: JA.
 
 ## Nachtrag Instanz-Test (2026-10-13)
 - **Blauer Balken in der Instanz:** kein Aggro-Ziel, die GUID des Mob-Ziels ist dort offenbar geheim (draußen lesbar). Sobald man selbst im Kampf ist, greift die Bedrohungsstufe.
+- **Ziel des Mobs in der Instanz, man selbst nicht im Kampf:** `UnitGUID("nameplateN" .. "target")` GEHEIM, `UnitName(…)` GEHEIM, `UnitIsUnit(…, "party1")` nil, `C_NamePlate.GetNamePlateForUnit("party1target")` verboten (Party-Token). → **Kein lesbarer Weg**; beim blauen Balken gibt es in Instanzen kein Aggro-Ziel.
 - **Lua-Fehler in der Instanz:** `Symbols.lua:127 attempt to perform arithmetic on a secret number value` → `FontString:GetStringWidth()` eines eigenen Textes an der Nameplate ist in der Instanz **geheim**. Behoben: Ausrichtung nur über Anker, nichts messen (REGELN.md 20a).
 
 ## Zusammenfassung (2026-10-04)

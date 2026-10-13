@@ -163,6 +163,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - Hältst du den Mob selbst: **erst mal nichts**.
 - **Ohne gesetzte Rolle:** DD-Symbol.
 - **Auch beim blauen Balken** (Nutzer-Wunsch 2026-10-13): Kämpft ein Gruppen-/Raidmitglied mit einem Mob und du bist selbst noch nicht im Kampf, wird das Aggro-Ziel ebenfalls angezeigt. Da der Client dann keine Bedrohungswerte liefert, zählt das **Ziel des Mobs** (nur wenn es ein Gruppen-/Raidmitglied ist).
+  - **Bekannte Grenze:** In **Instanzen** geht das beim blauen Balken nicht (Ziel des Mobs dort komplett geheim, getestet 2026-10-13). Sobald man selbst im Kampf ist, erscheint das Aggro-Ziel auch dort.
 - **TWF-Liste:** bleibt, wie sie ist; **zusätzlich** das Symbol vor dem Mobnamen (kein Spielername).
 - **Ein-/ausschaltbar:** Checkbox „Aggro-Ziel anzeigen“ (`symbolMarks`, Standard an) im Abschnitt Nameplates.
 - Symbolsatz und Größen in `Config.lua` (`C.SYMBOLS`, `C.SYMBOL_LAYOUT`), leicht austauschbar.
