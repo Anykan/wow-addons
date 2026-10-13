@@ -23,7 +23,7 @@ Stand 2026-10-04. Addon-spezifische Anforderungen stehen im jeweiligen Addon-Ord
      - Grenzen (max. Zeilen, max. Log-Einträge, Slider-Min/Max/Schritt)
      - Versionen (Addon, DB, Protokoll), Präfixe, Slash-Befehle
      - **Defaults der Spieler-Einstellungen** (SavedVariables)
-   - Im restlichen Code steht **keine nackte Zahl, kein Farbwert, kein Pfad**. Erlaubt sind nur 0, 1 und -1 in offensichtlicher Bedeutung; alles andere wird aus der Config gelesen.
+   - Im restlichen Code steht **keine nackte Zahl, kein Farbwert, kein Pfad**. Erlaubt sind nur 0, 1 und -1 in offensichtlicher Bedeutung sowie **reine Rechenschritte** (z. B. `+ 0.5` zum Runden, `/ 2` zum Halbieren, `2 *` für „links und rechts“); alles andere wird aus der Config gelesen. (Ausnahme für Rechnungen vom Nutzer bestätigt am 2026-10-13.)
    - Jede Variable bekommt einen kurzen deutschen Kommentar: wofür sie da ist, Einheit, sinnvoller Bereich.
    - Texte sind die einzige Ausnahme, sie liegen in `Locales.lua` (ebenfalls eine einzige Quelle).
    - Gleiches gilt für Logik-Informationen: Jede Information wird an genau einer Stelle ermittelt (z. B. findet nur `Detection` Gegner, alle anderen lesen deren Ergebnis).

@@ -1,4 +1,1 @@
-# WoW generated files
-*.bak
-Thumbs.db
-.DS_Store
+release/*.zip

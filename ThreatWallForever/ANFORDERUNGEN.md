@@ -265,9 +265,14 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 ## Offene Bugs
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
-## TODO vor Veröffentlichung
-- **In die Beschreibung (CurseForge + TOC-Notes) aufnehmen** (Nutzer-Wunsch 2026-10-13): Bedeutung der Balkenfarben. Vor allem **Blau** = der Gegner kämpft, ist aber von TWF noch nicht erfasst, weil man selbst noch nicht mit ihm im Kampf ist; man muss aktiv in den Kampf eingreifen, erst dann zeigt TWF Ampelfarbe und Aggro-Ziel. Grau = eigenes Ziel außerhalb des Kampfs. (Steht bereits in den Tooltips der Optionen „TWF-Nameplates“ und „Aggro-Ziel anzeigen“.)
-- Beschreibung überarbeiten: TOC-Notes (EN + DE) versprechen noch „Klick zum Zielwechsel“, das stimmt nicht mehr. Dazu die CurseForge-Beschreibung neu schreiben.
+## Veröffentlichung 0.1 — vorbereitet 2026-10-13
+- ✅ Code bereinigt (eigener Commit): tote Variablen (`placePending`, `scroll`, `ns.ADDON`), ungenutzte Texte/Codes (`TT_CLICK`, `NO_NAMEPLATES`, `DEBUG_ON/OFF`), veraltete Kommentare; Debug-Texte komplett Deutsch (Dump, laufende Meldungen, `/twf mark`); Spieler-Hilfe ohne Entwickler-Befehle.
+- ✅ TOC-Beschreibung (EN + DE) neu, ohne „Klick zum Zielwechsel“.
+- ✅ `PATCHNOTES.html` (HTML, erst Deutsch, dann Englisch).
+- ✅ `CURSEFORGE-BESCHREIBUNG.html` (erst Deutsch, dann Englisch), inkl. Bedeutung der Balkenfarben (Blau = noch nicht erfasst, aktiv eingreifen).
+- ✅ Release-Paket `wow-addons/release/ThreatWallForever-0.1.zip` (nur Lua-Dateien, TOC, LICENSE; ohne Doku).
+- Offen (macht der Nutzer bzw. braucht sein Okay): Abschlusstest im Spiel, Push zu GitHub, Upload bei CurseForge.
+- ✅ Entschieden: Der Knopf „Spiel-Optionen öffnen“ im Hinweis-Popup **bleibt** (`C.HINT.SHOW_OPTIONS_BUTTON = true`). Regel 5: Rechenschritte (`+ 0.5`, `/ 2`, `2 *`) sind erlaubt.
 
 ## Weitere Anforderungen
 - (hier sammeln)
