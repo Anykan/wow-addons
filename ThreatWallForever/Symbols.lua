@@ -97,12 +97,10 @@ local function lineFrame(nameplate)
   if f then return f end
   f = CreateFrame('Frame', nil, nameplate)
   f:SetFrameLevel(nameplate:GetFrameLevel() + Y.LEVEL)
-  f:SetHeight(Y.ICON_SIZE)
+  f:SetSize(Y.ICON_SIZE, Y.ICON_SIZE)
   f.icon = f:CreateTexture(nil, 'OVERLAY')
   f.icon:SetSize(Y.ICON_SIZE, Y.ICON_SIZE)
-  f.icon:SetPoint('LEFT')
   f.text = f:CreateFontString(nil, 'OVERLAY', Y.LINE_FONT)
-  f.text:SetPoint('LEFT', f.icon, 'RIGHT', Y.ICON_GAP, 0)
   nameplate.twfAggroLine = f
   return f
 end
@@ -117,18 +115,24 @@ local function showLine(nameplate, key, holder, showName)
   local f = lineFrame(nameplate)
   if not ns.setSymbolTexture(f.icon, key) then f:Hide() return end
 
-  local width = Y.ICON_SIZE
+  -- Ausrichten ohne zu messen: Größen von Elementen an Nameplates können geheim sein
+  -- (GetStringWidth lieferte in der Instanz einen geheimen Wert → Rechenfehler).
+  -- Deshalb sitzt der Name mittig, um ein halbes Symbol nach rechts versetzt, und das
+  -- Symbol hängt links am Namen. So steht die Zeile als Ganzes mittig.
   local name, color
   if showName then name, color = holderNameAndColor(holder) end
+  f.icon:ClearAllPoints()
   if name then
     f.text:SetText(name)
     f.text:SetTextColor(unpack(color))
+    f.text:ClearAllPoints()
+    f.text:SetPoint('CENTER', f, 'CENTER', (Y.ICON_SIZE + Y.ICON_GAP) / 2, 0)
     f.text:Show()
-    width = width + Y.ICON_GAP + f.text:GetStringWidth()
+    f.icon:SetPoint('RIGHT', f.text, 'LEFT', -Y.ICON_GAP, 0)
   else
     f.text:Hide()
+    f.icon:SetPoint('CENTER', f, 'CENTER')
   end
-  f:SetWidth(width)
 
   -- Über dem Mobnamen der TWF-Nameplate. Ohne TWF-Nameplate über Blizzards Mobnamen,
   -- sonst über Blizzards Lebensleiste (die Nameplate selbst sitzt leicht versetzt).

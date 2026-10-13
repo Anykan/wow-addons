@@ -67,12 +67,16 @@ Stand 2026-10-04. Addon-spezifische Anforderungen stehen im jeweiligen Addon-Ord
 
 19. **Jede Spiel-API in `pcall`** (vor allem auf WoW Forever). Werte mit `issecretvalue` prüfen, bevor sie verglichen, gerechnet oder angezeigt werden.
 20. **Nichts Geheimes auswerten:** Frames vergleichen statt Units (`nameplate == C_NamePlate.GetNamePlateForUnit("target")`), Werte wie Symbol-Nummern selbst vergeben.
+20a. **An Nameplates nie messen.** Größen und Positionen von Elementen, die an einer Nameplate hängen (`GetStringWidth`, `GetWidth`, `GetSize` …), können geheim sein, auch bei eigenen Elementen und vor allem in Instanzen. Mit ihnen zu rechnen wirft einen Fehler. Layout dort nur über Anker und feste Werte aus `Config.lua` lösen. (Lehre aus ThreatWall Forever, 2026-10-13: draußen lief es, in der Instanz Absturz.)
+
 21. **Keine globalen Variablen** außer den SavedVariables; alles läuft über den Namespace `local addonName, ns = ...`.
 22. **Kein Text fest im Code:** Spielertexte in die Locale-Datei (EN + DE, Umschaltung über `GetLocale()`), Debug-Texte nur Deutsch.
 23. **Kampfsperre beachten:** Secure-Attribute, geschützte Frames und CVars nur außerhalb des Kampfs ändern, sonst vormerken und nachholen.
 24. **Frame-Ebenen bewusst setzen:** Kind-Frames zeichnen über allem, was dem Eltern-Frame gehört.
 25. **Sparsam aktualisieren:** Events bündeln und drosseln (`C_Timer.After(0)`), keine Arbeit pro Frame ohne Grund; abgeschaltete Module tun nichts.
 26. **Defaults für jede Einstellung:** Fehlende Keys in alten SavedVariables werden ergänzt, nie vorausgesetzt.
+26a. **Debug-Meldungen gehören zu jeder Funktion.** Jede neue Funktion bzw. jedes neue Modul bringt von Anfang an passende Debug-Ausgaben mit (wichtige Zustandswechsel, Fehlschläge, geheime/fehlende Werte), über das zentrale Debug-System des Addons (`ns.dbg`, Log in SavedVariables). Sie erscheinen nur bei eingeschaltetem Debug, sind nur Deutsch und spammen nicht (nur bei Änderungen). Ein- und ausschalten per Befehl (bei TWF `/twf debug 1|0`).
+
 27. **Code-Kommentare auf Deutsch.** Bestehende englische Kommentare werden übersetzt, sobald die jeweilige Datei bzw. das Modul ohnehin bearbeitet wird (z. B. beim modularen Umbau). Keine reine Übersetzungsrunde über alle Addons. Variablen- und Funktionsnamen bleiben Englisch (wie die WoW-API).
 28. **Fremde Addons:** Ohne Lizenz (bzw. „All Rights Reserved“) nur Ideen übernehmen, keinen Code. Bei MIT den Code nur mit Lizenzhinweis übernehmen.
 

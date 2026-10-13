@@ -134,6 +134,10 @@ Erwartet: JA.
 - Folge: `ns.aggroHolder` nutzt zuerst die ausführliche Abfrage, sonst die Stufe (≥ 2 = tankt, 3 hat Vorrang).
 - Ist man selbst **nicht im Kampf** mit dem Mob (blauer Balken), liefert `UnitThreatSituation("party1", "nameplateN")` **nil**. `UnitGUID("nameplateN" .. "target")` ist dann lesbar und gleich `UnitGUID("party1")` → dritter Weg in `ns.aggroHolder`: Ziel des Mobs per GUID mit den Gruppenmitgliedern vergleichen (draußen getestet, Instanz offen).
 
+## Nachtrag Instanz-Test (2026-10-13)
+- **Blauer Balken in der Instanz:** kein Aggro-Ziel, die GUID des Mob-Ziels ist dort offenbar geheim (draußen lesbar). Sobald man selbst im Kampf ist, greift die Bedrohungsstufe.
+- **Lua-Fehler in der Instanz:** `Symbols.lua:127 attempt to perform arithmetic on a secret number value` → `FontString:GetStringWidth()` eines eigenen Textes an der Nameplate ist in der Instanz **geheim**. Behoben: Ausrichtung nur über Anker, nichts messen (REGELN.md 20a).
+
 ## Zusammenfassung (2026-10-04)
 | Anforderung | Ergebnis | Weg |
 |---|---|---|

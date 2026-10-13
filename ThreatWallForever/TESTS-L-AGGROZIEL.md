@@ -11,7 +11,7 @@ Debug bei Bedarf: `/twf debug 1` (aus: `/twf debug 0`), Momentaufnahme: `/twf du
 | Nr. | Schritt | Erwartet | Ergebnis |
 |---|---|---|---|
 | 1 | Spiel neu starten, einloggen | keine Lua-Fehler, kein Popup „Spiel-Optionen“ | ✔ |
-| 2 | Auf Mitspieler/andere Spieler schauen | freundliche Nameplates sind **aus** (TWF hat den alten Wert zurückgestellt); Umschalt+V schaltet sie weiter von Hand | offen |
+| 2 | Auf Mitspieler/andere Spieler schauen | freundliche Nameplates sind **aus** (TWF hat den alten Wert zurückgestellt); Umschalt+V schaltet sie weiter von Hand | ✔ nach Umschalt+V (waren im Spiel noch an) |
 | 3 | Zahnrad → Einstellungen, Abschnitt „Nameplates“ | zwei Checkboxen: „TWF-Nameplates“ und „Aggro-Ziel anzeigen“ (beide an), Tooltips vorhanden | ✔ |
 | 4 | `/twf hint` | nur noch die Zeile „Gegner-Nameplates“ mit ✔ | ✔ |
 | 5 | `/twf test` | Liste: Heiler-Symbol vor „Grillmaster“, DD-Symbol vor „Adds Rechts“, keins vor „Adds Links“; nochmal `/twf test` = aus | ✔ nach Anpassung: Symbol 18 px, Abstand 5 px, Schlachtzugsymbol in der Liste abgeschaltet |
@@ -30,8 +30,8 @@ Debug bei Bedarf: `/twf debug 1` (aus: `/twf debug 0`), Momentaufnahme: `/twf du
 | 13 | DD/Heal-Modus: Mob, den **du** hältst | nichts | ✔ |
 | 14 | Mitspieler setzt seine Rolle zurück (keine Rolle) | **DD-Symbol** statt Rollen-Symbol | ✔ |
 | 15 | Checkbox „Aggro-Ziel anzeigen“ **aus** | Zeile über Mobs und Symbole in der Liste sofort weg; **an** = wieder da | ✔ |
-| 16 | Checkbox „TWF-Nameplates“ **aus** (Blizzard-Original) | Zeile erscheint über Blizzards Nameplate (Position ggf. unschön → notieren) | offen |
-| 17 | **In einer Instanz** | 8–13 funktionieren gleich; über Mitspielern **keine** Blizzard-Balken mehr | offen |
+| 16 | Checkbox „TWF-Nameplates“ **aus** (Blizzard-Original) | Zeile erscheint über Blizzards Nameplate (Position ggf. unschön → notieren) | ✔ nach Korrektur: Zeile am Blizzard-Mobnamen ausgerichtet |
+| 17 | **In einer Instanz** | 8–13 funktionieren gleich; über Mitspielern **keine** Blizzard-Balken mehr | ✔ im Kampf (nach Korrektur: Textbreite an Nameplates ist in Instanzen geheim, nichts mehr messen). Offen: Anzeige beim blauen Balken in der Instanz (GUID des Mob-Ziels dort geheim) |
 | 18 | `/twf debug 1`, Mitspieler zieht Aggro | Zeile „[021] Halter von nameplateN: party1“, beim Zurückholen „… : player“ | offen |
 
 ## Optik (nur Geschmack, alles Werte in `Config.lua` → `C.SYMBOL_LAYOUT`)
