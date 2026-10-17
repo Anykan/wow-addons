@@ -418,6 +418,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Klick auf den TWF-Rollen-Knopf (Tank → DD → Heal) stellt auch die **Rolle in der Gruppe** um (`UnitSetRole('player', 'TANK'|'DAMAGER'|'HEALER')`), wie Rechtsklick aufs Porträt → Rolle. Und umgekehrt: Rolle im Spiel geändert (Porträt, Gruppensuche) → TWF schaltet mit (`UnitGroupRolesAssigned`, Ereignis bei Rollenwechsel).
   - Solo (keine Gruppenrolle): nur TWF schaltet um. Im Kampf evtl. nicht erlaubt → nach dem Kampf nachziehen.
   - Verwandt (besprochen, nicht beschlossen): Knopf „Auto“ – Rolle aus Gruppenrolle, sonst aus Haltung/Form (Krieger Verteidigung, Druide Bär, Paladin Zorn der Gerechtigkeit).
+  - **Vom Nutzer präzisiert (2026-10-17, weiter Idee):** Ändert man die Rolle im Spiel, schaltet TWF (Fenster/Liste) automatisch mit. Dafür unter **Allgemein eine Checkbox „Rolle mit Gruppenrolle synchronisieren“ (an/aus)**.
+  - Weitere Testergebnisse 2026-10-17: Gruppenrolle lesbar (`UnitGroupRolesAssigned` = TANK). Zorn der Gerechtigkeit: `C_UnitAuras.GetPlayerAuraBySpellID(25780)` liefert auf Forever **nil**, das Durchgehen der Buffs (`GetAuraDataByIndex`) zeigt ihn mit ID **25780** (für „Auto“ per Haltung). Offen: Buffs im Kampf lesbar? Kommt beim Rollenwechsel ein Ereignis (`PLAYER_ROLES_ASSIGNED`)? – erster Versuch ohne Ergebnis, ggf. nach /reload wiederholen.
   - **Getestet 2026-10-17:** `UnitSetRole` ist auf Forever für Addons **gesperrt** (Meldung „Aktion aufgrund eines AddOns fehlgeschlagen“). **TWF → Gruppe geht also nicht.** Möglich bleibt nur **Gruppe → TWF**: Rolle im Spiel (Porträt/Gruppensuche) setzen, TWF schaltet automatisch mit; ggf. Knopf „Auto“.
 
 ## Offene Bugs
