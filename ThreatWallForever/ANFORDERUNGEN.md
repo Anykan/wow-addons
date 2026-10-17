@@ -300,7 +300,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Liste:** eigene Checkbox **„Tank: Vorsprung in der Liste“** (Allgemein → Anzeige, Standard aus), gleiche Regel.
 - Farbe = vorhandene **Aggro-%-Farbe** des Zustands (kein eigenes Farbfeld, Nutzer-Entscheid). DD/Heal-Modus unverändert.
 - Technik: `ns.leadValue` in `Detection.lua` (gemeinsam für Balken und Liste), Wert aus `UnitThreatPercentageOfLead` – über `target` lesbar, über Nameplates geheim (nur weitergereicht). Herkunft: Idee I14 / Spielerfrage „Tooltip 400 %, TWF 100 %“.
-- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+- Stand: gebaut 2026-10-17, in der Gruppe als Tank getestet: „scheint i. O.“ (Nutzer, 2026-10-17). Offen: allein (kein „0 %“), Instanz. Teil von 0.4.
 
 ## Y. Übersetzungen über GitHub verbessern (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - **Eine Datei pro Sprache:** `Locales/enUS.lua` (Vorlage, immer geladen = Rückfall), `deDE.lua`, `esES.lua` (esES + esMX), `frFR.lua`; gleiche Reihenfolge der Schlüssel, Kopf mit Regeln für Übersetzer. Vorher eine `Locales.lua`.
