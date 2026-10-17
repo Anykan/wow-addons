@@ -396,7 +396,7 @@ C.GAME_OPTIONS = {
 
 C.SETTINGS = {
   NAME = 'ThreatWallForeverSettings',
-  WIDTH = 300,                 -- Fensterbreite
+  WIDTH = 760,                 -- Fensterbreite (gleich für alle Reiter; Höhe = höchster Reiter)
   TOP_GAP = 8,                 -- Abstand unter der Kopfleiste
   ROW_H = 22,                  -- Höhe einer Optionszeile
   SECTION_H = 24,              -- Höhe einer Abschnitts-Überschrift
@@ -413,6 +413,41 @@ C.SETTINGS = {
   TRACK_COLOR = { 0.25, 0.25, 0.28, 1 },
   VALUE_W = 44,                -- Breite der Prozentanzeige
   PERCENT = 100,               -- Schieberegler-Wert ×100 = Prozentanzeige
+  -- Reiter (0.3): alle Reiter in derselben Fenstergröße, nur der Inhalt wechselt
+  TABS = {
+    { key = 'general', label = 'TAB_GENERAL' },
+    { key = 'nameplates', label = 'TAB_NAMEPLATES' },
+  },
+  TAB_W = 110,                 -- Breite eines Reiter-Knopfs
+  TAB_GAP = 4,                 -- Abstand zwischen den Reitern
+  TAB_BOTTOM_GAP = 6,          -- Abstand unter der Reiterleiste
+}
+
+-- Reiter "Nameplates" (0.3, Schritt 1: nur Platzhalter, noch ohne Funktion) -----------------
+-- Eine Spalte pro Zustand der TWF-Nameplate. Die Werte zeigen den heutigen festen Stand.
+-- frame = Rahmenfarbe (nil = kein Rahmen), blink = Rahmen blinkt.
+C.PLATE_STATES = {
+  { key = 'green', label = 'STATE_GREEN', color = C.COLOR.green },
+  { key = 'yellow', label = 'STATE_YELLOW', color = C.COLOR.yellow, frame = C.NAMEPLATES.ALARM.COLOR, blink = true },
+  { key = 'red', label = 'STATE_RED', color = C.COLOR.red, frame = C.NAMEPLATES.ALARM.COLOR, blink = true },
+  { key = 'brown', label = 'STATE_BROWN', color = C.COLOR.brown },
+  { key = 'pull', label = 'STATE_PULL', color = C.COLOR.yellow, frame = C.NAMEPLATES.ALARM_PULL.COLOR, blink = true },
+  { key = 'blue', label = 'STATE_BLUE', color = C.NAMEPLATES.TINT.blue },
+  { key = 'grey', label = 'STATE_GREY', color = C.NAMEPLATES.TINT.grey },
+  { key = 'foreign', label = 'STATE_FOREIGN', color = C.COLOR.foreign },
+}
+-- Zeilen der Tabelle (Reihenfolge = Anzeige)
+C.PLATE_ROWS = { 'ROW_COLOR', 'ROW_ALPHA', 'ROW_FRAME', 'ROW_BLINK' }
+C.PLATE_TABLE = {
+  LABEL_W = 100,               -- Breite der linken Spalte mit den Zeilennamen
+  COL_W = 78,                  -- Breite einer Zustands-Spalte
+  HEAD_H = 34,                 -- Höhe der Kopfzeile (Zustandsname, bis zwei Zeilen)
+  ROW_H = 26,                  -- Höhe einer Tabellenzeile
+  SWATCH = 16,                 -- Größe eines Farbfelds
+  SWATCH_BORDER = 1,           -- Rahmen ums Farbfeld
+  STRIPE_ALPHA = 0.05,         -- jede zweite Zeile leicht aufgehellt
+  NOTE_H = 20,                 -- Höhe der Hinweiszeile über der Tabelle
+  EMPTY = '–',                 -- Anzeige "nichts" (kein Rahmen, kein Wert)
 }
 
 -- Optionen im Einstellungsfenster (Reihenfolge = Anzeige-Reihenfolge).
@@ -421,6 +456,7 @@ C.SETTINGS = {
 -- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
 -- label/tip: Schlüssel in Locales.lua · action: Funktion in ns, die der Knopf aufruft
 -- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent)
+-- Reiter "Allgemein". { type = 'column' } beginnt eine neue Spalte (Spalten teilen die Breite gleich auf).
 C.OPTIONS = {
   { type = 'section', label = 'SEC_GENERAL' },
   { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
@@ -434,6 +470,7 @@ C.OPTIONS = {
   { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
   { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
 
+  { type = 'column' },
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
   { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
@@ -444,6 +481,7 @@ C.OPTIONS = {
   { type = 'slider', key = 'alphaOther', label = 'OPT_ALPHA_OTHER', tip = 'TIP_ALPHA_OTHER', min = 0.1, max = 1, step = 0.1 },
   { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 
+  { type = 'column' },
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
   { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },

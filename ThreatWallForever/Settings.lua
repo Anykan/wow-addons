@@ -222,30 +222,172 @@ local BUILDERS = {
   button = buildButton,
 }
 
+-- Reiter "Nameplates": Tabelle der Zustände (0.3, Schritt 1: nur Platzhalter) --------------
+
+local PT = C.PLATE_TABLE
+
+-- Farbfeld mit dünnem Rahmen; color = nil zeigt den Platzhalter für "nichts"
+local function swatch(parent, color)
+  if not color then
+    local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
+    fs:SetPoint('CENTER')
+    fs:SetText(PT.EMPTY)
+    return
+  end
+  local border = parent:CreateTexture(nil, 'ARTWORK', nil, 1)
+  border:SetSize(PT.SWATCH, PT.SWATCH)
+  border:SetPoint('CENTER')
+  border:SetTexture(T.FLAT)
+  border:SetVertexColor(unpack(C.BACKDROP.BORDER_COLOR))
+  local fill = parent:CreateTexture(nil, 'ARTWORK', nil, 2)
+  fill:SetPoint('TOPLEFT', border, 'TOPLEFT', PT.SWATCH_BORDER, -PT.SWATCH_BORDER)
+  fill:SetPoint('BOTTOMRIGHT', border, 'BOTTOMRIGHT', -PT.SWATCH_BORDER, PT.SWATCH_BORDER)
+  fill:SetTexture(T.FLAT)
+  fill:SetVertexColor(color[1], color[2], color[3])
+end
+
+local function cellText(parent, text)
+  local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  fs:SetPoint('CENTER')
+  fs:SetText(text)
+end
+
+-- Inhalt einer Zelle (Zeile rowKey, Zustand st) – zeigt den heutigen festen Wert
+local CELLS = {
+  ROW_COLOR = function(cell, st) swatch(cell, st.color) end,
+  ROW_ALPHA = function(cell) cellText(cell, PT.EMPTY) end,  -- Deckkraft pro Zustand gibt es noch nicht
+  ROW_FRAME = function(cell, st) swatch(cell, st.frame) end,
+  ROW_BLINK = function(cell, st) cellText(cell, st.blink and L.VALUE_ON or L.VALUE_OFF) end,
+}
+
+-- Baut die Tabelle in page; gibt die benötigte Höhe zurück
+local function buildPlateTable(page)
+  local note = page:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
+  note:SetPoint('TOPLEFT', D.PADDING, 0)
+  note:SetPoint('RIGHT', page, 'RIGHT', -D.PADDING, 0)
+  note:SetJustifyH('LEFT')
+  note:SetText(L.PLATE_NOTE)
+
+  local top = -PT.NOTE_H
+  local x0 = D.PADDING + PT.LABEL_W
+  for i, st in ipairs(C.PLATE_STATES) do
+    local head = page:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+    head:SetPoint('TOPLEFT', x0 + (i - 1) * PT.COL_W, top)
+    head:SetSize(PT.COL_W, PT.HEAD_H)
+    head:SetJustifyH('CENTER')
+    head:SetJustifyV('MIDDLE')
+    head:SetWordWrap(true)
+    head:SetText(L[st.label])
+    head:SetTextColor(unpack(C.TITLE_COLOR))
+  end
+
+  local y = top - PT.HEAD_H
+  for r, rowKey in ipairs(C.PLATE_ROWS) do
+    if r % 2 == 1 then
+      local stripe = page:CreateTexture(nil, 'BACKGROUND', nil, 1)
+      stripe:SetPoint('TOPLEFT', D.PADDING, y)
+      stripe:SetPoint('RIGHT', page, 'RIGHT', -D.PADDING, 0)
+      stripe:SetHeight(PT.ROW_H)
+      stripe:SetTexture(T.FLAT)
+      stripe:SetVertexColor(1, 1, 1, PT.STRIPE_ALPHA)
+    end
+    local label = page:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+    label:SetPoint('TOPLEFT', D.PADDING + S.TEXT_GAP, y)
+    label:SetHeight(PT.ROW_H)
+    label:SetJustifyV('MIDDLE')
+    label:SetText(L[rowKey])
+    for i, st in ipairs(C.PLATE_STATES) do
+      local cell = CreateFrame('Frame', nil, page)
+      cell:SetSize(PT.COL_W, PT.ROW_H)
+      cell:SetPoint('TOPLEFT', x0 + (i - 1) * PT.COL_W, y)
+      CELLS[rowKey](cell, st)
+    end
+    y = y - PT.ROW_H
+  end
+  return -y
+end
+
+-- Reiter "Allgemein": die Optionen aus Config.OPTIONS, in Spalten nebeneinander
+-- ({ type = 'column' } beginnt eine neue). Gibt die Höhe der längsten Spalte zurück.
+local function buildGeneral(page)
+  local nCols = 1
+  for _, opt in ipairs(C.OPTIONS) do
+    if opt.type == 'column' then nCols = nCols + 1 end
+  end
+  local colW = S.WIDTH / nCols
+  local col, y, maxH, index = nil, 0, 0, 0
+  local function newColumn()
+    index = index + 1
+    col = CreateFrame('Frame', nil, page)
+    col:SetPoint('TOPLEFT', (index - 1) * colW, 0)
+    col:SetSize(colW, 1)
+    y = 0
+  end
+  newColumn()
+  for _, opt in ipairs(C.OPTIONS) do
+    if opt.type == 'column' then
+      newColumn()
+    else
+      local builder = BUILDERS[opt.type]
+      if builder then
+        y = builder(col, opt, y)
+        maxH = math.max(maxH, -y)
+      else
+        ns.dbg('SETTING', 'Unbekannter Optionstyp in Config.OPTIONS: ' .. tostring(opt.type))
+      end
+    end
+  end
+  return maxH
+end
+
+local PAGE_BUILDERS = { general = buildGeneral, nameplates = buildPlateTable }
+
 -- Fenster ----------------------------------------------------------------------------------
 
 local function updateAll()
   for _, fn in ipairs(updaters) do fn() end
 end
 
+local tabs = {}         -- key -> { button, page }
+local currentTab
+
+local function selectTab(key)
+  currentTab = key
+  for k, t in pairs(tabs) do
+    local active = k == key
+    t.page:SetShown(active)
+    t.button.bg:SetVertexColor(unpack(active and D.BUTTON_BG_ACTIVE or D.BUTTON_BG))
+  end
+  ns.dbg('SETTING', 'Reiter ' .. key)
+end
+
 local function build()
   win = ns.makeDialog(S.NAME, S.WIDTH, L.SETTINGS_TITLE)
   win:SetPoint('CENTER')
 
-  local y = -(W.HEADER_H + S.TOP_GAP)
-  for _, opt in ipairs(C.OPTIONS) do
-    local builder = BUILDERS[opt.type]
-    if builder then
-      y = builder(win, opt, y)
-    else
-      ns.dbg('SETTING', 'Unbekannter Optionstyp in Config.OPTIONS: ' .. tostring(opt.type))
-    end
+  -- Reiterleiste unter der Kopfleiste, darunter je Reiter eine Seite
+  local tabY = -(W.HEADER_H + S.TOP_GAP)
+  win.pageTop = -tabY + D.BUTTON_H + S.TAB_BOTTOM_GAP
+  local maxH = 0
+  for i, tab in ipairs(S.TABS) do
+    local btn = ns.makeFlatButton(win, L[tab.label], S.TAB_W)
+    btn:SetPoint('TOPLEFT', D.PADDING + (i - 1) * (S.TAB_W + S.TAB_GAP), tabY)
+    btn:SetScript('OnClick', function() selectTab(tab.key) end)
+    local page = CreateFrame('Frame', nil, win)
+    page:SetPoint('TOPLEFT', 0, -win.pageTop)
+    page:SetPoint('RIGHT', win, 'RIGHT')
+    page:SetHeight(1)
+    maxH = math.max(maxH, PAGE_BUILDERS[tab.key](page))
+    tabs[tab.key] = { button = btn, page = page }
   end
-  win:SetHeight(-y + D.PADDING)
+  -- Ein Fenster für alle Reiter: so hoch wie der längste Inhalt
+  win:SetHeight(win.pageTop + maxH + D.PADDING)
+  selectTab(S.TABS[1].key)
   win:SetScript('OnShow', updateAll)
   -- Nach dem Schließen prüfen, ob eingeschaltete Funktionen weitere Spiel-Optionen brauchen (M)
   win:SetScript('OnHide', function() ns.checkGameOptions(false) end)
-  ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #C.OPTIONS .. ' Einträge)')
+  ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #C.OPTIONS .. ' Einträge, '
+    .. #S.TABS .. ' Reiter, ' .. #C.PLATE_STATES .. ' Zustände)')
 end
 
 -- Anzeige an aktuelle Werte anpassen, falls sich etwas außerhalb des Fensters ändert
