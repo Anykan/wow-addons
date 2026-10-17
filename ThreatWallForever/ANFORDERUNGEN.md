@@ -454,6 +454,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 
 ## Veröffentlichung 0.4 — vorbereitet 2026-10-17
 - Inhalt: **Z** (Tank: Vorsprung statt Aggro-%, Balken + Liste getrennt), **AA** (Leben in % oder als Zahl), **AB** (Rollen-Sync Gruppe → TWF), breiteres Prozentfeld in der Liste.
+- Tests 2026-10-17: Version/Einstellungen ✅, Leben als Zahl ✅, Liste dreistellig ✅, Rollen-Sync ✅, Tank-Vorsprung in der Gruppe ✅. Offen: Vorsprung allein (kein „0 %“), Instanz.
 - Paket `release/ThreatWallForever-0.4.zip`, Changelog `release/ThreatWallForever-0.4-patchnotes.html` (DE/EN/ES/FR), Gesamtprotokoll `PATCHNOTES.html`.
 
 ## Veröffentlichung 0.3 — 2026-10-17 bei CurseForge veröffentlicht
