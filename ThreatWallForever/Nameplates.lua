@@ -34,6 +34,7 @@ local fallbackWarned = false   -- Debug-Hinweis "Lebensleiste nicht gefunden" nu
 local threatSecretSeen = false -- Debug-Hinweis "Aggro-% geheim" nur einmal
 local threatFailWarned = false -- Debug-Hinweis "Aggro-% nicht anzeigbar" nur einmal
 local foreignSeen = false      -- Debug-Hinweis "fremder Mob" nur einmal
+local leadSeen = false         -- Debug-Hinweis "Vorsprung angezeigt" nur einmal
 local atlasOK                  -- nil = noch nicht geprüft
 
 local function active()
@@ -212,10 +213,16 @@ local function fill(p, unit)
     p.bar:SetMinMaxValues(0, UnitHealthMax(unit))
     p.bar:SetValue(UnitHealth(unit))
   end)
-  local okP = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
-    and pcall(function()
-      p.pct:SetFormattedText(N.PCT_FORMAT, UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
-    end)
+  local okP
+  if ns.db.healthPct then
+    okP = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
+      and pcall(function()
+        p.pct:SetFormattedText(N.PCT_FORMAT, UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
+      end)
+  else
+    -- Restleben als Zahl (Anforderung AA): geheim, aber anzeigbar (Test 2026-10-17)
+    okP = pcall(function() p.pct:SetFormattedText(N.HEALTH_NUM_FORMAT, UnitHealth(unit)) end)
+  end
   p.pct:SetShown(okP and true or false)
 end
 
@@ -232,7 +239,13 @@ local function fillThreat(p, unit, cfg)
     threatSecretSeen = true
     ns.dbg('NAMEPLATES', 'Aggro-% ist geheim, wird nur an den Text weitergereicht')
   end
-  local okF, err = pcall(p.threat.SetFormattedText, p.threat, N.THREAT_PCT_FORMAT, pct)
+  -- Tank-Modus mit "Vorsprung statt Aggro-%": Vorsprung vor Platz 2 (Anforderung Z)
+  local lead = ns.db.plateLead and ns.leadValue(unit)
+  if lead and not leadSeen then
+    leadSeen = true
+    ns.dbg('NAMEPLATES', 'Vorsprung statt Aggro-% angezeigt')
+  end
+  local okF, err = pcall(p.threat.SetFormattedText, p.threat, N.THREAT_PCT_FORMAT, lead or pct)
   if not okF and not threatFailWarned then
     threatFailWarned = true
     ns.dbg('NAMEPLATES', 'Aggro-% lässt sich nicht anzeigen: ' .. tostring(err))
@@ -442,6 +455,11 @@ local function onLogin()
 end
 
 local function onSettingChanged(key)
+  if key == 'plateLead' or key == 'healthPct' then
+    ns.dbg('NAMEPLATES', key .. ' ' .. (ns.db[key] and 'an' or 'aus'))
+    if active() then updateAll() end
+    return
+  end
   if key == 'alphaTarget' or key == 'alphaOccluded' then
     ns.dbg('NAMEPLATES', 'Deckkraft ' .. key .. ' = ' .. ns.db[key])
     if active() then updateAll() end

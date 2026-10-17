@@ -68,6 +68,10 @@ C.DEFAULTS = {
   alphaTarget = 1,           -- Deckkraft der TWF-Balken: dein Ziel (auch hinter Wänden) (Anforderung R)
   alphaOccluded = 0.3,       -- … Gegner hinter Wänden (außer dein Ziel); sonst gilt die Deckkraft des Zustands
   listThreat = true,         -- Live-Aggro-% vorn in jeder Listenzeile (Anforderung X)
+  roleSync = false,          -- an = TWF-Rolle folgt der Gruppenrolle (Anforderung AB)
+  healthPct = true,          -- an = Leben in % rechts im Balken, aus = Restleben als Zahl (Anforderung AA)
+  plateLead = false,         -- Tank-Modus: Vorsprung vor Platz 2 statt Aggro-% im Balken (Anforderung Z)
+  listLead = false,          -- Tank-Modus: Vorsprung statt Aggro-% in der Liste (Anforderung Z)
   plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
   -- plates (Aussehen pro Zustand) legt PlateStates.lua an, Standardwerte aus C.PLATE_STATES
 }
@@ -109,6 +113,8 @@ C.COLOR = {
 -- Rollen (Anforderung V: DD und Heal getrennt). Reihenfolge = Umschalten im Fensterkopf.
 C.ROLES = { 'tank', 'dps', 'heal' }
 C.ROLE_SHORT = { tank = 'T', dps = 'D', heal = 'H' }  -- Rollen-Knopf ohne Atlas
+-- Gruppenrolle des Spiels → TWF-Rolle (Rollen-Sync, Anforderung AB)
+C.ROLE_FROM_GROUP = { TANK = 'tank', HEALER = 'heal', DAMAGER = 'dps' }
 -- Rangfolge zum Sortieren (höher = schlimmer); braun zwischen grün und gelb
 C.RANK = { red = 2, yellow = 1, brown = 0.5, green = 0 }
 
@@ -211,7 +217,7 @@ C.ROW = {
   DOT_SIZE = 12,               -- Ampelpunkt
   DOT_X = 6,
   PCT_X = 2,                   -- Live-Aggro-% ganz links (Anforderung X): Abstand zum Zeilenrand
-  PCT_W = 34,                  -- Breite der Prozentanzeige (rechtsbündig, Platz für "100%")
+  PCT_W = 48,                  -- Breite der Prozentanzeige (rechtsbündig, Platz für "1000%" – Vorsprung kann vierstellig sein)
   MARK_SIZE = 14,              -- Raid-Symbol
   SHOW_RAID_MARK = false,      -- Schlachtzugsymbol in der Liste zeigen. Aus, bis der Client-Bug behoben ist
                                -- (forever-bugs#166: Symbol-Nummer im Kampf geheim). Code bleibt in Marks.lua.
@@ -289,6 +295,7 @@ C.NAMEPLATES = {
   RAID_ICON_GAP = 4,           -- Schlachtzugsymbol links vor dem Balken: Abstand zum Balken
   PCT_LAYER = 7,               -- Zeichen-Unterebene der Prozentzahl (über dem Rahmen)
   PCT_FORMAT = '%.0f%%',       -- Anzeige des Lebens in Prozent
+  HEALTH_NUM_FORMAT = '%d',    -- Anzeige des Restlebens als Zahl (geheim → nur weitergereicht, nicht kürzbar)
   THREAT_PCT_X = 3,            -- Abstand der Aggro-Prozentanzeige vom linken Balkenrand (Anforderung P)
   THREAT_PCT_FORMAT = '%.0f%%', -- Anzeige der eigenen Aggro in Prozent (100 % = du hast bzw. ziehst die Aggro)
   -- Blinkender Rahmen (Anforderung V): ob und in welcher Farbe, steht pro Zustand in der Tabelle
@@ -484,6 +491,7 @@ C.ALPHA_POPUP = {
 C.OPTIONS = {
   { type = 'section', label = 'SEC_GENERAL' },
   { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
+  { type = 'check', key = 'roleSync', label = 'OPT_ROLE_SYNC', tip = 'TIP_ROLE_SYNC' },
   { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
   { type = 'check', key = 'minimap', label = 'MENU_MINIMAP', tip = 'TIP_MINIMAP' },
 
@@ -492,6 +500,7 @@ C.OPTIONS = {
   { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
   { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
   { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
+  { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
   { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
   { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
 
@@ -499,6 +508,8 @@ C.OPTIONS = {
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
   { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
+  { type = 'check', key = 'healthPct', label = 'OPT_HEALTH_PCT', tip = 'TIP_HEALTH_PCT' },
+  { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
   { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
   { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 

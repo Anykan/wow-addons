@@ -284,6 +284,24 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## AB. Rolle mit Gruppenrolle synchronisieren (vom Nutzer beschlossen 2026-10-17, Version 0.4, war Idee I15)
+- Checkbox **„Rolle mit Gruppenrolle synchronisieren“** (Allgemein, Standard aus). An: Gruppenrolle im Spiel geändert (Porträt → Rolle, Gruppensuche) → TWF schaltet mit (Tank → Tank, Heiler → Heal, Schaden → DD); beim Einschalten sofort übernommen. Von Hand umschalten bleibt möglich; TWF folgt erst bei der nächsten Änderung der Gruppenrolle. Solo/ohne Rolle: keine Änderung.
+- Gegenrichtung (TWF → Gruppenrolle, `UnitSetRole`) auf Forever für Addons gesperrt (getestet).
+- Technik: Prüfung im TWF-Takt (`OnTick`, Window.lua), Zuordnung `C.ROLE_FROM_GROUP`.
+- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+
+## AA. Restleben als Zahl oder in % (vom Nutzer beschlossen 2026-10-17, Version 0.4)
+- Checkbox **„Leben in %“** (Allgemein → Nameplates, Standard **an** = wie bisher). **Aus:** rechts im Balken das **Restleben als Zahl** (z. B. „8240“), nur die aktuelle Zahl (kein „/ Maximum“, sonst zu eng neben den Aggro-%).
+- Technik: `UnitHealth` ist geheim, lässt sich aber an `SetFormattedText` weitergeben (Test 2026-10-17: Zahl läuft live mit). Kürzen (8,2k) nicht möglich, weil Rechnen mit geheimen Werten verboten ist (Test mit `AbbreviateLargeNumbers` ohne Rückmeldung).
+- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+
+## Z. Tank: Vorsprung statt Aggro-% (vom Nutzer beschlossen 2026-10-17, Version 0.4)
+- **Balken:** Checkbox **„Tank: Vorsprung statt Aggro-%“** (Allgemein → Nameplates, Standard aus). Im **Tank-Modus** zeigt jeder Balken links statt der Aggro-% den **Vorsprung vor Platz 2** (Blizzard-Tooltip-Wert, z. B. 400 % = viermal so viel Bedrohung wie der Nächste) – aber nur, wenn **du den Mob hältst** (Aggro-Stufe ≥ unsicher, lesbar) und **nicht allein** bist (allein gibt es keinen Platz 2). Sonst die normalen Aggro-%.
+- **Liste:** eigene Checkbox **„Tank: Vorsprung in der Liste“** (Allgemein → Anzeige, Standard aus), gleiche Regel.
+- Farbe = vorhandene **Aggro-%-Farbe** des Zustands (kein eigenes Farbfeld, Nutzer-Entscheid). DD/Heal-Modus unverändert.
+- Technik: `ns.leadValue` in `Detection.lua` (gemeinsam für Balken und Liste), Wert aus `UnitThreatPercentageOfLead` – über `target` lesbar, über Nameplates geheim (nur weitergereicht). Herkunft: Idee I14 / Spielerfrage „Tooltip 400 %, TWF 100 %“.
+- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+
 ## Y. Übersetzungen über GitHub verbessern (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - **Eine Datei pro Sprache:** `Locales/enUS.lua` (Vorlage, immer geladen = Rückfall), `deDE.lua`, `esES.lua` (esES + esMX), `frFR.lua`; gleiche Reihenfolge der Schlüssel, Kopf mit Regeln für Übersetzer. Vorher eine `Locales.lua`.
 - **`TRANSLATING.md`** (DE/EN): Dateien, Regeln (Schlüssel nie ändern, `%s`/`%d`/`\n` behalten, keine `"`), Einreichen per „Edit this file“ → Pull Request, neue Sprache anlegen, Testen.
@@ -420,7 +438,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Addon chat is locked in instance combat“ – auf Forever sind **Addon-Nachrichten im Kampf in Instanzen gesperrt**. Stufe 2 (Sync) ginge damit nur draußen bzw. außerhalb des Kampfs → in Instanzen nur Stufe 1 sinnvoll. Außerdem laut NKThreat: Boss-Bedrohung in Instanzen geheim (Prozente sichtbar, aber nicht sortierbar).
   - Wäre ein Alleinstellungsmerkmal (kein Konkurrent synct auf Forever). Sync-Erfahrung aus CrittersBoard und GuildAchievements vorhanden.
 
-- **I15 TWF-Rolle und Gruppenrolle synchron** (Idee des Nutzers, 2026-10-17; **keine Anforderung**):
+- **I15 TWF-Rolle und Gruppenrolle synchron** — ✅ **zur Anforderung AB geworden (2026-10-17, Richtung Gruppe → TWF)**. (Idee des Nutzers, 2026-10-17; **keine Anforderung**):
   - Klick auf den TWF-Rollen-Knopf (Tank → DD → Heal) stellt auch die **Rolle in der Gruppe** um (`UnitSetRole('player', 'TANK'|'DAMAGER'|'HEALER')`), wie Rechtsklick aufs Porträt → Rolle. Und umgekehrt: Rolle im Spiel geändert (Porträt, Gruppensuche) → TWF schaltet mit (`UnitGroupRolesAssigned`, Ereignis bei Rollenwechsel).
   - Solo (keine Gruppenrolle): nur TWF schaltet um. Im Kampf evtl. nicht erlaubt → nach dem Kampf nachziehen.
   - Verwandt (besprochen, nicht beschlossen): Knopf „Auto“ – Rolle aus Gruppenrolle, sonst aus Haltung/Form (Krieger Verteidigung, Druide Bär, Paladin Zorn der Gerechtigkeit).
@@ -434,7 +452,11 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
-## Veröffentlichung 0.3 — vorbereitet 2026-10-17
+## Veröffentlichung 0.4 — vorbereitet 2026-10-17
+- Inhalt: **Z** (Tank: Vorsprung statt Aggro-%, Balken + Liste getrennt), **AA** (Leben in % oder als Zahl), **AB** (Rollen-Sync Gruppe → TWF), breiteres Prozentfeld in der Liste.
+- Paket `release/ThreatWallForever-0.4.zip`, Changelog `release/ThreatWallForever-0.4-patchnotes.html` (DE/EN/ES/FR), Gesamtprotokoll `PATCHNOTES.html`.
+
+## Veröffentlichung 0.3 — 2026-10-17 bei CurseForge veröffentlicht
 - Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen), **X** (Live-Aggro-% in der Liste), Sprachen **Español/Français** (G/I3), Übersetzen über GitHub (**Y**) und Fix **B2** (doppelte Zeilen in Instanzen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
 - Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
 - Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).

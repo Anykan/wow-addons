@@ -340,6 +340,31 @@ end
 
 ns.RegisterModule('Window', { OnLogin = buildFrame })
 
+-- Rollen-Sync (Anforderung AB) -------------------------------------------------------------
+-- TWF-Rolle folgt der Gruppenrolle des Spiels (Porträt → Rolle, Gruppensuche). Geprüft im
+-- TWF-Takt statt per Ereignis (Ereignis-Test 2026-10-17 ohne klares Ergebnis). TWF folgt nur,
+-- wenn sich die Gruppenrolle ÄNDERT – von Hand umschalten bleibt möglich. Die Gegenrichtung
+-- (UnitSetRole) ist auf Forever für Addons gesperrt (getestet 2026-10-17).
+local lastGroupRole
+
+local function syncRole(force)
+  if not (ns.db and ns.db.roleSync) then return end
+  local ok, groupRole = pcall(UnitGroupRolesAssigned, 'player')
+  groupRole = ok and ns.plain(groupRole) or nil
+  if not force and groupRole == lastGroupRole then return end
+  lastGroupRole = groupRole
+  local role = C.ROLE_FROM_GROUP[groupRole or '']
+  if role and role ~= ns.db.role then
+    ns.dbg('SETTING', 'Rollen-Sync: Gruppenrolle ' .. groupRole .. ' -> ' .. role)
+    ns.setRole(role)
+  end
+end
+
+ns.RegisterModule('RoleSync', {
+  OnTick = function() syncRole(false) end,
+  OnSettingChanged = function(key) if key == 'roleSync' then syncRole(true) end end,
+})
+
 -- Das Fenster existiert schon vor dem Login (versteckt), damit das Spiel eine
 -- gespeicherte Position daran wiederherstellen kann.
 do

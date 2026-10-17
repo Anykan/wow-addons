@@ -133,6 +133,8 @@ local function fillPct(row, e)
   local c = st and st.threatColor or C.WHITE
   row.pct:SetTextColor(c[1], c[2], c[3])
   local pct = e.testPct
+  -- Tank-Modus mit "Vorsprung in der Liste": Vorsprung vor Platz 2 (Anforderung Z)
+  if pct == nil and ns.db.listLead then pct = ns.leadValue(e.unit) end
   if pct == nil and e.unit then
     local ok, _, _, value = pcall(UnitDetailedThreatSituation, 'player', e.unit)
     if ok then pct = value end

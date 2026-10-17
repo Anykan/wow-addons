@@ -106,6 +106,21 @@ function ns.isForeign(unit)
   return ok and ns.plain(tapped) == true
 end
 
+-- Vorsprung vor Platz 2 (Anforderung Z): Blizzards Tooltip-Wert, vom Spiel fertig berechnet
+-- (UnitThreatPercentageOfLead). Nur im Tank-Modus, nur wenn du den Mob hältst (Stufe lesbar)
+-- und nicht allein bist (allein gibt es keinen Platz 2, der Wert wäre 0). Über das Ziel lesbar,
+-- über Nameplates geheim: nur weiterreichen. nil = stattdessen die normalen Aggro-% zeigen.
+function ns.leadValue(unit)
+  if ns.db.role ~= 'tank' or not unit or not (IsInGroup() or IsInRaid()) then return nil end
+  local okS, status = pcall(UnitThreatSituation, 'player', unit)
+  status = okS and ns.plain(status) or nil
+  if not status or status < S.INSECURE then return nil end
+  local ok, lead = pcall(UnitThreatPercentageOfLead, 'player', unit)
+  if not ok then return nil end
+  if not ns.IsSecret(lead) and (lead == nil or lead <= 0) then return nil end
+  return lead
+end
+
 -- Gruppenrolle einer Einheit: 'TANK', 'HEALER', 'DAMAGER' oder 'NONE' (nicht zugewiesen/unlesbar)
 function ns.groupRole(unit)
   local ok, role = pcall(UnitGroupRolesAssigned, unit)
