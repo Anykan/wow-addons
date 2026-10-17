@@ -53,7 +53,7 @@ Stand 2026-10-04. Addon-spezifische Anforderungen stehen im jeweiligen Addon-Ord
 13. **Versionierung:** Haupt.Neben.Fix (0.2.0 = neues Feature, 0.2.1 = Bugfix).
 14. **Patchnotes** für jede veröffentlichte Version:
     - **Als HTML** wie bei CrittersBoard, damit sie sauber in CurseForge eingefügt werden können: `<h2>` für die Version, `<h3>` für Abschnitte (z. B. Neu / Behoben / Geändert), `<ul><li>` für die Punkte.
-    - **Reihenfolge: immer erst Deutsch, dann Englisch.**
+    - **In allen Sprachen, die das Addon unterstützt** (Nutzer-Wunsch 2026-10-17). **Reihenfolge: Deutsch, Englisch, dann die weiteren Sprachen** (bei TWF: Español, Français).
     - **Farbig und ansprechend** (Nutzer-Wunsch 2026-10-13): farbige Überschriften mit passenden Symbolen, Stichworte hervorgehoben, Farbbegriffe in ihrer eigenen Farbe (`<span style="color:…">`). Gilt auch für die CurseForge-Beschreibung. Vorlage: `ThreatWallForever/PATCHNOTES.html` und `CURSEFORGE-BESCHREIBUNG.html`. Nach dem Einfügen in CurseForge die Vorschau prüfen (der Editor filtert manche Formatierungen).
     - Inhaltlich identisch mit den Ingame-Patchnotes (falls das Addon ein Patchnotes-Popup hat).
     - Pro Version in eine Datei im Addon-Ordner legen: `PATCHNOTES.html`, die neueste Version oben.

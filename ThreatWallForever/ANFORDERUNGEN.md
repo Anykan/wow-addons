@@ -39,11 +39,11 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   - Das Zahnrad öffnet/schließt das Fenster; Esc und X schließen; verschiebbar; Position wird nicht gespeichert.
   - H (Debug-Befehle) wird im selben Schritt gebaut.
 
-## G. Zweisprachig DE/EN (gilt für ALLES, was der Spieler sieht)
+## G. Mehrsprachig DE/EN, seit 0.3 auch ES/FR (gilt für ALLES, was der Spieler sieht)
 - Alle sichtbaren Texte gibt es auf Deutsch und Englisch: Fenster, Einstellungsfenster, Dropdown, Tooltips, Chat-Meldungen, Popups, Hilfe.
-- Die Sprache richtet sich automatisch nach der Spielsprache (`GetLocale()`): `deDE` = Deutsch, alles andere = Englisch (Fallback).
+- Die Sprache richtet sich automatisch nach der Spielsprache (`GetLocale()`): `deDE` = Deutsch, `esES`/`esMX` = Spanisch, `frFR` = Französisch (seit 0.3, Übersetzung ohne Prüfung durch Muttersprachler), alles andere = Englisch (Fallback).
 - Ist heute schon so umgesetzt: `Locales.lua` hat 50 Schlüssel, EN und DE sind vollständig.
-- Regel für alle neuen Funktionen: **jeder neue Text sofort als Locale-Schlüssel in EN und DE**, kein fest eingetippter Text im Code.
+- Regel für alle neuen Funktionen: **jeder neue Text sofort als Locale-Schlüssel in allen Sprachen (EN, DE, ES, FR)**, kein fest eingetippter Text im Code. Patchnotes ebenfalls in allen Sprachen (REGELN 14).
 - **Ausnahme Debug/Entwickler-Ausgaben: nur Deutsch**, unabhängig von der Spielsprache (die sieht nur der Entwickler). Das betrifft:
   - die Debug-Meldungen bei Statuswechseln
   - den Rohdaten-Dump
@@ -340,7 +340,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Getestet 2026-10-16 (draußen):** `UnitIsTapDenied` ist über `target` **und über den Nameplate-Token lesbar**, auch wenn du selbst im Kampf bist (Ausgabe `true`/`false`, nicht geheim). Hinweis: Die Nameplate hat evtl. kein `namePlateUnitToken`, Token über `UnitFrame.unit` holen. Ausweichweg falls später geheim: Blizzards Balkenfarbe (grau 0.9/0.9/0.9) lesen, wie ForeverThreatPlate.
   - Alte Testzeile (fremden Gegner im Kampf anvisieren): `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("fremd (target):",S(UnitIsTapDenied("target")))` und für alle Nameplates: `/run for _,p in ipairs(C_NamePlate.GetNamePlates())do local u=p.namePlateUnitToken print(u,S(UnitIsTapDenied(u)))end`
 
-- **I3 Weitere Sprachen** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, Details werden erst geklärt, wenn es umgesetzt wird): Spielertexte zusätzlich auf **Spanisch, Französisch, Russisch und Chinesisch**. Umschaltung wie bisher über die Spielsprache, Englisch bleibt der Rückfall, Debug-Texte bleiben Deutsch.
+- **I3 Weitere Sprachen** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, Details werden erst geklärt, wenn es umgesetzt wird): Spielertexte zusätzlich auf **Spanisch, Französisch, Russisch und Chinesisch**. Umschaltung wie bisher über die Spielsprache, Englisch bleibt der Rückfall, Debug-Texte bleiben Deutsch. — **Spanisch und Französisch umgesetzt in 0.3 (2026-10-17)**; Russisch und Chinesisch weiter Idee.
 
 - **I4 Drei Fenster: Problem-Liste, Fokus-Liste, Ziel-Liste** (Idee des Nutzers, 2026-10-13; **keine Anforderung**):
   - **Fenster 1, wie heute:** das TWF-Fenster mit den Problem-Gegnern. Bleibt unverändert.
@@ -383,7 +383,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## Veröffentlichung 0.3 — vorbereitet 2026-10-17
-- Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen), **X** (Live-Aggro-% in der Liste) und Fix **B2** (doppelte Zeilen in Instanzen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
+- Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen), **X** (Live-Aggro-% in der Liste), Sprachen **Español/Français** (G/I3) und Fix **B2** (doppelte Zeilen in Instanzen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
 - Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
 - Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).
 
