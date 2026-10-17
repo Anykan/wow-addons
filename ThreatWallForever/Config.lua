@@ -37,6 +37,7 @@ C.CODES = {
   NAMEPLATES = '020',    -- Debug: TWF-Nameplates
   SYMBOLS = '021',       -- Debug: Aggro-Ziel am Mob (wer hält welchen Mob)
   PLATES = '022',        -- Debug: Aussehen pro Zustand (Tabelle im Reiter Nameplates)
+  MERGED = '023',        -- Debug: doppelte Listenzeile zusammengeführt (Bug B2)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -175,6 +176,7 @@ C.WINDOW = {
   NAME = 'ThreatWallForeverFrame',
   MIN_W = 160, MAX_W = 500,         -- kleinste/größte Breite beim Aufziehen (die Höhe folgt den Zeilen, W)
   MIN_H = 0, MAX_H = 4000,          -- Höhe beim Aufziehen nicht begrenzen (wird nicht von Hand gezogen)
+  HEIGHT_TOLERANCE = 0.5,           -- Abweichung in px, ab der die Fensterhöhe neu gesetzt wird (Rundung)
   BG_FALLBACK = { 0, 0, 0, 1 },     -- Hintergrund, falls der Atlas fehlt (R, G, B, A)
   EMPTY_X = 10,                     -- Rand des "keine Probleme"-Texts
   EMPTY_Y = 6,

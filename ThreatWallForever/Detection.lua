@@ -184,12 +184,43 @@ end
 
 -- Durchsucht alle Kandidaten und aktualisiert ns.tracked. Gibt nichts zurück:
 -- refresh() zeichnet direkt aus ns.tracked.
+-- Bug B2: In Instanzen ist die GUID geheim, dann war der Token der Schlüssel und derselbe
+-- Mob stand doppelt in der Liste (z. B. als `target` und als `nameplate3`). UnitIsUnit ist
+-- auch dort lesbar (getestet 2026-10-17): Damit bekommt jeder Mob einen stabilen Schlüssel,
+-- den Token seiner Nameplate, und weitere Token desselben Mobs werden übersprungen.
+local function sameUnit(a, b)
+  local ok, same = pcall(UnitIsUnit, a, b)
+  return ok and ns.plain(same) == true
+end
+
+local function plateTokens()
+  local list = {}
+  for _, plate in ipairs(C_NamePlate.GetNamePlates(false) or {}) do
+    local tok = plate.namePlateUnitToken or (plate.UnitFrame and plate.UnitFrame.unit)
+    if tok then list[#list + 1] = tok end
+  end
+  return list
+end
+
+-- Schlüssel ohne lesbare GUID: Nameplate-Token desselben Mobs, sonst der Token selbst
+local function tokenKey(unit, plates)
+  if unit:find('^nameplate') then return unit end
+  for _, tok in ipairs(plates) do
+    if sameUnit(tok, unit) then return tok end
+  end
+  return unit
+end
+
+local mergeReported = false
+
 function ns.collect()
   local db = ns.db
   local tracked = ns.tracked
   local IsSecret = ns.IsSecret
   local now = GetTime()
   local seen = {}
+  local seenUnits = {}   -- Token der schon aufgenommenen Gegner ohne lesbare GUID (B2)
+  local plates           -- Nameplate-Token, erst bei Bedarf ermittelt
 
   for _, unit in ipairs(ns.candidateUnits()) do
     -- Fremde Mobs (andere Gruppe) sind kein Problem für dich: nicht in die Liste (Anforderung U)
@@ -198,11 +229,24 @@ function ns.collect()
       if okG and IsSecret(guid) then guid = nil end
       -- Die GUID ist der normale Schlüssel. Sie kann aber selbst nil oder
       -- "geheim" sein (live bestätigt in einem Gruppen-Dungeon), dann dient der
-      -- Unit-Token als Schlüssel. Wird eine Nameplate mitten im Kampf einem
-      -- anderen Gegner zugewiesen, kann eine Zeile kurz doppelt erscheinen; sie
-      -- läuft über die Gnadenfrist unten normal aus. Besser als den Gegner gar
-      -- nicht zu verfolgen.
-      local key = (okG and guid) or unit
+      -- Nameplate-Token desselben Mobs als Schlüssel (tokenKey, Bug B2). Wird eine
+      -- Nameplate mitten im Kampf einem anderen Gegner zugewiesen, kann eine Zeile
+      -- kurz doppelt erscheinen; sie läuft über die Gnadenfrist unten normal aus.
+      local key = okG and guid or nil
+      if not key then
+        plates = plates or plateTokens()
+        key = tokenKey(unit, plates)
+        -- Mob ohne Nameplate, aber schon über einen anderen Token aufgenommen?
+        if not seen[key] then
+          for _, other in ipairs(seenUnits) do
+            if sameUnit(other, unit) then key = other break end
+          end
+        end
+        if seen[key] and not mergeReported then
+          mergeReported = true
+          ns.dbg('MERGED', 'Doppelte Zeile zusammengeführt: ' .. unit .. ' = ' .. key)
+        end
+      end
       -- Mehrere Token (dein Ziel, eine Nameplate, das Ziel eines Mitspielers …)
       -- können auf denselben Gegner zeigen. Nur der erste in diesem Durchlauf
       -- zählt, damit ein späterer, unvollständigerer Wert keinen guten
@@ -217,8 +261,10 @@ function ns.collect()
             t = {}
             tracked[key] = t
           end
+          -- Seit B2 wechselt der Token bei jedem Zielwechsel (target <-> nameplateN):
+          -- nur ins Log, nicht in den Chat
           if db and db.debug and t.unit and t.unit ~= unit then
-            ns.say('|cff888888[debug]|r Einheiten-Token gewechselt ' .. tostring(t.unit) .. ' -> ' .. tostring(unit)
+            ns.logLine('Einheiten-Token gewechselt ' .. tostring(t.unit) .. ' -> ' .. tostring(unit)
               .. ' bei ' .. tostring(not IsSecret(t.name) and t.name or key))
           end
           t.unit = unit
@@ -229,6 +275,7 @@ function ns.collect()
           local okM, idx = pcall(GetRaidTargetIndex, unit)
           t.markIndex = okM and idx or nil
           seen[key] = true
+          if not guid then seenUnits[#seenUnits + 1] = unit end
 
           if isNew then
             ns.dbg('SPOTTED', (not IsSecret(t.name) and t.name or unit) .. ' entdeckt, tankt='

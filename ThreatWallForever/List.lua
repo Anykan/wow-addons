@@ -166,9 +166,9 @@ local function drawRow(row, e)
     row.name:SetPoint('LEFT', left, 'RIGHT', ROW.GAP, 0)
   end
   if not pcall(row.name.SetText, row.name, e.name or '?') then row.name:SetText('?') end
-  -- Dein eigenes Ziel wird immer zuerst über den Token `target` gelesen (er
-  -- steht in candidateUnits() vorn), also ist die Zeile mit unit == 'target' deins.
-  setTargetHighlight(row, ns.db.highlightTarget and e.unit == 'target')
+  -- Dein Ziel: über UnitIsUnit erkannt (der Schlüssel ist bei geheimer GUID der
+  -- Nameplate-Token, nicht mehr `target`; Bug B2)
+  setTargetHighlight(row, ns.db.highlightTarget and e.isTarget)
   row:Show()
 end
 
@@ -203,12 +203,14 @@ function ns.refresh()
       local name = i > n and (t[1] .. ' ' .. i) or t[1]
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
       list[#list + 1] = { name = name, color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil,
-        symbol = t[4], testPct = t[5] }
+        isTarget = (i == 1), symbol = t[4], testPct = t[5] }
     end
   else
     for _, t in pairs(ns.tracked) do
       if t.shownColor then
+        local okT, isTarget = pcall(UnitIsUnit, t.unit, 'target')
         list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit,
+          isTarget = okT and ns.plain(isTarget) == true,
           symbol = ns.symbolFor(t.unit) }
       end
     end
@@ -226,8 +228,11 @@ function ns.refresh()
   -- Höhe nach Zahl der Gegner, zwischen Min. und Max. Zeilen; wächst nach unten (Anforderung W)
   local wanted = math.max(db.minRows, math.min(#list, db.maxRows))
   local height = ns.heightForRows(wanted)
-  if frame:GetHeight() ~= height then
-    frame:SetHeight(height)
+  -- Das Spiel rundet die Höhe auf Bildpunkte: nur bei echter Abweichung neu setzen, und
+  -- die Debug-Meldung nur, wenn sich die Zeilenzahl ändert (sonst 5x pro Sekunde)
+  if math.abs(frame:GetHeight() - height) > C.WINDOW.HEIGHT_TOLERANCE then frame:SetHeight(height) end
+  if frame.twfRows ~= wanted then
+    frame.twfRows = wanted
     ns.dbg('SETTING', 'Fensterhöhe für ' .. wanted .. ' Zeilen')
   end
 
