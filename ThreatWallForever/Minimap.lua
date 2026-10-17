@@ -63,7 +63,8 @@ local function buildMinimapButton()
   end)
   mm:SetScript('OnDragStop', function(self) self:SetScript('OnUpdate', nil) end)
   mm:SetScript('OnClick', function(self, button)
-    if button == 'RightButton' then ns.showMenu(self, ns.MINIMAP_MENU) else ns.toggleWindow() end
+    -- Rechtsklick: Einstellungen öffnen/schließen (Nutzerwunsch 2026-10-17, vorher Menü "fixieren")
+    if button == 'RightButton' then ns.toggleSettings() else ns.toggleWindow() end
   end)
   mm:SetScript('OnEnter', function(self)
     GameTooltip:SetOwner(self, 'ANCHOR_LEFT')

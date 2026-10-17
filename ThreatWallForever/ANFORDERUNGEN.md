@@ -12,6 +12,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
 - **Minimap-Button:**
   - Linksklick: TWF-Fenster ein- und ausblenden (ist bereits so)
   - Rechtsklick: Kleines Dropdown wie bisher, aber **nur mit „Fenster fixieren“** (`locked`). Bisher öffnet der Rechtsklick das komplette Menü.
+  - **Geändert 2026-10-17 (Version 0.4, Nutzerwunsch):** Rechtsklick öffnet/schließt jetzt das **Einstellungsfenster**. Fenster fixieren nur noch über die Checkbox oder `/twf lock`. `ns.MINIMAP_MENU`/`ns.showMenu` (Menu.lua) dadurch derzeit ungenutzt.
   - Tooltip-Texte (`MM_LEFT`/`MM_RIGHT`) entsprechend anpassen.
 - Inhalt: **alle** bisherigen Menüpunkte plus die Optionen neuer Funktionen, sobald sie beschlossen sind. Bisherige Punkte:
   - Rolle (Tank / DD-Heal)
@@ -78,7 +79,7 @@ Status: **Sammelphase** (seit 2026-10-04). Noch nichts getestet, noch kein Code.
   GroupFrames.lua     Symbol am Gruppenfenster (nur falls in Instanzen nötig, L)
   Settings.lua        Einstellungsfenster (F)
   Hint.lua            Prüfung der Spiel-Optionen + Hinweis-Popup (M)
-  Minimap.lua         Minimap-Button + Rechtsklick-Dropdown (F)
+  Minimap.lua         Minimap-Button, Rechtsklick = Einstellungen (F)
   Slash.lua           /twf-Befehle
   ```
 - Regeln:
