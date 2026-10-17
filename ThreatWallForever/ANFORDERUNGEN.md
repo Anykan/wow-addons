@@ -282,6 +282,14 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: gebaut 2026-10-16, erster Test im Spiel „passt auf den ersten Blick“ (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
+## W. Fensterhöhe wächst mit der Zahl der Gegner (vom Nutzer beschlossen 2026-10-17, Version 0.3)
+- Unter „Allgemein“ Abschnitt **„Fenster“** mit zwei Reglern (Anzahl, nicht %): **Min. Zeilen** (1–15, Standard 5) und **Max. Zeilen** (1–30, Standard 10). Die Regler ziehen sich gegenseitig mit, damit Min. ≤ Max. bleibt.
+- Das TWF-Fenster ist mindestens so hoch wie für „Min. Zeilen“ und wächst **nach unten** mit der Zahl der Gegner bis „Max. Zeilen“; darüber wird abgeschnitten (Gesamtzahl im Kopf).
+- **Testzeilen an:** Das Fenster zeigt immer „Max. Zeilen“ (Beispielzeilen werden wiederholt).
+- Von Hand nur noch die **Breite** ziehbar; die gespeicherte Höhe (`db.height`) und die feste Grenze `C.ROW.MAX` entfallen.
+- Umsetzung: `ns.heightForRows` (Window.lua), Höhe in `ns.refresh` (List.lua), Regler mit `count`/`keepBelow`/`keepAbove` (Config/Settings).
+- Stand: ✅ gebaut und im Spiel getestet 2026-10-17 (Nutzer: „scheint alles so zu gehen“). Offen: Instanz-Test. Teil von 0.3.
+
 ## V. Aussehen pro Zustand einstellbar, Reiter im Einstellungsfenster, Rolle Tank/DD/Heal (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - **Einstellungsfenster mit Reitern** „Allgemein“ und „Nameplates“, beide gleich groß (760 px breit, Höhe = längster Inhalt, springt nicht). „Allgemein“ in drei Spalten (`{ type = 'column' }` in `C.OPTIONS`).
 - **Reiter Nameplates:** Tabelle mit **einer Spalte pro Zustand** (Sicher, Unsicher, Problem, Anderer Tank, Ziehst vom Tank, Nicht mit dir, Außer Kampf, Fremde Gruppe) und den Zeilen **Farbe** (Klick → Blizzards Farbwähler, auf Forever getestet), **Deckkraft** (Anzeige in %, Klick → Popup mit Schieberegler 0–100 %), **Blinken** (Checkbox), **Rahmenfarbe** (nur sichtbar, wenn Blinken an; Farbwähler), **Balken zeigen** (Checkbox; aus = nur der Name).
@@ -356,7 +364,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## Veröffentlichung 0.3 — vorbereitet 2026-10-17
-- Inhalt: Anforderung **V** (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 bestanden; offen: Instanz-Test.
+- Inhalt: Anforderungen **V** und **W** (W: Fensterhöhe wächst mit, Min./Max. Zeilen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 bestanden; offen: Instanz-Test.
 - Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
 - Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).
 

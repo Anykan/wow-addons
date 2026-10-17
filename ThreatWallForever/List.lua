@@ -139,14 +139,6 @@ local function drawRow(row, e)
   row:Show()
 end
 
-local function visibleRows()
-  local space = ns.frame:GetHeight() - C.WINDOW.HEADER_H - ROW.LIST_VPAD
-  local n = math.floor(space / (ns.db.rowHeight + ROW.SPACING))
-  if n < 1 then n = 1 end
-  if n > ROW.MAX then n = ROW.MAX end
-  return n
-end
-
 function ns.refresh()
   local frame = ns.frame
   if not frame then return end
@@ -170,9 +162,14 @@ function ns.refresh()
 
   local list = {}
   if testMode then
-    for i, t in ipairs(C.TEST_ROWS) do
+    -- So viele Testzeilen wie "Max. Zeilen", damit man die volle Fenstergröße sieht (W);
+    -- die Beispiele aus C.TEST_ROWS wiederholen sich dabei
+    local n = #C.TEST_ROWS
+    for i = 1, db.maxRows do
+      local t = C.TEST_ROWS[(i - 1) % n + 1]
+      local name = i > n and (t[1] .. ' ' .. i) or t[1]
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
-      list[#list + 1] = { name = t[1], color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil, symbol = t[4] }
+      list[#list + 1] = { name = name, color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil, symbol = t[4] }
     end
   else
     for _, t in pairs(ns.tracked) do
@@ -192,9 +189,16 @@ function ns.refresh()
 
   ns.ui.subText:SetText(#list > 0 and tostring(#list) or '')
 
+  -- Höhe nach Zahl der Gegner, zwischen Min. und Max. Zeilen; wächst nach unten (Anforderung W)
+  local wanted = math.max(db.minRows, math.min(#list, db.maxRows))
+  local height = ns.heightForRows(wanted)
+  if frame:GetHeight() ~= height then
+    frame:SetHeight(height)
+    ns.dbg('SETTING', 'Fensterhöhe für ' .. wanted .. ' Zeilen')
+  end
+
   local rows = ns.rows
-  local max = visibleRows()
-  local shown = math.min(#list, max)
+  local shown = math.min(#list, db.maxRows)
   for i = 1, shown do
     local row = rows[i] or buildRow(i)
     if not row.laidOut then ns.layoutRow(row, i) row.laidOut = true end

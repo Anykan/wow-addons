@@ -37,6 +37,10 @@ local function afterChange(opt, v)
   ns.dbg('SETTING', 'Einstellung ' .. tostring(opt.key or opt.state or opt.action) .. ' = ' .. tostring(v))
   -- Testzeilen sollen auch sichtbar sein, wenn das Fenster ausgeblendet war
   if opt.state == 'testMode' then ns.db.shown = true end
+  -- Zwei Regler, die zusammengehören (Min./Max. Zeilen): den anderen mitziehen, damit min ≤ max bleibt
+  local db = ns.db
+  if opt.keepBelow and v > db[opt.keepBelow] then db[opt.keepBelow] = v end
+  if opt.keepAbove and v < db[opt.keepAbove] then db[opt.keepAbove] = v end
   ns.applyLook()
   ns.updateMinimap()
   ns.refresh()
@@ -211,10 +215,12 @@ local function buildSlider(parent, opt, y)
   value:SetWidth(S.VALUE_W)
   value:SetJustifyH('RIGHT')
 
+  -- Prozent (×100) oder, bei count = true, die Zahl selbst (z. B. Zeilen)
+  local function valueText(v) return opt.count and tostring(v) or percentText(v) end
   local slider = makeSlider(row, opt.min, opt.max, opt.step, function(v)
     if v == getValue(opt) then return end
     setValue(opt, v)
-    value:SetText(percentText(v))
+    value:SetText(valueText(v))
     afterChange(opt, v)
   end)
   slider:SetPoint('BOTTOMLEFT')
@@ -223,7 +229,7 @@ local function buildSlider(parent, opt, y)
   local function update()
     local v = getValue(opt)
     slider.setQuiet(v)
-    value:SetText(percentText(v))
+    value:SetText(valueText(v))
   end
   for _, f in ipairs({ row, slider }) do
     f:SetScript('OnEnter', function(self) showTip(self, opt) end)

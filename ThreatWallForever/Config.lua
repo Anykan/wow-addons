@@ -47,7 +47,8 @@ C.DEFAULTS = {
   scale = 1,
   minimized = false,
   width = 240,               -- Fensterbreite in px
-  height = 160,              -- Fensterhöhe in px
+  minRows = 5,               -- Fenster mindestens so hoch wie für 5 Zeilen (Anforderung W)
+  maxRows = 10,              -- … und wächst mit der Zahl der Gegner bis 10 Zeilen
   alpha = 0.4,               -- Deckkraft des Hintergrunds (0–1)
   rowHeight = 20,            -- Zeilenhöhe in px
   textScale = 1,
@@ -172,8 +173,8 @@ C.RAID_ICONS = {
 
 C.WINDOW = {
   NAME = 'ThreatWallForeverFrame',
-  MIN_W = 160, MIN_H = 90,          -- kleinste Größe beim Aufziehen
-  MAX_W = 500, MAX_H = 400,         -- größte Größe beim Aufziehen
+  MIN_W = 160, MAX_W = 500,         -- kleinste/größte Breite beim Aufziehen (die Höhe folgt den Zeilen, W)
+  MIN_H = 0, MAX_H = 4000,          -- Höhe beim Aufziehen nicht begrenzen (wird nicht von Hand gezogen)
   BG_FALLBACK = { 0, 0, 0, 1 },     -- Hintergrund, falls der Atlas fehlt (R, G, B, A)
   EMPTY_X = 10,                     -- Rand des "keine Probleme"-Texts
   EMPTY_Y = 6,
@@ -200,7 +201,6 @@ C.WINDOW = {
 -- Zeilen der Liste ----------------------------------------------------------------------
 
 C.ROW = {
-  MAX = 10,                    -- maximal sichtbare Zeilen
   PADDING = 4,                 -- Abstand der Zeilen zum Fensterrand
   SPACING = 2,                 -- Abstand zwischen zwei Zeilen
   LIST_VPAD = 8,               -- senkrechter Rand der Liste (oben + unten)
@@ -468,7 +468,8 @@ C.ALPHA_POPUP = {
 --         (Spalten teilen die Fensterbreite gleich auf)
 -- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
 -- label/tip: Schlüssel in Locales.lua · action: Funktion in ns, die der Knopf aufruft
--- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent)
+-- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent; count = true zeigt die Zahl selbst)
+-- keepBelow/keepAbove: anderer Schlüssel, der mitgezogen wird, damit min ≤ max bleibt
 C.OPTIONS = {
   { type = 'section', label = 'SEC_GENERAL' },
   { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
@@ -491,6 +492,11 @@ C.OPTIONS = {
   { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 
   { type = 'column' },
+  { type = 'section', label = 'SEC_WINDOW' },
+  { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
+    count = true, keepBelow = 'maxRows' },
+  { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
+    count = true, keepAbove = 'minRows' },
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
   { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },

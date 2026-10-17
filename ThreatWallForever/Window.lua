@@ -22,14 +22,21 @@ function ns.placeFrame()
   return true
 end
 
+-- Fensterhöhe für n Zeilen: Kopf + Rand + Zeilen (Anforderung W). Vor dem Laden der
+-- Einstellungen gelten die Standardwerte.
+function ns.heightForRows(n)
+  local rowH = ns.db and ns.db.rowHeight or C.DEFAULTS.rowHeight
+  return W.HEADER_H + C.ROW.LIST_VPAD + n * (rowH + C.ROW.SPACING)
+end
+
 function ns.savePlace()
   local db, frame = ns.db, ns.frame
-  local left, top, w, h = frame:GetLeft(), frame:GetTop(), frame:GetWidth(), frame:GetHeight()
+  local left, top, w = frame:GetLeft(), frame:GetTop(), frame:GetWidth()
   if not (ns.num(left) and ns.num(top)) then return end
   local scale = frame:GetScale()
   if not ns.num(scale) then scale = db.scale or 1 end
   db.left, db.top = left * scale, top * scale
-  if ns.num(w) and ns.num(h) then db.width, db.height = w, h end
+  if ns.num(w) then db.width = w end   -- die Höhe folgt der Zahl der Gegner (Anforderung W)
   ns.placeFrame()
 end
 
@@ -110,7 +117,7 @@ function ns.resetPlace()
   local frame = ns.frame
   frame:ClearAllPoints()
   frame:SetPoint('CENTER', UIParent, 'CENTER', 0, 0)
-  frame:SetSize(C.DEFAULTS.width, C.DEFAULTS.height)
+  frame:SetWidth(C.DEFAULTS.width)
   ns.db.shown = true
   ns.savePlace()
   ns.refresh()
@@ -123,10 +130,12 @@ local function buildFrame()
   local frame = ns.frame or CreateFrame('Frame', W.NAME, UIParent)
   ns.frame = frame
   local restored = frame:GetNumPoints() > 0
+  db.height = nil   -- bis 0.2 gespeichert; seit 0.3 folgt die Höhe den Zeilen (Anforderung W)
+  local height = ns.heightForRows(db.minRows)
   if ns.placeFrame() then
-    frame:SetSize(db.width, db.height)
+    frame:SetSize(db.width, height)
   elseif not restored then
-    frame:SetSize(db.width, db.height)
+    frame:SetSize(db.width, height)
     frame:SetPoint('CENTER', UIParent, 'CENTER', 0, 0)
   end
   frame:SetFrameStrata('MEDIUM')
@@ -306,7 +315,7 @@ local function buildFrame()
   grip:SetAlpha(0)
   grip:SetScript('OnMouseDown', function()
     frame.moving = true
-    frame:StartSizing('BOTTOMRIGHT')
+    frame:StartSizing('RIGHT')   -- nur die Breite; die Höhe folgt den Zeilen (Anforderung W)
   end)
   grip:SetScript('OnMouseUp', ns.stopMove)
   frame:SetScript('OnSizeChanged', function() if frame.moving then ns.refresh() end end)
@@ -336,7 +345,7 @@ ns.RegisterModule('Window', { OnLogin = buildFrame })
 do
   local frame = CreateFrame('Frame', W.NAME, UIParent)
   ns.frame = frame
-  frame:SetSize(C.DEFAULTS.width, C.DEFAULTS.height)
+  frame:SetSize(C.DEFAULTS.width, ns.heightForRows(C.DEFAULTS.minRows))
   frame:SetMovable(true)
   frame:SetResizable(true)
   if frame.SetUserPlaced then pcall(frame.SetUserPlaced, frame, true) end
