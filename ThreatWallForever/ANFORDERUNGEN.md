@@ -412,6 +412,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Stufe 2 – Sync für andere Mobs:** Bei nicht anvisierten Mobs ist der eigene Wert geheim → selbst mit dem Wert von Platz 1 nicht rechenbar. Lösung: **wer den Mob im Ziel hat** (meist der Tank), liest dort alle Werte, rechnet die Rangliste und schickt sie per Addon-Nachricht (unsichtbar, Gruppe/Schlachtzug) an alle; Empfänger ordnen „Ziel von Spieler X“ per `UnitIsUnit(nameplateN, 'partyXtarget')` ihrer Nameplate zu (GUID in Instanzen geheim). Kein Anfragen nötig – jeder TWF-Nutzer verteilt regelmäßig die Rangliste seines Ziels (alle 0,5–1 s, Nachrichten sind gedrosselt).
   - Grenzen: nur TWF-Nutzer liefern Daten (Tank sollte TWF haben); geheime Werte lassen sich nicht verschicken.
   - **Vorher testen:** (1) Prozent/Rohwerte aller Gruppenmitglieder über `target` lesbar? (2) Dürfen Addons auf Forever **im Kampf in Instanzen** Nachrichten schicken (Retail/Midnight schränkt das ein)? (3) `UnitIsUnit(Nameplate, 'party1target')` lesbar?
+  - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Addon chat is locked in instance combat“ – auf Forever sind **Addon-Nachrichten im Kampf in Instanzen gesperrt**. Stufe 2 (Sync) ginge damit nur draußen bzw. außerhalb des Kampfs → in Instanzen nur Stufe 1 sinnvoll. Außerdem laut NKThreat: Boss-Bedrohung in Instanzen geheim (Prozente sichtbar, aber nicht sortierbar).
   - Wäre ein Alleinstellungsmerkmal (kein Konkurrent synct auf Forever). Sync-Erfahrung aus CrittersBoard und GuildAchievements vorhanden.
 
 - **I15 TWF-Rolle und Gruppenrolle synchron** (Idee des Nutzers, 2026-10-17; **keine Anforderung**):
@@ -420,6 +421,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Verwandt (besprochen, nicht beschlossen): Knopf „Auto“ – Rolle aus Gruppenrolle, sonst aus Haltung/Form (Krieger Verteidigung, Druide Bär, Paladin Zorn der Gerechtigkeit).
   - **Vom Nutzer präzisiert (2026-10-17, weiter Idee):** Ändert man die Rolle im Spiel, schaltet TWF (Fenster/Liste) automatisch mit. Dafür unter **Allgemein eine Checkbox „Rolle mit Gruppenrolle synchronisieren“ (an/aus)**.
   - Weitere Testergebnisse 2026-10-17: Gruppenrolle lesbar (`UnitGroupRolesAssigned` = TANK). Zorn der Gerechtigkeit: `C_UnitAuras.GetPlayerAuraBySpellID(25780)` liefert auf Forever **nil**, das Durchgehen der Buffs (`GetAuraDataByIndex`) zeigt ihn mit ID **25780** (für „Auto“ per Haltung). Offen: Buffs im Kampf lesbar? Kommt beim Rollenwechsel ein Ereignis (`PLAYER_ROLES_ASSIGNED`)? – erster Versuch ohne Ergebnis, ggf. nach /reload wiederholen.
+  - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Buffs are unreadable in combat inside instances“ → „Auto“ per Haltung/Buff (Zorn der Gerechtigkeit) ginge in Instanzen im Kampf nicht; Gruppenrolle bleibt der verlässliche Weg.
   - **Getestet 2026-10-17:** `UnitSetRole` ist auf Forever für Addons **gesperrt** (Meldung „Aktion aufgrund eines AddOns fehlgeschlagen“). **TWF → Gruppe geht also nicht.** Möglich bleibt nur **Gruppe → TWF**: Rolle im Spiel (Porträt/Gruppensuche) setzen, TWF schaltet automatisch mit; ggf. Knopf „Auto“.
 
 ## Offene Bugs
