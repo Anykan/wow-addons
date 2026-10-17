@@ -375,7 +375,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Offene Punkte (erst klären, wenn es umgesetzt wird): Farbe des Balkens vor dem Kampf (neutral grau wie beim Ziel?), Verhalten hinter Wänden (wie Anforderung O).
   - Verwandt: Die **Reichweite** der Nameplates bestimmt allein Blizzard (`nameplateMaxDistance`, Classic Era Standard 20 m, max. 41 m); ob WoW Forever mehr zulässt, ist noch ungetestet. TWF prüft selbst keine Entfernung.
 
-- **I8 Vorschau im Einstellungsfenster** (Idee des Nutzers, 2026-10-16; **keine Anforderung**): Beispiel-Balken mit festen Testwerten (Ziel grün, anderer Gegner rot mit Blinkrahmen, hinter Wand gelb, anderer Tank braun, außerhalb des Kampfs grau), die sich sofort mit Reglern und Checkboxen ändern (Deckkraft, Aggro-%, Blinkrahmen, graue Balken, Rolle).
+- ~~**I8 Vorschau im Einstellungsfenster**~~ — ❌ **vorerst verworfen (Nutzer, 2026-10-17).** (Idee des Nutzers, 2026-10-16; **keine Anforderung**): Beispiel-Balken mit festen Testwerten (Ziel grün, anderer Gegner rot mit Blinkrahmen, hinter Wand gelb, anderer Tank braun, außerhalb des Kampfs grau), die sich sofort mit Reglern und Checkboxen ändern (Deckkraft, Aggro-%, Blinkrahmen, graue Balken, Rolle).
   - Aufbau: Bau-Code des TWF-Balkens aus `Nameplates.lua` in eine gemeinsame Funktion ziehen, die auch die Vorschau nutzt (kein doppelter Code). Liest keine Spielwerte.
   - Zu klären, wenn es umgesetzt wird: im Fenster (300 px breit, wird länger), weniger Balken, oder eigenes kleines Fenster daneben; Deckkraft wirkt auf dem dunklen Fensterhintergrund anders als vor der Spielwelt.
 
