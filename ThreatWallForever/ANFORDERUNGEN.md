@@ -407,6 +407,13 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Möglich: Option „Begleiter zählt mit“ – hält dein Pet den Mob, ist das kein Problem (eigener Zustand oder grün; Technik wie beim zweiten Tank, `UnitThreatSituation('pet', mob)`); evtl. Pet-Bedrohung in % im Balken/in der Liste; bei I4 (Fokus-/Ziel-Liste) das Pet als eigene Zeile.
   - Vorher prüfen: Werte für `pet` über Nameplates lesbar/geheim?
 
+- **I14 Abstand zum Zweiten (Threat Differential), ggf. mit Gruppen-Sync** (Top-Wunsch der Community – NKThreat, ThreatDiff, alte WeakAura; vom Nutzer „sollten wir uns wirklich noch mal anschauen“, 2026-10-17; **keine Anforderung**):
+  - **Stufe 1 – ohne Sync, eigenes Ziel:** Über `target` sind die Bedrohungswerte **aller Gruppenmitglieder** lesbar (andere Addons zeigen so eine Ziel-Liste) → TWF rechnet den Abstand selbst: Tank „+25 % Vorsprung“, DD „noch 22 % bis Aggro“.
+  - **Stufe 2 – Sync für andere Mobs:** Bei nicht anvisierten Mobs ist der eigene Wert geheim → selbst mit dem Wert von Platz 1 nicht rechenbar. Lösung: **wer den Mob im Ziel hat** (meist der Tank), liest dort alle Werte, rechnet die Rangliste und schickt sie per Addon-Nachricht (unsichtbar, Gruppe/Schlachtzug) an alle; Empfänger ordnen „Ziel von Spieler X“ per `UnitIsUnit(nameplateN, 'partyXtarget')` ihrer Nameplate zu (GUID in Instanzen geheim). Kein Anfragen nötig – jeder TWF-Nutzer verteilt regelmäßig die Rangliste seines Ziels (alle 0,5–1 s, Nachrichten sind gedrosselt).
+  - Grenzen: nur TWF-Nutzer liefern Daten (Tank sollte TWF haben); geheime Werte lassen sich nicht verschicken.
+  - **Vorher testen:** (1) Prozent/Rohwerte aller Gruppenmitglieder über `target` lesbar? (2) Dürfen Addons auf Forever **im Kampf in Instanzen** Nachrichten schicken (Retail/Midnight schränkt das ein)? (3) `UnitIsUnit(Nameplate, 'party1target')` lesbar?
+  - Wäre ein Alleinstellungsmerkmal (kein Konkurrent synct auf Forever). Sync-Erfahrung aus CrittersBoard und GuildAchievements vorhanden.
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
