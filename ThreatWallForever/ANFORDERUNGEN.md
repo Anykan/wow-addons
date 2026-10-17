@@ -288,7 +288,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Checkbox **„Rolle mit Gruppenrolle synchronisieren“** (Allgemein, Standard aus). An: Gruppenrolle im Spiel geändert (Porträt → Rolle, Gruppensuche) → TWF schaltet mit (Tank → Tank, Heiler → Heal, Schaden → DD); beim Einschalten sofort übernommen. Von Hand umschalten bleibt möglich; TWF folgt erst bei der nächsten Änderung der Gruppenrolle. Solo/ohne Rolle: keine Änderung.
 - Gegenrichtung (TWF → Gruppenrolle, `UnitSetRole`) auf Forever für Addons gesperrt (getestet).
 - Technik: Prüfung im TWF-Takt (`OnTick`, Window.lua), Zuordnung `C.ROLE_FROM_GROUP`.
-- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+- Stand: gebaut 2026-10-17, in der Gruppe getestet: Rollenwechsel per Porträt → TWF folgt, von Hand umschaltbar, Haken aus = kein Sync (Nutzer, 2026-10-17). Teil von 0.4.
 
 ## AA. Restleben als Zahl oder in % (vom Nutzer beschlossen 2026-10-17, Version 0.4)
 - Checkbox **„Leben in %“** (Allgemein → Nameplates, Standard **an** = wie bisher). **Aus:** rechts im Balken das **Restleben als Zahl** (z. B. „8240“), nur die aktuelle Zahl (kein „/ Maximum“, sonst zu eng neben den Aggro-%).
