@@ -414,6 +414,12 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Vorher testen:** (1) Prozent/Rohwerte aller Gruppenmitglieder über `target` lesbar? (2) Dürfen Addons auf Forever **im Kampf in Instanzen** Nachrichten schicken (Retail/Midnight schränkt das ein)? (3) `UnitIsUnit(Nameplate, 'party1target')` lesbar?
   - Wäre ein Alleinstellungsmerkmal (kein Konkurrent synct auf Forever). Sync-Erfahrung aus CrittersBoard und GuildAchievements vorhanden.
 
+- **I15 TWF-Rolle und Gruppenrolle synchron** (Idee des Nutzers, 2026-10-17; **keine Anforderung**):
+  - Klick auf den TWF-Rollen-Knopf (Tank → DD → Heal) stellt auch die **Rolle in der Gruppe** um (`UnitSetRole('player', 'TANK'|'DAMAGER'|'HEALER')`), wie Rechtsklick aufs Porträt → Rolle. Und umgekehrt: Rolle im Spiel geändert (Porträt, Gruppensuche) → TWF schaltet mit (`UnitGroupRolesAssigned`, Ereignis bei Rollenwechsel).
+  - Solo (keine Gruppenrolle): nur TWF schaltet um. Im Kampf evtl. nicht erlaubt → nach dem Kampf nachziehen.
+  - Verwandt (besprochen, nicht beschlossen): Knopf „Auto“ – Rolle aus Gruppenrolle, sonst aus Haltung/Form (Krieger Verteidigung, Druide Bär, Paladin Zorn der Gerechtigkeit).
+  - **Vorher testen** (außerhalb des Kampfs, in Gruppe): `/run UnitSetRole("player","TANK") C_Timer.After(1,function() print("Rolle:",UnitGroupRolesAssigned("player")) end)` – Symbol am Porträt ändert sich = erlaubt; Fehler/„Aktion blockiert“ = gesperrt (dann nur Richtung Gruppe → TWF).
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
