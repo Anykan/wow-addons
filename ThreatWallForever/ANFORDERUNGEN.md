@@ -256,33 +256,33 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Werte in `C.NAMEPLATES.THREAT_PCT_X` / `THREAT_PCT_FORMAT`; Debug-Meldungen (einmalig): Wert geheim, Anzeige fehlgeschlagen; Umschalten der Checkbox.
 - **Getestet 2026-10-17 (draußen, allein):** Über `nameplateN` sind Prozent, Roh-Prozent und Rohwert von `UnitDetailedThreatSituation` **geheim**, aber **live**: Der Rohwert eines **nicht anvisierten** Mobs steigt sichtbar mit (an `SetFormattedText` weitergereicht, Weihe auf zwei Mobs). TWF zeigt also auf allen Nameplates aktuelle Aggro-% – andere Addons (NKThreat, Tiny Threat Plus, ThreatDiff) halten das auf Forever für unmöglich, weil sie mit den Werten rechnen wollen (Abstand zum Zweiten); Rechnen/Vergleichen bleibt verboten.
 - **Instanz-Test 2026-10-17:** Aggro-% erscheinen und ändern sich auch in der Instanz, auch bei nicht anvisierten Mobs (Nutzer).
-- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+- Stand: ✅ gebaut 2026-10-16, getestet allein, in der Gruppe und in der Instanz (2026-10-17). In 0.3 pro Zustand schaltbar (V).
 
 ## Q. Graue Balken auch außerhalb des Kampfs + Leuchtrahmen am Ziel (vom Nutzer beschlossen 2026-10-16, war Idee I7) — **in 0.3 durch Anforderung V ersetzt** (Einstellungen jetzt in der Tabelle im Reiter Nameplates)
 - **Checkbox „Balken auch außerhalb des Kampfs“** im Abschnitt Nameplates, Standard **aus** (`db.barsOutOfCombat`). An: Gegner außerhalb des Kampfs bekommen statt nur des Namens (Anforderung N) einen **grauen Balken** wie heute dein Ziel außerhalb des Kampfs. Aus: wie bisher.
 - ~~**Dein Ziel außerhalb des Kampfs** (grauer Balken) bekommt einen **hellgelb leuchtenden, pulsierenden Rahmen** (`C.NAMEPLATES.GLOW`). Gleicher Rahmen-Code wie die Ziel-Zeile in der Liste (`ns.createGlow` in `Utils.lua`, aus `List.lua` herausgezogen).~~ **Vom Nutzer wieder herausgenommen (2026-10-16).** Der gemeinsame Rahmen-Code bleibt (Liste, Anforderungen S und T).
-- Stand: gebaut 2026-10-16, im Spiel getestet: Checkbox an/aus i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+- Stand: ✅ gebaut 2026-10-16, getestet. In 0.3 durch V ersetzt („Balken zeigen“ bei „Außer Kampf“).
 
 ## S. Rot blinkender Rahmen bei Aggro-Problem (vom Nutzer beschlossen 2026-10-16) — **in 0.3 durch Anforderung V ersetzt** (Einstellungen jetzt in der Tabelle im Reiter Nameplates)
 - **Gelbe und rote** TWF-Balken bekommen einen **rot blinkenden Rahmen** (`C.NAMEPLATES.ALARM`: rot, 3 px, 0,3 s, Deckkraft 1 → 0,1). Gleicher Rahmen-Code wie der Ziel-Rahmen (`ns.createGlow`).
 - Gilt für **alle Mobs** (nicht nur das Ziel) und in **beiden Modi**: Tank = du verlierst die Aggro, DD/Heal = du ziehst Aggro.
 - Checkbox **„Rot blinkender Rahmen“** im Abschnitt Nameplates, Standard **an** (`db.alarmFrame`).
 - Der Rahmen erbt die Deckkraft des Balkens (Anforderung R), ist bei anderen Gegnern also etwas blasser als beim Ziel.
-- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. inkl. DD/Heal-Modus und Checkbox aus (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+- Stand: ✅ gebaut 2026-10-16, getestet inkl. DD/Heal-Modus und in der Instanz (2026-10-17). In 0.3 durch V ersetzt.
 
 ## T. Anderer Tank hält den Mob: braun (vom Nutzer beschlossen 2026-10-16, war Idee I5)
 - **Nur Tank-Modus.** Hält ein **anderer Spieler mit der Rolle Tank** (`UnitGroupRolesAssigned`) den Mob, wird aus **Rot → Braun**, an der Nameplate **und in der Liste** (braune Zeile, eigener Tooltip). **Kein Blinkrahmen** bei braun. **Warnton bleibt** (braun zählt wie eine Verschlechterung von grün).
 - Ziehst du dem anderen Tank gleich die Aggro ab (Stufe 1 → gelb), bleibt der Balken **gelb** und bekommt einen **gelb blinkenden** Rahmen (`C.NAMEPLATES.ALARM_PULL`) statt des roten.
 - Hält ihn ein DD/Heiler oder hat der andere Tank keine Rolle zugewiesen: unverändert rot. **DD/Heal-Modus unverändert.**
 - Umsetzung: `ns.withOtherTank` + `ns.groupRole` in `Detection.lua` (eine Quelle für Liste und Nameplates; Rollenabfrage aus `Symbols.lua` dorthin verschoben), Halter über das vorhandene `ns.aggroHolder`. Farbe `C.COLOR.brown`, Füllung entsättigt + getönt wie Blau/Grau.
-- Stand: gebaut 2026-10-16, im Spiel in der Gruppe getestet: braun mit zweitem Tank und gelb blinkender Rahmen beim Abziehen i. O. (Nutzer, 2026-10-17). Offen: Instanz.
+- Stand: ✅ gebaut 2026-10-16, in der Gruppe (braun + gelb blinkend beim Abziehen) und in der Instanz (braun) getestet (Nutzer, 2026-10-17).
 
 ## U. Fremde Mobs dunkelgrau (vom Nutzer beschlossen 2026-10-16, war Idee I2)
 - Mobs, die einer **anderen Gruppe gehören** (keine EP, keine Beute; im Original ausgegraut), bekommen einen **dunkelgrauen Balken** (`C.COLOR.foreign`), **ohne Ampelfarbe und ohne Blinkrahmen** (Variante a).
 - Sie erscheinen **nicht in der Problem-Liste** und lösen keinen Warnton aus, auch wenn du auf ihrer Bedrohungsliste stehst.
 - Erkennung: `ns.isForeign` (`UnitIsTapDenied`) in `Detection.lua`; lesbar über Nameplate-Token, auch im Kampf (getestet 2026-10-16). Geheim/unlesbar gilt als „nicht fremd“.
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
-- Stand: gebaut 2026-10-16, erster Test im Spiel „passt auf den ersten Blick“ (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+- Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
 ## X. Live-Aggro-% in der Liste (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - Jede Listenzeile zeigt **ganz links** deine **Live-Aggro in %**, dahinter Ampelpunkt, Symbol, Name.
@@ -319,7 +319,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Drei Schieberegler im Abschnitt Nameplates, 10-%-Schritte: **Ziel** (`alphaTarget`, Standard 100 %), **andere Gegner** (`alphaOther`, 60 %), **hinter Wänden** (`alphaOccluded`, 30 %).
 - TWF setzt die Deckkraft selbst (`SetIgnoreParentAlpha(true)`), Blizzards Abdunkeln zählt für die Balken nicht mehr. Dein **Ziel** behält den Ziel-Wert auch **hinter Wänden** (Nutzer-Entscheid).
 - Die Aggro-Ziel-Zeile über dem Mob (Anforderung L) übernimmt die Deckkraft des Balkens. Zauberleiste und Schlachtzugsymbol bleiben voll sichtbar. Nur-Name-Zustand unverändert (voll sichtbar, hinter Wänden ausgeblendet).
-- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+- Stand: ✅ gebaut 2026-10-16, getestet. In 0.3 teilweise durch V ersetzt; Ziel/Wand-Regler bleiben.
 
 ## TODO (nächste Sitzung)
 - Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bei Gelegenheit.
