@@ -293,7 +293,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 ## AA. Restleben als Zahl oder in % (vom Nutzer beschlossen 2026-10-17, Version 0.4)
 - Checkbox **„Leben in %“** (Allgemein → Nameplates, Standard **an** = wie bisher). **Aus:** rechts im Balken das **Restleben als Zahl** (z. B. „8240“), nur die aktuelle Zahl (kein „/ Maximum“, sonst zu eng neben den Aggro-%).
 - Technik: `UnitHealth` ist geheim, lässt sich aber an `SetFormattedText` weitergeben (Test 2026-10-17: Zahl läuft live mit). Kürzen (8,2k) nicht möglich, weil Rechnen mit geheimen Werten verboten ist (Test mit `AbbreviateLargeNumbers` ohne Rückmeldung).
-- Stand: gebaut 2026-10-17, vom Nutzer für 0.4 freigegeben (Einzeltests nicht ausdrücklich bestätigt).
+- Stand: gebaut 2026-10-17, im Spiel getestet: Zahl läuft mit, passt, % wieder umschaltbar (Nutzer, 2026-10-17). Teil von 0.4.
 
 ## Z. Tank: Vorsprung statt Aggro-% (vom Nutzer beschlossen 2026-10-17, Version 0.4)
 - **Balken:** Checkbox **„Tank: Vorsprung statt Aggro-%“** (Allgemein → Nameplates, Standard aus). Im **Tank-Modus** zeigt jeder Balken links statt der Aggro-% den **Vorsprung vor Platz 2** (Blizzard-Tooltip-Wert, z. B. 400 % = viermal so viel Bedrohung wie der Nächste) – aber nur, wenn **du den Mob hältst** (Aggro-Stufe ≥ unsicher, lesbar) und **nicht allein** bist (allein gibt es keinen Platz 2). Sonst die normalen Aggro-%.
