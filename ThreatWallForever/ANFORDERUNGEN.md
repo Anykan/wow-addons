@@ -254,6 +254,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Einstellung: Checkbox **„Aggro-% am Balken“** im Abschnitt Nameplates, Standard **an** (`db.threatPct`).
 - Geheime Werte werden nur an den Text weitergereicht (`SetFormattedText`), nie verglichen. Beleg, dass es auf WoW Forever geht: Threat Plates 13.3 und Forever Threat 1.23 zeigen den Wert an (nur angesehen, kein Code übernommen; Threat Plates ist GPL).
 - Werte in `C.NAMEPLATES.THREAT_PCT_X` / `THREAT_PCT_FORMAT`; Debug-Meldungen (einmalig): Wert geheim, Anzeige fehlgeschlagen; Umschalten der Checkbox.
+- **Getestet 2026-10-17 (draußen, allein):** Über `nameplateN` sind Prozent, Roh-Prozent und Rohwert von `UnitDetailedThreatSituation` **geheim**, aber **live**: Der Rohwert eines **nicht anvisierten** Mobs steigt sichtbar mit (an `SetFormattedText` weitergereicht, Weihe auf zwei Mobs). TWF zeigt also auf allen Nameplates aktuelle Aggro-% – andere Addons (NKThreat, Tiny Threat Plus, ThreatDiff) halten das auf Forever für unmöglich, weil sie mit den Werten rechnen wollen (Abstand zum Zweiten); Rechnen/Vergleichen bleibt verboten.
+- **Instanz-Test 2026-10-17:** Aggro-% erscheinen und ändern sich auch in der Instanz, auch bei nicht anvisierten Mobs (Nutzer).
 - Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
 ## Q. Graue Balken auch außerhalb des Kampfs + Leuchtrahmen am Ziel (vom Nutzer beschlossen 2026-10-16, war Idee I7) — **in 0.3 durch Anforderung V ersetzt** (Einstellungen jetzt in der Tabelle im Reiter Nameplates)
@@ -282,16 +284,24 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: gebaut 2026-10-16, erster Test im Spiel „passt auf den ersten Blick“ (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
+## X. Live-Aggro-% in der Liste (vom Nutzer beschlossen 2026-10-17, Version 0.3)
+- Jede Listenzeile zeigt **ganz links** deine **Live-Aggro in %**, dahinter Ampelpunkt, Symbol, Name.
+- Checkbox **„Aggro-% in der Liste“** unter Allgemein → Anzeige, Standard **an**. Textfarbe = „Aggro-%-Farbe“ des Zustands aus der Tabelle (Reiter Nameplates).
+- Wert aus `UnitDetailedThreatSituation('player', token der Zeile)`, geheim → nur an `SetFormattedText` weitergereicht (vor dem nil-Vergleich auf „geheim“ prüfen). Kein Wert → Feld leer, Zeile bleibt. Sortierung unverändert (nach Ampel).
+- Testzeilen zeigen Beispielwerte (100/87/64 %).
+- Offen/ungetestet: Zeilen, deren Token kein Nameplate ist (z. B. `party1target`, Mob ohne Nameplate) – liefern evtl. keinen Wert; Instanz.
+- Stand: ✅ gebaut 2026-10-17, im Spiel getestet, auch in der Instanz (Nutzer: Aggro-% live auch bei nicht anvisierten Mobs, Ampel/Blinken, Liste/Fensterhöhe, keine Lua-Fehler). Teil von 0.3.
+
 ## W. Fensterhöhe wächst mit der Zahl der Gegner (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - Unter „Allgemein“ Abschnitt **„Fenster“** mit zwei Reglern (Anzahl, nicht %): **Min. Zeilen** (1–15, Standard 5) und **Max. Zeilen** (1–30, Standard 10). Die Regler ziehen sich gegenseitig mit, damit Min. ≤ Max. bleibt.
 - Das TWF-Fenster ist mindestens so hoch wie für „Min. Zeilen“ und wächst **nach unten** mit der Zahl der Gegner bis „Max. Zeilen“; darüber wird abgeschnitten (Gesamtzahl im Kopf).
 - **Testzeilen an:** Das Fenster zeigt immer „Max. Zeilen“ (Beispielzeilen werden wiederholt).
 - Von Hand nur noch die **Breite** ziehbar; die gespeicherte Höhe (`db.height`) und die feste Grenze `C.ROW.MAX` entfallen.
 - Umsetzung: `ns.heightForRows` (Window.lua), Höhe in `ns.refresh` (List.lua), Regler mit `count`/`keepBelow`/`keepAbove` (Config/Settings).
-- Stand: ✅ gebaut und im Spiel getestet 2026-10-17 (Nutzer: „scheint alles so zu gehen“). Offen: Instanz-Test. Teil von 0.3.
+- Stand: ✅ gebaut und im Spiel getestet 2026-10-17, auch in der Instanz. Teil von 0.3.
 
 ## V. Aussehen pro Zustand einstellbar, Reiter im Einstellungsfenster, Rolle Tank/DD/Heal (vom Nutzer beschlossen 2026-10-17, Version 0.3)
-- **Einstellungsfenster mit Reitern** „Allgemein“ und „Nameplates“, beide gleich groß (760 px breit, Höhe = längster Inhalt, springt nicht). „Allgemein“ in drei Spalten (`{ type = 'column' }` in `C.OPTIONS`).
+- **Einstellungsfenster mit Reitern** „Allgemein“ und „Nameplates“, beide gleich groß (760 px breit, Höhe = längster Inhalt, springt beim Reiterwechsel nicht). Die Höhe passt sich an „Farben gleich“ an: an = eine Tabelle (niedriger), aus = drei Tabellen (Nutzer, 2026-10-17). „Allgemein“ in drei Spalten (`{ type = 'column' }` in `C.OPTIONS`).
 - **Reiter Nameplates:** Tabelle mit **einer Spalte pro Zustand** (Sicher, Unsicher, Problem, Anderer Tank, Ziehst vom Tank, Nicht mit dir, Außer Kampf, Fremde Gruppe) und den Zeilen **Farbe** (Klick → Blizzards Farbwähler, auf Forever getestet), **Deckkraft** (Anzeige in %, Klick → Popup mit Schieberegler 0–100 %), **Blinken** (Checkbox), **Rahmenfarbe** (nur sichtbar, wenn Blinken an; Farbwähler), **Balken zeigen** (Checkbox; aus = nur der Name).
 - **Checkbox „Farben für alle Modi gleich“** (Standard an): eine Tabelle für alle Modi, Farben wie bisher an die Ampel-Bedeutung gebunden (Tank: Rot = Aggro verloren; DD/Heal: Rot = Aggro gezogen). **Aus:** drei Tabellen untereinander (Tank, DD, Heal), jede mit eigenen Werten; in DD/Heal sind „Anderer Tank“ und „Ziehst vom Tank“ ausgegraut. Die gespielte Rolle ist mit „(aktiv)“ markiert.
 - **Knopf „Farben zurücksetzen“** im Reiter Nameplates: alle Tabellen auf Standard (= Aussehen wie 0.2).
@@ -302,7 +312,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Liste:** Punktfarbe folgt der Balkenfarbe des Zustands.
 - **Umstieg von 0.2** (einmalig, `PlateStates.lua`): Deckkraft „andere Gegner“ → Deckkraft aller Zustände, „Rot blinkender Rahmen“ aus → Blinken aus, „Balken außerhalb des Kampfs“ an → „Balken zeigen“ bei „Außer Kampf“.
 - Umsetzung: neue Datei `PlateStates.lua` (Daten, Standardwerte, Umstieg), `Settings.lua` (Reiter, Tabelle, Farbwähler, Deckkraft-Popup), `Nameplates.lua` (Zustand → Aussehen), Debug-Code `PLATES` (022).
-- Stand: ✅ gebaut und im Spiel getestet 2026-10-17: Test 1 (Fenster/Bedienung), Test 2 (Wirkung am Balken), Test 3 (Modi Tank/DD/Heal, getrennte Tabellen), Test 4 (Umstieg von 0.2) i. O. (Nutzer). Offen: Instanz-Test. Veröffentlicht als 0.3.
+- **Ergänzt 2026-10-17:** Zeilen **„Aggro-%“** (Checkbox pro Zustand, Standard an) und **„Aggro-%-Farbe“** (Textfarbe pro Zustand, Farbwähler, nur sichtbar wenn Aggro-% an; Standard weiß). Checkbox „Aggro-% am Balken“ unter Allgemein entfernt; Umstieg: war sie aus, ist Aggro-% in allen Zuständen aus (`C.PLATE_VERSION` = 2). Zellen-Arten in `C.PLATE_ROWS` (`kind`, `field`, `needs`).
+- Stand: ✅ gebaut und im Spiel getestet 2026-10-17: Tests 1–4 (Fenster/Bedienung, Wirkung am Balken, Modi, Umstieg von 0.2) und Instanz-Test (Ampel, Blinken, Aggro-%) i. O. (Nutzer). Veröffentlicht als 0.3.
 
 ## R. Deckkraft der TWF-Balken als Regler (vom Nutzer beschlossen 2026-10-16) — **in 0.3 teilweise durch V ersetzt:** Regler „andere Gegner“ entfällt (Deckkraft pro Zustand); „Ziel“ und „hinter Wänden“ bleiben unter „Allgemein“
 - Drei Schieberegler im Abschnitt Nameplates, 10-%-Schritte: **Ziel** (`alphaTarget`, Standard 100 %), **andere Gegner** (`alphaOther`, 60 %), **hinter Wänden** (`alphaOccluded`, 30 %).
@@ -360,11 +371,17 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Aufbau: Bau-Code des TWF-Balkens aus `Nameplates.lua` in eine gemeinsame Funktion ziehen, die auch die Vorschau nutzt (kein doppelter Code). Liest keine Spielwerte.
   - Zu klären, wenn es umgesetzt wird: im Fenster (300 px breit, wird länger), weniger Balken, oder eigenes kleines Fenster daneben; Deckkraft wirkt auf dem dunklen Fensterhintergrund anders als vor der Spielwelt.
 
+- **I9 Leuchtender bzw. pulsierender Rahmen statt Blinken** (Idee des Nutzers, 2026-10-17; **keine Anforderung**, „haut mich noch nicht um“): In der Tabelle statt Checkbox „Blinken“ eine Auswahl „Rahmen: aus / leuchten / pulsieren / blinken“ (evtl. „laufende Punkte“ wie LibCustomGlow).
+  - Getestet 2026-10-17: Atlanten `UI-HUD-ActionBar-Proc-Loop-Flipbook`, `UI-HUD-ActionBar-IconFrame-Flash`, `bags-glow-white` vorhanden, `Nameplates-SelectionHighlight` nicht. `bags-glow-white` gestreckt um den Balken gefiel nicht.
+  - Besser: weicher Schein aus vier Verlaufsstreifen (`SetGradient`, Farbe → transparent nach außen) + runde Ecken aus Vierteln von `Interface\GLUES\MODELS\UI_Draenei\GenericGlow64` (`SetTexCoord`). Ecken wirkten kleiner als die Streifen → Streifenbreite/Eckengröße/Zuschnitt abstimmen.
+  - **Wichtig:** Alpha-Animation direkt auf Verlaufs-Texturen macht sie weiß → Schein in einen eigenen Rahmen legen und nur den Rahmen pulsieren lassen.
+  - Testskripte (Probebalken, Regler `G(Streifen, Zuschnitt, Ecke, Helligkeit)`) stehen im Chatverlauf vom 2026-10-17.
+
 ## Offene Bugs
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## Veröffentlichung 0.3 — vorbereitet 2026-10-17
-- Inhalt: Anforderungen **V** und **W** (W: Fensterhöhe wächst mit, Min./Max. Zeilen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 bestanden; offen: Instanz-Test.
+- Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen) und **X** (Live-Aggro-% in der Liste). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
 - Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
 - Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).
 

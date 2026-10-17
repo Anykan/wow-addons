@@ -64,9 +64,9 @@ C.DEFAULTS = {
   markMethod = 1,            -- Index in Marks.lua (1–3)
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
   symbolMarks = true,        -- Aggro-Ziel am Mob und in der Liste anzeigen (Anforderung L)
-  threatPct = true,          -- eigene Aggro in % links im TWF-Balken (Anforderung P)
   alphaTarget = 1,           -- Deckkraft der TWF-Balken: dein Ziel (auch hinter Wänden) (Anforderung R)
   alphaOccluded = 0.3,       -- … Gegner hinter Wänden (außer dein Ziel); sonst gilt die Deckkraft des Zustands
+  listThreat = true,         -- Live-Aggro-% vorn in jeder Listenzeile (Anforderung X)
   plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
   -- plates (Aussehen pro Zustand) legt PlateStates.lua an, Standardwerte aus C.PLATE_STATES
 }
@@ -208,6 +208,8 @@ C.ROW = {
   BG_ALPHA_TARGET = 0.18,      -- Zeilenhintergrund beim aktuellen Ziel
   DOT_SIZE = 12,               -- Ampelpunkt
   DOT_X = 6,
+  PCT_X = 2,                   -- Live-Aggro-% ganz links (Anforderung X): Abstand zum Zeilenrand
+  PCT_W = 34,                  -- Breite der Prozentanzeige (rechtsbündig, Platz für "100%")
   MARK_SIZE = 14,              -- Raid-Symbol
   SHOW_RAID_MARK = false,      -- Schlachtzugsymbol in der Liste zeigen. Aus, bis der Client-Bug behoben ist
                                -- (forever-bugs#166: Symbol-Nummer im Kampf geheim). Code bleibt in Marks.lua.
@@ -224,11 +226,11 @@ C.ROW = {
   },
 }
 
--- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS)
+-- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS), Aggro-%
 C.TEST_ROWS = {
-  { 'Grillmaster', 'red', 8, 'HEALER' },
-  { 'Adds Rechts', 'yellow', 3, 'DAMAGER' },
-  { 'Adds Links', 'yellow', nil, nil },
+  { 'Grillmaster', 'red', 8, 'HEALER', 100 },
+  { 'Adds Rechts', 'yellow', 3, 'DAMAGER', 87 },
+  { 'Adds Links', 'yellow', nil, nil, 64 },
 }
 
 -- Dropdown-Menü (Minimap-Rechtsklick) -----------------------------------------------------
@@ -412,30 +414,37 @@ C.SETTINGS = {
 -- Eine Spalte pro Zustand der TWF-Nameplate. Hier stehen die Standardwerte ("Farben zurücksetzen").
 -- color = Balkenfarbe · alpha = Deckkraft (Ziel und hinter Wänden: Regler unter "Allgemein") ·
 -- blink = blinkender Rahmen · frame = Rahmenfarbe · show = Balken zeigen (aus = nur der Name) ·
--- tankOnly = Zustand gibt es nur im Tank-Modus (in den Tabellen DD/Heal ausgegraut)
+-- threat = eigene Aggro in % links im Balken (Anforderung P) · threatColor = Textfarbe der Aggro-% ·
+-- tankOnly = Zustand gibt es nur im Tank-Modus (in den Tabellen DD/Heal ausgegraut) ·
+-- noThreat = Zustand hat keine Bedrohung (außerhalb des Kampfs): Zeilen mit threatRow ausgegraut
 local ALARM_RED = { 1, 0.1, 0.1 }
 local ALARM_YELLOW = { 1, 0.85, 0.1 }
+local WHITE = { 1, 1, 1 }
 C.PLATE_STATES = {
-  { key = 'green', label = 'STATE_GREEN', tip = 'TIP_STATE_GREEN', color = C.COLOR.green, alpha = 0.6, frame = ALARM_RED, show = true },
-  { key = 'yellow', label = 'STATE_YELLOW', tip = 'TIP_STATE_YELLOW', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_RED, show = true },
-  { key = 'red', label = 'STATE_RED', tip = 'TIP_STATE_RED', color = C.COLOR.red, alpha = 0.6, blink = true, frame = ALARM_RED, show = true },
-  { key = 'brown', label = 'STATE_BROWN', tip = 'TIP_STATE_BROWN', color = C.COLOR.brown, alpha = 0.6, frame = ALARM_RED, show = true, tankOnly = true },
-  { key = 'pull', label = 'STATE_PULL', tip = 'TIP_STATE_PULL', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_YELLOW, show = true, tankOnly = true },
-  { key = 'blue', label = 'STATE_BLUE', tip = 'TIP_STATE_BLUE', color = C.COLOR.blue, alpha = 0.6, frame = ALARM_RED, show = true },
-  { key = 'grey', label = 'STATE_GREY', tip = 'TIP_STATE_GREY', color = C.COLOR.grey, alpha = 0.6, frame = ALARM_RED, show = false },
-  { key = 'foreign', label = 'STATE_FOREIGN', tip = 'TIP_STATE_FOREIGN', color = C.COLOR.foreign, alpha = 0.6, frame = ALARM_RED, show = true },
+  { key = 'green', label = 'STATE_GREEN', tip = 'TIP_STATE_GREEN', color = C.COLOR.green, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
+  { key = 'yellow', label = 'STATE_YELLOW', tip = 'TIP_STATE_YELLOW', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
+  { key = 'red', label = 'STATE_RED', tip = 'TIP_STATE_RED', color = C.COLOR.red, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
+  { key = 'brown', label = 'STATE_BROWN', tip = 'TIP_STATE_BROWN', color = C.COLOR.brown, alpha = 0.6, frame = ALARM_RED, show = true, tankOnly = true, threat = true, threatColor = WHITE },
+  { key = 'pull', label = 'STATE_PULL', tip = 'TIP_STATE_PULL', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_YELLOW, show = true, tankOnly = true, threat = true, threatColor = WHITE },
+  { key = 'blue', label = 'STATE_BLUE', tip = 'TIP_STATE_BLUE', color = C.COLOR.blue, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
+  { key = 'grey', label = 'STATE_GREY', tip = 'TIP_STATE_GREY', color = C.COLOR.grey, alpha = 0.6, frame = ALARM_RED, show = false, threat = false, threatColor = WHITE, noThreat = true },
+  { key = 'foreign', label = 'STATE_FOREIGN', tip = 'TIP_STATE_FOREIGN', color = C.COLOR.foreign, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
 }
 -- Sätze: 'shared' = eine Tabelle für alle Modi, sonst je Rolle (C.ROLES)
 C.PLATE_SETS = { 'shared', 'tank', 'dps', 'heal' }
 C.PLATE_SET_LABEL = { shared = 'SET_SHARED', tank = 'ROLE_TANK', dps = 'ROLE_DPS', heal = 'ROLE_HEAL' }
-C.PLATE_VERSION = 1          -- Stand der gespeicherten Tabelle (für den einmaligen Umstieg von 0.2)
+C.PLATE_VERSION = 2          -- Stand der gespeicherten Tabelle (Umstieg von 0.2; 2 = Aggro-% pro Zustand)
 -- Zeilen der Tabelle (Reihenfolge = Anzeige); Rahmenfarbe nur sichtbar, wenn Blinken an ist
 C.PLATE_ROWS = {
-  { key = 'color', label = 'ROW_COLOR', tip = 'TIP_ROW_COLOR' },
-  { key = 'alpha', label = 'ROW_ALPHA', tip = 'TIP_ROW_ALPHA' },
-  { key = 'blink', label = 'ROW_BLINK', tip = 'TIP_ROW_BLINK' },
-  { key = 'frame', label = 'ROW_FRAME', tip = 'TIP_ROW_FRAME' },
-  { key = 'show', label = 'ROW_SHOW', tip = 'TIP_ROW_SHOW' },
+  -- kind: 'color' Farbfeld · 'alpha' Deckkraft · 'check' Checkbox; field = Wert im Zustand;
+  -- needs = Zeile nur sichtbar, wenn dieser Wert an ist (z. B. Rahmenfarbe nur bei Blinken)
+  { key = 'color', kind = 'color', field = 'color', label = 'ROW_COLOR', tip = 'TIP_ROW_COLOR' },
+  { key = 'alpha', kind = 'alpha', field = 'alpha', label = 'ROW_ALPHA', tip = 'TIP_ROW_ALPHA' },
+  { key = 'blink', kind = 'check', field = 'blink', label = 'ROW_BLINK', tip = 'TIP_ROW_BLINK' },
+  { key = 'frame', kind = 'color', field = 'frame', needs = 'blink', label = 'ROW_FRAME', tip = 'TIP_ROW_FRAME' },
+  { key = 'threat', kind = 'check', field = 'threat', threatRow = true, label = 'ROW_THREAT', tip = 'TIP_ROW_THREAT' },
+  { key = 'threatColor', kind = 'color', field = 'threatColor', needs = 'threat', threatRow = true, label = 'ROW_THREAT_COLOR', tip = 'TIP_ROW_THREAT_COLOR' },
+  { key = 'show', kind = 'check', field = 'show', label = 'ROW_SHOW', tip = 'TIP_ROW_SHOW' },
 }
 C.PLATE_TABLE = {
   LABEL_W = 100,               -- Breite der linken Spalte mit den Zeilennamen
@@ -480,6 +489,7 @@ C.OPTIONS = {
   { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
   { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
   { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
+  { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
   { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
   { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
 
@@ -487,7 +497,6 @@ C.OPTIONS = {
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
   { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
-  { type = 'check', key = 'threatPct', label = 'OPT_THREAT_PCT', tip = 'TIP_THREAT_PCT' },
   { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
   { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 

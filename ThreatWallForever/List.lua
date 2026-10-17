@@ -62,6 +62,12 @@ local function buildRow(i)
   row.bg:SetTexture(C.TEXTURE.FLAT)
   row.bg:SetVertexColor(1, 1, 1, ROW.BG_ALPHA)
 
+  -- Live-Aggro-% ganz links (Anforderung X); der Ampelpunkt rückt dahinter (drawRow)
+  row.pct = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  row.pct:SetPoint('LEFT', ROW.PCT_X, 0)
+  row.pct:SetWidth(ROW.PCT_W)
+  row.pct:SetJustifyH('RIGHT')
+
   row.dot = row:CreateTexture(nil, 'ARTWORK')
   row.dot:SetSize(ROW.DOT_SIZE, ROW.DOT_SIZE)
   row.dot:SetPoint('LEFT', ROW.DOT_X, 0)
@@ -112,9 +118,36 @@ function ns.layoutRow(row, i)
   if row.name.SetTextScale then row.name:SetTextScale(db.textScale) end
 end
 
+-- Live-Aggro-% der Zeile (Anforderung X). Der Wert ist über nameplateN geheim, aber live:
+-- nur an den Text weiterreichen, nie vergleichen. Kein Wert → Feld leer, die Zeile bleibt.
+-- Textfarbe = "Aggro-%-Farbe" des Zustands aus der Tabelle im Reiter Nameplates.
+local function fillPct(row, e)
+  row.dot:ClearAllPoints()
+  if not ns.db.listThreat then
+    row.pct:Hide()
+    row.dot:SetPoint('LEFT', ROW.DOT_X, 0)
+    return
+  end
+  row.dot:SetPoint('LEFT', row.pct, 'RIGHT', ROW.GAP, 0)
+  local st = ns.plateState(e.color)
+  local c = st and st.threatColor or C.WHITE
+  row.pct:SetTextColor(c[1], c[2], c[3])
+  local pct = e.testPct
+  if pct == nil and e.unit then
+    local ok, _, _, value = pcall(UnitDetailedThreatSituation, 'player', e.unit)
+    if ok then pct = value end
+  end
+  -- erst auf "geheim" prüfen: einen geheimen Wert mit nil zu vergleichen ist verboten
+  local shown = (ns.IsSecret(pct) or pct ~= nil)
+    and pcall(row.pct.SetFormattedText, row.pct, C.NAMEPLATES.THREAT_PCT_FORMAT, pct)
+  if not shown then row.pct:SetText('') end
+  row.pct:Show()
+end
+
 local function drawRow(row, e)
   row.entry = e
   setDot(row.dot, e.color)
+  fillPct(row, e)
   -- Reihenfolge: Ampelpunkt → (Schlachtzugsymbol) → (Rollensymbol) → Name.
   -- Felder, die abgeschaltet sind, nehmen keinen Platz weg.
   local left = row.dot
@@ -169,7 +202,8 @@ function ns.refresh()
       local t = C.TEST_ROWS[(i - 1) % n + 1]
       local name = i > n and (t[1] .. ' ' .. i) or t[1]
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
-      list[#list + 1] = { name = name, color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil, symbol = t[4] }
+      list[#list + 1] = { name = name, color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil,
+        symbol = t[4], testPct = t[5] }
     end
   else
     for _, t in pairs(ns.tracked) do

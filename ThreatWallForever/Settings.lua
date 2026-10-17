@@ -360,59 +360,47 @@ local function cellButton(parent, x, y)
   return cell
 end
 
--- Zellen je Zeile: (cell, set, st, getCfg, changed) richtet die Zelle ein, gibt eine
--- Update-Funktion zurück (Anzeige an den gespeicherten Wert anpassen)
+-- Zellen-Arten (Zeile kind in C.PLATE_ROWS): (cell, set, st, row, getCfg, changed) richtet die
+-- Zelle ein und gibt eine Update-Funktion zurück (Anzeige an den gespeicherten Wert anpassen).
+-- row.field = Wert im Zustand; row.needs = Zelle nur sichtbar, wenn dieser Wert an ist.
+local function describe(set, st, row) return set .. '/' .. st.key .. ' ' .. row.key end
+
 local CELLS = {
-  color = function(cell, set, st, getCfg, changed)
-    local setSwatch = makeSwatch(cell)
-    cell:SetScript('OnClick', function()
-      pickColor(getCfg().color, function() changed(set .. '/' .. st.key .. ' Farbe') end)
-    end)
-    return function() setSwatch(getCfg().color) end
-  end,
-  alpha = function(cell, set, st, getCfg, changed)
-    local fs = cell:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-    fs:SetPoint('CENTER')
-    cell:SetScript('OnClick', function()
-      openAlphaPopup(cell, L[st.label] .. ' – ' .. L.ROW_ALPHA, getCfg,
-        function() changed(set .. '/' .. st.key .. ' Deckkraft ' .. percentText(getCfg().alpha)) end)
-    end)
-    return function() fs:SetText(percentText(getCfg().alpha)) end
-  end,
-  blink = function(cell, set, st, getCfg, changed)
-    local box = makeCheckBox(cell)
-    box:SetPoint('CENTER')
-    cell:SetScript('OnClick', function()
-      getCfg().blink = not getCfg().blink
-      changed(set .. '/' .. st.key .. ' Blinken ' .. tostring(getCfg().blink))
-    end)
-    return function() box.setChecked(getCfg().blink) end
-  end,
-  frame = function(cell, set, st, getCfg, changed)
-    -- Rahmenfarbe nur sichtbar und anklickbar, wenn Blinken an ist
+  color = function(cell, set, st, row, getCfg, changed)
     local setSwatch = makeSwatch(cell)
     local content = { cell:GetRegions() }
+    local function visible() return not row.needs or getCfg()[row.needs] end
     cell:SetScript('OnClick', function()
-      if not getCfg().blink then return end
-      pickColor(getCfg().frame, function() changed(set .. '/' .. st.key .. ' Rahmenfarbe') end)
+      if not visible() then return end
+      pickColor(getCfg()[row.field], function() changed(describe(set, st, row)) end)
     end)
     return function()
-      local on = getCfg().blink
-      setSwatch(getCfg().frame)
+      local on = visible() and true or false
+      setSwatch(getCfg()[row.field])
       for _, region in ipairs(content) do
         if region:GetDrawLayer() ~= 'HIGHLIGHT' then region:SetShown(on) end
       end
       cell:EnableMouse(on)
     end
   end,
-  show = function(cell, set, st, getCfg, changed)
+  alpha = function(cell, set, st, row, getCfg, changed)
+    local fs = cell:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+    fs:SetPoint('CENTER')
+    cell:SetScript('OnClick', function()
+      openAlphaPopup(cell, L[st.label] .. ' – ' .. L[row.label], getCfg,
+        function() changed(describe(set, st, row) .. ' ' .. percentText(getCfg().alpha)) end)
+    end)
+    return function() fs:SetText(percentText(getCfg().alpha)) end
+  end,
+  check = function(cell, set, st, row, getCfg, changed)
     local box = makeCheckBox(cell)
     box:SetPoint('CENTER')
     cell:SetScript('OnClick', function()
-      getCfg().show = not getCfg().show
-      changed(set .. '/' .. st.key .. ' Balken zeigen ' .. tostring(getCfg().show))
+      local cfg = getCfg()
+      cfg[row.field] = not cfg[row.field]
+      changed(describe(set, st, row) .. ' ' .. tostring(cfg[row.field]))
     end)
-    return function() box.setChecked(getCfg().show) end
+    return function() box.setChecked(getCfg()[row.field]) end
   end,
 }
 
@@ -478,12 +466,12 @@ local function buildStateTable(page, set, top)
 
     for i, st in ipairs(C.PLATE_STATES) do
       local x = x0 + (i - 1) * PT.COL_W
-      if ns.stateUsed(set, st) then
+      if ns.cellUsed(set, st, row) then
         local cell = cellButton(tbl, x, y)
         local function getCfg() return ns.db.plates[set][st.key] end
-        updaters[#updaters + 1] = CELLS[row.key](cell, set, st, getCfg, changed)
+        updaters[#updaters + 1] = CELLS[row.kind](cell, set, st, row, getCfg, changed)
       else
-        -- Zustand gibt es in diesem Modus nicht: ausgegraut, ohne Bedienung
+        -- Zustand gibt es in diesem Modus nicht bzw. Zeile passt nicht dazu: ausgegraut, ohne Bedienung
         local fs = tbl:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
         fs:SetPoint('CENTER', tbl, 'TOPLEFT', x + PT.COL_W / 2, y - PT.ROW_H / 2)
         fs:SetText(PT.EMPTY)
@@ -495,8 +483,8 @@ local function buildStateTable(page, set, top)
 end
 
 -- Reiter "Nameplates": oben "Farben für alle Modi gleich" + "Farben zurücksetzen", darunter
--- die gemeinsame Tabelle oder die drei Tabellen Tank/DD/Heal. Höhe immer für drei Tabellen,
--- damit das Fenster beim Umschalten nicht springt.
+-- die gemeinsame Tabelle oder die drei Tabellen Tank/DD/Heal. Gibt eine Funktion zurück, die
+-- die nötige Höhe liefert (eine bzw. drei Tabellen).
 local function buildNameplates(page)
   local topLeft = CreateFrame('Frame', nil, page)
   topLeft:SetPoint('TOPLEFT')
@@ -524,7 +512,11 @@ local function buildNameplates(page)
     shared:SetShown(on)
     for _, tbl in ipairs(perRole) do tbl:SetShown(not on) end
   end
-  return PT.TOP_H + #C.ROLES * step - PT.TABLE_GAP
+  -- Höhe hängt von "Farben gleich" ab: eine Tabelle oder drei untereinander
+  return function()
+    if ns.db.plateShared then return PT.TOP_H + tableHeight() end
+    return PT.TOP_H + #C.ROLES * step - PT.TABLE_GAP
+  end
 end
 
 -- Reiter "Allgemein": die Optionen aus Config.OPTIONS, in Spalten nebeneinander
@@ -584,7 +576,7 @@ local function build()
   -- Reiterleiste unter der Kopfleiste, darunter je Reiter eine Seite
   local tabY = -(W.HEADER_H + S.TOP_GAP)
   win.pageTop = -tabY + D.BUTTON_H + S.TAB_BOTTOM_GAP
-  local maxH = 0
+  local heights = {}     -- je Reiter: feste Höhe oder Funktion (Nameplates: eine/drei Tabellen)
   for i, tab in ipairs(S.TABS) do
     local btn = ns.makeFlatButton(win, L[tab.label], S.TAB_W)
     btn:SetPoint('TOPLEFT', D.PADDING + (i - 1) * (S.TAB_W + S.TAB_GAP), tabY)
@@ -593,11 +585,21 @@ local function build()
     page:SetPoint('TOPLEFT', 0, -win.pageTop)
     page:SetPoint('RIGHT', win, 'RIGHT')
     page:SetHeight(1)
-    maxH = math.max(maxH, PAGE_BUILDERS[tab.key](page))
+    heights[#heights + 1] = PAGE_BUILDERS[tab.key](page)
     tabs[tab.key] = { button = btn, page = page }
   end
   -- Ein Fenster für alle Reiter: so hoch wie der längste Inhalt
-  win:SetHeight(win.pageTop + maxH + D.PADDING)
+  -- Alle Reiter gleich groß: so hoch wie der längste Inhalt. Ändert sich nur, wenn
+  -- "Farben gleich" umgeschaltet wird (Updater läuft nach jeder Änderung).
+  local function fitHeight()
+    local maxH = 0
+    for _, h in ipairs(heights) do
+      maxH = math.max(maxH, type(h) == 'function' and h() or h)
+    end
+    win:SetHeight(win.pageTop + maxH + D.PADDING)
+  end
+  updaters[#updaters + 1] = fitHeight
+  fitHeight()
   selectTab(S.TABS[1].key)
   win:SetScript('OnShow', updateAll)
   -- Nach dem Schließen prüfen, ob eingeschaltete Funktionen weitere Spiel-Optionen brauchen (M)

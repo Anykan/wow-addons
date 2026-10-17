@@ -6,7 +6,7 @@
           Sie bleiben im Spiel aktiv (Daten, Klickfläche). Gegner im Kampf bekommen
           eine TWF-Nameplate: Lebensbalken in Ampelfarbe im Zauberbalken-Stil,
           Name darüber, Leben in % rechts im Balken, eigene Aggro in % links
-          (Checkbox "Aggro-% am Balken", Anforderung P). Dein Ziel bekommt zusätzlich Blizzards
+          (Anforderung P; ein/aus und Textfarbe pro Zustand). Dein Ziel bekommt zusätzlich Blizzards
           eigene Zauberleiste.
           Farbe, Deckkraft, blinkender Rahmen und "Balken zeigen" kommen pro Zustand
           aus der Tabelle im Reiter Nameplates (PlateStates.lua, Anforderung V).
@@ -219,10 +219,12 @@ local function fill(p, unit)
   p.pct:SetShown(okP and true or false)
 end
 
--- Eigene Aggro in % (Anforderung P). Über nameplateN ist der Wert evtl. geheim:
--- dann nur an den Text weiterreichen, nie vergleichen. nil = nicht auf der Bedrohungsliste.
-local function fillThreat(p, unit)
-  if not (ns.db and ns.db.threatPct) then p.threat:Hide() return end
+-- Eigene Aggro in % (Anforderung P), ein/aus und Textfarbe pro Zustand (V). Über nameplateN
+-- ist der Wert geheim, aber live (auch bei nicht anvisierten Mobs, getestet 2026-10-17): nur an
+-- den Text weiterreichen, nie vergleichen. nil = nicht auf der Bedrohungsliste.
+local function fillThreat(p, unit, cfg)
+  if not cfg.threat then p.threat:Hide() return end
+  p.threat:SetTextColor(cfg.threatColor[1], cfg.threatColor[2], cfg.threatColor[3])
   local ok, _, _, pct = pcall(UnitDetailedThreatSituation, 'player', unit)
   local secret = ok and ns.IsSecret(pct)
   if not ok or (not secret and pct == nil) then p.threat:Hide() return end
@@ -348,7 +350,7 @@ local function update(nameplate, targetPlate)
   ns.setGlow(p.alarm, cfg.blink)
   setColor(p, cfg.color)
   fill(p, unit)
-  fillThreat(p, unit)
+  fillThreat(p, unit, cfg)
   placeName(p, false)
   fillName(p, unit, false)
   p.name:Show()
@@ -440,11 +442,6 @@ local function onLogin()
 end
 
 local function onSettingChanged(key)
-  if key == 'threatPct' then
-    ns.dbg('NAMEPLATES', key .. ' ' .. (ns.db[key] and 'an' or 'aus'))
-    if active() then updateAll() end
-    return
-  end
   if key == 'alphaTarget' or key == 'alphaOccluded' then
     ns.dbg('NAMEPLATES', 'Deckkraft ' .. key .. ' = ' .. ns.db[key])
     if active() then updateAll() end

@@ -1,13 +1,14 @@
 --[[
   PlateStates.lua — Aussehen der TWF-Nameplates pro Zustand (Anforderung V, 0.3).
 
-  Gespeichert in db.plates[satz][zustand] = { color, alpha, blink, frame, show }.
+  Gespeichert in db.plates[satz][zustand] = { color, alpha, blink, frame, show, threat, threatColor }.
   Sätze (C.PLATE_SETS): 'shared' gilt, solange "Farben für alle Modi gleich" an ist
   (db.plateShared); sonst der Satz der gespielten Rolle ('tank', 'dps', 'heal').
   Standardwerte stehen in C.PLATE_STATES ("Farben zurücksetzen" stellt sie wieder her).
 
-  Einmaliger Umstieg von 0.2: Deckkraft "andere Gegner", Checkbox "Rot blinkender Rahmen"
-  und "Balken auch außerhalb des Kampfs" werden in die Tabellen übernommen und dann gelöscht.
+  Einmaliger Umstieg von 0.2: Deckkraft "andere Gegner", Checkboxen "Rot blinkender Rahmen",
+  "Balken auch außerhalb des Kampfs" und "Aggro-% am Balken" werden in die Tabellen übernommen
+  und dann gelöscht.
 ]]
 
 local _, ns = ...
@@ -22,6 +23,8 @@ local function defaultState(st)
     blink = st.blink and true or false,
     frame = copyColor(st.frame),
     show = st.show and true or false,
+    threat = st.threat and true or false,
+    threatColor = copyColor(st.threatColor),
   }
 end
 
@@ -41,6 +44,8 @@ local function fill(db)
           if cur[field] == nil then cur[field] = value end
         end
       end
+      -- Ohne Bedrohung (außerhalb des Kampfs) gibt es keine Aggro-%
+      if st.noThreat then tbl[st.key].threat = false end
     end
   end
 end
@@ -54,12 +59,14 @@ local function migrate(db)
       if type(db.alphaOther) == 'number' then s.alpha = db.alphaOther end
       if db.alarmFrame == false then s.blink = false end
       if st.key == 'grey' and db.barsOutOfCombat == true then s.show = true end
+      if db.threatPct == false then s.threat = false end
     end
   end
   if db.alphaOther ~= nil then moved[#moved + 1] = 'alphaOther=' .. tostring(db.alphaOther) end
   if db.alarmFrame ~= nil then moved[#moved + 1] = 'alarmFrame=' .. tostring(db.alarmFrame) end
   if db.barsOutOfCombat ~= nil then moved[#moved + 1] = 'barsOutOfCombat=' .. tostring(db.barsOutOfCombat) end
-  db.alphaOther, db.alarmFrame, db.barsOutOfCombat = nil, nil, nil
+  if db.threatPct ~= nil then moved[#moved + 1] = 'threatPct=' .. tostring(db.threatPct) end
+  db.alphaOther, db.alarmFrame, db.barsOutOfCombat, db.threatPct = nil, nil, nil, nil
   db.plateVersion = C.PLATE_VERSION
   if #moved > 0 then
     ns.dbg('PLATES', 'Werte aus 0.2 übernommen: ' .. table.concat(moved, ', '))
@@ -88,6 +95,12 @@ end
 -- Gibt es den Zustand in diesem Satz? ("Anderer Tank" und "Ziehst vom Tank" nur bei Tank)
 function ns.stateUsed(set, st)
   return not (st.tankOnly and (set == 'dps' or set == 'heal'))
+end
+
+-- Ist die Zelle (Zeile row) bei diesem Zustand einstellbar? Ohne Bedrohung (außerhalb des
+-- Kampfs) gibt es keine Aggro-%-Zeilen.
+function ns.cellUsed(set, st, row)
+  return ns.stateUsed(set, st) and not (row.threatRow and st.noThreat)
 end
 
 -- "Farben zurücksetzen": alle Sätze auf die Standardwerte (Checkbox "Farben gleich" bleibt)
