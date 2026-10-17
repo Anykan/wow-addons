@@ -416,6 +416,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
     - Getestet: über `target` **lesbar** (671 %, damit sogar Vergleiche/Warnschwellen möglich); über den **Nameplate-Token GEHEIM** → auf allen Nameplates und in der Liste **anzeigbar** (wie die Aggro-%), aber nicht vergleichbar. Skaliertes % und Roh-% waren über `target` dabei GEHEIM. Ort (draußen/Instanz) nicht notiert.
     - Vorschlag: Im **Tank-Modus** statt „100 %“ den **Vorsprung** zeigen, solange du die Aggro hast (Nameplate + Liste); DD/Heal weiter Aggro-%. Evtl. Warnung „Vorsprung unter X %“ am eigenen Ziel (dort lesbar).
     - Damit wird Stufe 2 (Sync) für den Tank-Vorsprung überflüssig.
+    - Sichttest 2026-10-17 (Zahl links neben der Ziel-Nameplate): läuft mit. **Allein = 0 %** (kein Platz 2 auf der Bedrohungsliste) → beim Einbau dann nicht „0 %“ zeigen, sondern „–“ oder weiter 100 %.
   - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Addon chat is locked in instance combat“ – auf Forever sind **Addon-Nachrichten im Kampf in Instanzen gesperrt**. Stufe 2 (Sync) ginge damit nur draußen bzw. außerhalb des Kampfs → in Instanzen nur Stufe 1 sinnvoll. Außerdem laut NKThreat: Boss-Bedrohung in Instanzen geheim (Prozente sichtbar, aber nicht sortierbar).
   - Wäre ein Alleinstellungsmerkmal (kein Konkurrent synct auf Forever). Sync-Erfahrung aus CrittersBoard und GuildAchievements vorhanden.
 
