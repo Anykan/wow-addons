@@ -290,7 +290,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **GitHub-Issue-Vorlage** „Übersetzung verbessern / Improve translation“ (`.github/ISSUE_TEMPLATE/translation.yml` im Repo).
 - **Prüfskript 5** (`release/pruefung/5-sprachen.py`): Sprachdateien gegen die Vorlage, auch für eingereichte Übersetzungen.
 - Patchnotes 0.3 verlinken die Anleitung in allen vier Sprachen. Skripte (Prüfung, Paket) können jetzt Unterordner.
-- Stand: gebaut 2026-10-17. Test im Spiel: Sprache bleibt richtig (Deutsch), keine Lua-Fehler – offen.
+- Stand: ✅ gebaut 2026-10-17, im Spiel getestet (nach Neustart alles auf Deutsch, keine Lua-Fehler; Nutzer). Issue-Vorlage und Anleitung wirken nach dem Push. Teil von 0.3.
 
 ## X. Live-Aggro-% in der Liste (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - Jede Listenzeile zeigt **ganz links** deine **Live-Aggro in %**, dahinter Ampelpunkt, Symbol, Name.
@@ -391,7 +391,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 ## Veröffentlichung 0.3 — vorbereitet 2026-10-17
-- Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen), **X** (Live-Aggro-% in der Liste), Sprachen **Español/Français** (G/I3) und Fix **B2** (doppelte Zeilen in Instanzen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
+- Inhalt: Anforderungen **V**, **W** (Fensterhöhe wächst mit, Min./Max. Zeilen), **X** (Live-Aggro-% in der Liste), Sprachen **Español/Français** (G/I3), Übersetzen über GitHub (**Y**) und Fix **B2** (doppelte Zeilen in Instanzen). V: (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 und Instanz-Test bestanden.
 - Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
 - Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).
 
