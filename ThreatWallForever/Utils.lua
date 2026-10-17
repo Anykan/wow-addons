@@ -20,6 +20,58 @@ function ns.setAtlas(tex, name, fallback, useSize)
   return false
 end
 
+-- Pulsierender Rahmen ---------------------------------------------------------------------
+
+-- Rahmen aus vier flachen Kanten (kein Atlas) in einem Kind-Frame, damit eine Animation
+-- alle Kanten gemeinsam pulsieren lässt. G = Config-Tabelle mit COLOR, EDGE, INSET,
+-- ALPHA_FROM, ALPHA_TO, DURATION. Genutzt von der Liste (Ziel-Zeile) und den Nameplates.
+function ns.createGlow(parent, G)
+  local glow = CreateFrame('Frame', nil, parent)
+  glow:SetPoint('TOPLEFT', -G.INSET, G.INSET)
+  glow:SetPoint('BOTTOMRIGHT', G.INSET, -G.INSET)
+  for _, edge in ipairs({
+    { 'TOPLEFT', 'TOPRIGHT', nil, G.EDGE },
+    { 'BOTTOMLEFT', 'BOTTOMRIGHT', nil, G.EDGE },
+    { 'TOPLEFT', 'BOTTOMLEFT', G.EDGE, nil },
+    { 'TOPRIGHT', 'BOTTOMRIGHT', G.EDGE, nil },
+  }) do
+    local line = glow:CreateTexture(nil, 'OVERLAY')
+    line:SetTexture(C.TEXTURE.FLAT)
+    line:SetVertexColor(G.COLOR[1], G.COLOR[2], G.COLOR[3], 1)
+    line:SetPoint(edge[1])
+    line:SetPoint(edge[2])
+    if edge[3] then line:SetWidth(edge[3]) end
+    if edge[4] then line:SetHeight(edge[4]) end
+  end
+  glow:Hide()
+  -- Das Pulsieren ist nur Optik: Weicht die Animations-API dieses Clients ab,
+  -- bleibt der Rahmen einfach ruhig stehen, statt einen Fehler zu werfen.
+  pcall(function()
+    local anim = glow:CreateAnimationGroup()
+    local alpha = anim:CreateAnimation('Alpha')
+    alpha:SetFromAlpha(G.ALPHA_FROM)
+    alpha:SetToAlpha(G.ALPHA_TO)
+    alpha:SetDuration(G.DURATION)
+    alpha:SetSmoothing('IN_OUT')
+    anim:SetLooping('BOUNCE')
+    glow.anim = anim
+  end)
+  return glow
+end
+
+-- Rahmen ein- oder ausschalten (startet bzw. stoppt das Pulsieren nur beim Wechsel)
+function ns.setGlow(glow, on)
+  on = on and true or false
+  if on == glow:IsShown() then return end
+  if on then
+    glow:Show()
+    if glow.anim then pcall(glow.anim.Play, glow.anim) end
+  else
+    if glow.anim then pcall(glow.anim.Stop, glow.anim) end
+    glow:Hide()
+  end
+end
+
 -- Geheime Werte -----------------------------------------------------------------------
 
 function ns.IsSecret(v)

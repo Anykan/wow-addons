@@ -30,6 +30,8 @@ local function rowTooltip(row)
       GameTooltip:AddLine(L.TT_TANK_RED, unpack(TC.red))
     elseif e.color == 'yellow' then
       GameTooltip:AddLine(L.TT_TANK_YELLOW, unpack(TC.yellow))
+    elseif e.color == 'brown' then
+      GameTooltip:AddLine(L.TT_TANK_BROWN, unpack(TC.brown))
     else
       GameTooltip:AddLine(L.TT_TANK_GREEN, unpack(TC.green))
     end
@@ -84,39 +86,8 @@ local function buildRow(i)
   row.name:SetJustifyH('LEFT')
   row.name:SetWordWrap(false)
 
-  -- Rahmen um die Zeile deines aktuellen Ziels. Nur flache Texturen (kein
-  -- Atlas), in einem Kind-Frame, damit eine Animation alle vier Kanten pulsieren lässt.
-  local edgeSize = ROW.GLOW_EDGE
-  local glowColor = ROW.TARGET_GLOW
-  row.glow = CreateFrame('Frame', nil, row)
-  row.glow:SetAllPoints()
-  for _, edge in ipairs({
-    { 'TOPLEFT', 'TOPRIGHT', nil, edgeSize },
-    { 'BOTTOMLEFT', 'BOTTOMRIGHT', nil, edgeSize },
-    { 'TOPLEFT', 'BOTTOMLEFT', edgeSize, nil },
-    { 'TOPRIGHT', 'BOTTOMRIGHT', edgeSize, nil },
-  }) do
-    local line = row.glow:CreateTexture(nil, 'OVERLAY')
-    line:SetTexture(C.TEXTURE.FLAT)
-    line:SetVertexColor(glowColor[1], glowColor[2], glowColor[3], 1)
-    line:SetPoint(edge[1])
-    line:SetPoint(edge[2])
-    if edge[3] then line:SetWidth(edge[3]) end
-    if edge[4] then line:SetHeight(edge[4]) end
-  end
-  row.glow:Hide()
-  -- Das Pulsieren ist nur Optik: Weicht die Animations-API dieses Clients ab,
-  -- bleibt der Rahmen einfach ruhig stehen, statt einen Fehler zu werfen.
-  pcall(function()
-    local anim = row.glow:CreateAnimationGroup()
-    local alpha = anim:CreateAnimation('Alpha')
-    alpha:SetFromAlpha(ROW.GLOW_ALPHA_FROM)
-    alpha:SetToAlpha(ROW.GLOW_ALPHA_TO)
-    alpha:SetDuration(ROW.GLOW_DURATION)
-    alpha:SetSmoothing('IN_OUT')
-    anim:SetLooping('BOUNCE')
-    row.glowAnim = anim
-  end)
+  -- Pulsierender Rahmen um die Zeile deines aktuellen Ziels (gemeinsam mit den Nameplates)
+  row.glow = ns.createGlow(row, ROW.GLOW)
 
   ns.rows[i] = row
   return row
@@ -124,19 +95,8 @@ end
 
 -- An: pulsierender Rahmen + etwas hellere Zeile. Aus: normale Zeile.
 local function setTargetHighlight(row, on)
-  if on then
-    if not row.glow:IsShown() then
-      row.glow:Show()
-      if row.glowAnim then pcall(row.glowAnim.Play, row.glowAnim) end
-    end
-    row.bg:SetVertexColor(1, 1, 1, ROW.BG_ALPHA_TARGET)
-  else
-    if row.glow:IsShown() then
-      if row.glowAnim then pcall(row.glowAnim.Stop, row.glowAnim) end
-      row.glow:Hide()
-    end
-    row.bg:SetVertexColor(1, 1, 1, ROW.BG_ALPHA)
-  end
+  ns.setGlow(row.glow, on)
+  row.bg:SetVertexColor(1, 1, 1, on and ROW.BG_ALPHA_TARGET or ROW.BG_ALPHA)
 end
 
 function ns.layoutRow(row, i)

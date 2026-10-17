@@ -98,12 +98,41 @@ function ns.classify(tanking, status)
   end
 end
 
+-- Gehört der Mob einer anderen Gruppe (keine EP, keine Beute; im Original ausgegraut)?
+-- Anforderung U. Über Nameplate-Token auch im Kampf lesbar (getestet 2026-10-16);
+-- ein geheimer oder unlesbarer Wert gilt als "nicht fremd".
+function ns.isForeign(unit)
+  local ok, tapped = pcall(UnitIsTapDenied, unit)
+  return ok and ns.plain(tapped) == true
+end
+
+-- Gruppenrolle einer Einheit: 'TANK', 'HEALER', 'DAMAGER' oder 'NONE' (nicht zugewiesen/unlesbar)
+function ns.groupRole(unit)
+  local ok, role = pcall(UnitGroupRolesAssigned, unit)
+  role = ok and ns.plain(role)
+  if role == 'TANK' or role == 'HEALER' or role == 'DAMAGER' then return role end
+  return 'NONE'
+end
+
+-- Anderer Tank hält den Mob (Anforderung T, nur Tank-Modus): Rot wird braun (kein
+-- Problem, ihr tankt zu zweit). Gelb bleibt gelb, zweiter Rückgabewert true = du ziehst
+-- ihm gleich die Aggro ab (gelb blinkender Rahmen statt rot). Hält ihn ein DD/Heiler
+-- oder hat der andere Tank keine Rolle, bleibt alles wie es ist.
+function ns.withOtherTank(unit, color)
+  if ns.db.role ~= 'tank' or (color ~= 'red' and color ~= 'yellow') then return color, false end
+  local holder = ns.aggroHolder(unit)
+  if not holder or holder == 'player' or ns.groupRole(holder) ~= 'TANK' then return color, false end
+  if color == 'red' then return 'brown', false end
+  return color, true
+end
+
 -- Ampelfarbe für eine Einheit (gemeinsam für Liste und Nameplates).
 -- nil = keine Bedrohungsdaten (z. B. Gegner kämpft nicht mit dir/deiner Gruppe).
+-- Zweiter Rückgabewert: siehe ns.withOtherTank.
 function ns.unitColor(unit)
   local tanking, status = ns.myStatus(unit)
   if tanking == nil and status == nil then return nil end
-  return ns.classify(tanking, status)
+  return ns.withOtherTank(unit, ns.classify(tanking, status))
 end
 
 -- Alle Gruppen-Token, du selbst zuerst (party1..4 bzw. raid1..40)
@@ -163,7 +192,8 @@ function ns.collect()
   local seen = {}
 
   for _, unit in ipairs(ns.candidateUnits()) do
-    if ns.engaged(unit) then
+    -- Fremde Mobs (andere Gruppe) sind kein Problem für dich: nicht in die Liste (Anforderung U)
+    if ns.engaged(unit) and not ns.isForeign(unit) then
       local okG, guid = pcall(UnitGUID, unit)
       if okG and IsSecret(guid) then guid = nil end
       -- Die GUID ist der normale Schlüssel. Sie kann aber selbst nil oder
@@ -180,7 +210,7 @@ function ns.collect()
       if not seen[key] then
         local tanking, status = ns.myStatus(unit)
         if tanking ~= nil or status ~= nil then
-          local color = ns.classify(tanking, status)
+          local color = ns.withOtherTank(unit, ns.classify(tanking, status))
           local t = tracked[key]
           local isNew = not t
           if not t then

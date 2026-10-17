@@ -1,156 +1,134 @@
 """Zeichnet das ThreatWall-Forever-Logo (quadratisch, für CurseForge).
 
 Aufruf (im Ordner wow-addons):  python release/logo-bauen.py
-Ergebnis: ThreatWallForever/logo/twf-logo-<variante>-<größe>.png
+Ergebnis: ThreatWallForever/logo/twf-logo-mauer-<größe>.png (1024, 400, 64)
 
-Motiv: ein Schild ("Wall") aus drei Balken in den Ampelfarben des Addons
-(grün, gold, rot), im Glanz-Look der TWF-Lebensbalken.
+Motiv (Nutzer-Entscheid 2026-10-17): "TWF" als Burgmauer aus Stein mit Zinnen,
+rotes Warnglühen dahinter, ein glühender Riss im W ("Aggro bricht durch").
+Bewusst kein Schild, keine Ampelbalken und kein Gold auf Navy: Das nutzen schon
+ForeverThreatPlate und Forever: Threat. Das alte Schild-Logo steht in der Git-Historie
+(Commit b0a6bd4) und als PNG unter logo/twf-logo-schild-*.
 """
-import math
 import os
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+import random
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 
-S = 4                     # Überabtastung für glatte Kanten
-N = 1024                  # Zielgröße in Pixel
+S = 4
+N = 1024
 W = N * S
-
-BG_INNER = (30, 38, 54)
-BG_OUTER = (6, 8, 12)
-STEEL_LIGHT = (232, 205, 120)   # goldener Rand, hell
-STEEL_DARK = (120, 86, 28)      # goldener Rand, dunkel
-INSIDE = (14, 17, 24)
-BAR_FIRST = 0.115               # Abstand des ersten Balkens von der Schildoberkante (Anteil der Höhe)
-BAR_HEIGHT = 0.175              # Höhe eines Balkens (Anteil der Schildhöhe)
-BAR_GAP = 0.045                 # Abstand zwischen den Balken
-BARS = [                        # (Farbe hell, Farbe dunkel)
-    ((112, 224, 96), (30, 120, 40)),     # grün
-    ((255, 214, 92), (176, 112, 14)),    # gold
-    ((240, 84, 70), (140, 22, 22)),      # rot
-]
+OUT_DIR = 'ThreatWallForever/logo'
 
 
-def shield(cx, top, width, height, inset=0.0):
-    """Punkte eines Wappenschilds (oben gerade, unten spitz zulaufend)."""
-    half = width / 2 - inset
-    t = top + inset
-    straight = top + height * 0.42          # bis hier senkrechte Seiten
-    tip = top + height - inset * 1.35
-    pts = [(cx - half, t), (cx + half, t), (cx + half, straight)]
-    steps = 48
-    for i in range(1, steps + 1):           # rechte Seite: läuft spitz zur Mitte
-        a = i / steps
-        pts.append((cx + half * (1 - a ** 2.1), straight + (tip - straight) * a))
-    for i in range(steps - 1, -1, -1):      # linke Seite zurück nach oben
-        a = i / steps
-        pts.append((cx - half * (1 - a ** 2.1), straight + (tip - straight) * a))
-    return pts
+def p(*pts):
+    return [(x * S, y * S) for x, y in pts]
 
 
-def vertical_gradient(size, top_color, bottom_color, y0, y1):
-    img = Image.new('RGB', size, top_color)
-    px = img.load()
-    for y in range(size[1]):
-        a = min(1.0, max(0.0, (y - y0) / max(1, (y1 - y0))))
-        c = tuple(int(top_color[i] + (bottom_color[i] - top_color[i]) * a) for i in range(3))
-        for x in range(size[0]):
-            px[x, y] = c
-    return img
+def rect(x0, y0, x1, y1):
+    return p((x0, y0), (x1, y0), (x1, y1), (x0, y1))
 
 
-def background():
-    img = Image.new('RGB', (N, N), BG_OUTER)
-    px = img.load()
-    cx, cy, r = N / 2, N * 0.46, N * 0.78
-    for y in range(N):
-        for x in range(N):
-            d = min(1.0, math.hypot(x - cx, y - cy) / r)
-            a = d ** 1.6
-            px[x, y] = tuple(int(BG_INNER[i] + (BG_OUTER[i] - BG_INNER[i]) * a) for i in range(3))
-    return img.resize((W, W), Image.BICUBIC)
+# Hintergrund: Anthrazit, zur Mitte etwas heller
+bg = Image.new('RGB', (W, W))
+d = ImageDraw.Draw(bg)
+for i in range(256):
+    t = i / 255
+    c = tuple(int(a + (b - a) * t) for a, b in zip((7, 7, 9), (30, 28, 32)))
+    r = int(W * 0.75 * (1 - t))
+    d.ellipse((W / 2 - r, W * 0.47 - r, W / 2 + r, W * 0.47 + r), fill=c)
 
+# Rotes Warnglühen hinter der Mauer
+glow = Image.new('L', (W, W), 0)
+gd = ImageDraw.Draw(glow)
+gd.ellipse((200 * S, 230 * S, 824 * S, 720 * S), fill=255)
+glow = glow.filter(ImageFilter.GaussianBlur(110 * S))
+red = Image.new('RGB', (W, W), (230, 50, 25))
+bg = Image.composite(red, bg, glow.point(lambda v: int(v * 0.85)))
 
-def mask_of(points):
-    m = Image.new('L', (W, W), 0)
-    ImageDraw.Draw(m).polygon(points, fill=255)
-    return m
+# Buchstabenform (Maske) -------------------------------------------------------
+mask = Image.new('L', (W, W), 0)
+md = ImageDraw.Draw(mask)
+TOP = 330
+def merlons(x0, x1, n=4, w=40):
+    """n Zinnen gleichmäßig von x0 bis x1, erste bündig links, letzte bündig rechts."""
+    for i in range(n):
+        x = x0 + i * (x1 - x0 - w) / (n - 1)
+        md.polygon(rect(x, TOP - 52, x + w, TOP), fill=255)
 
+# T
+md.polygon(rect(80, TOP, 320, TOP + 105), fill=255)
+md.polygon(rect(150, TOP + 105, 250, 790), fill=255)
+merlons(80, 320)
+# W (Form aus dem ersten Entwurf, schmaler gesetzt)
+WX0, WK = 356, 0.74
+def wx(x): return WX0 + (x - 505) * WK
+md.polygon(p(*[(wx(x), y) for x, y in ((505, TOP), (600, TOP), (645, 600), (685, 430), (745, 430), (785, 600),
+             (830, TOP), (925, TOP), (845, 790), (750, 790), (715, 650), (680, 790), (585, 790))]), fill=255)
+for x0 in (505, 562, 830, 887):               # Zinnen auf den W-Spitzen
+    md.polygon(rect(wx(x0), TOP - 52, wx(x0 + 38), TOP + 2), fill=255)
+md.polygon(rect(wx(690), 378, wx(740), 432), fill=255)  # Zinne auf der W-Mitte
+# F
+md.polygon(rect(702, TOP, 942, TOP + 105), fill=255)
+md.polygon(rect(702, TOP + 105, 802, 790), fill=255)
+md.polygon(rect(802, 520, 902, 610), fill=255)
+merlons(702, 942)
 
-def build(with_text):
-    img = background().convert('RGBA')
-    cx = W / 2
-    top = W * (0.105 if with_text else 0.14)
-    width = W * (0.60 if with_text else 0.66)
-    height = W * (0.66 if with_text else 0.73)
+# Steinfüllung mit Mauerfugen ----------------------------------------------------
+stone = Image.new('RGB', (W, W))
+sd = ImageDraw.Draw(stone)
+for y in range(W):
+    t = y / W
+    c = tuple(int(a + (b - a) * t) for a, b in zip((176, 168, 152), (92, 86, 78)))
+    sd.line((0, y, W, y), fill=c)
+random.seed(7)
+ROW_H, BRICK_W, JOINT = 52, 96, 5
+for row, y in enumerate(range(TOP - 60, 800, ROW_H)):
+    # leichte Farbschwankung pro Stein
+    off = (row % 2) * BRICK_W // 2
+    for x in range(20 - off, 1010, BRICK_W):
+        k = random.randint(-14, 10)
+        sd.rectangle((x * S, y * S, (x + BRICK_W) * S, (y + ROW_H) * S),
+                     fill=None)
+        tint = Image.new('RGB', (BRICK_W * S, ROW_H * S), (128 + k, 128 + k, 128 + k))
+        box = (x * S, y * S)
+        region = stone.crop((box[0], box[1], box[0] + BRICK_W * S, box[1] + ROW_H * S))
+        region = ImageChops.multiply(region, tint.point(lambda v: min(255, v * 2)))
+        stone.paste(region, box)
+        sd.line((x * S, y * S, x * S, (y + ROW_H) * S), fill=(46, 42, 40), width=JOINT * S)
+    sd.line((0, y * S, W, y * S), fill=(46, 42, 40), width=JOINT * S)
 
-    outer = shield(cx, top, width, height)
-    border = W * 0.030
-    inner = shield(cx, top, width, height, inset=border)
+# Riss mit rotem Licht im W
+crack = p(*[(wx(x), y) for x, y in ((715, 470), (705, 520), (722, 560), (708, 615), (716, 650))])
+cd = ImageDraw.Draw(stone)
+cd.line(crack, fill=(255, 120, 60), width=7 * S, joint='curve')
 
-    # Schlagschatten und leichter roter Schein hinter dem Schild
-    glow = Image.new('RGBA', (W, W), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).polygon(shield(cx, top + W * 0.012, width * 1.05, height * 1.04), fill=(220, 60, 40, 120))
-    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(W * 0.05)))
-    shadow = Image.new('RGBA', (W, W), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).polygon([(x, y + W * 0.018) for x, y in outer], fill=(0, 0, 0, 200))
-    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(W * 0.018)))
+# Schatten, Kanten, Zusammensetzen ------------------------------------------------
+shadow = mask.filter(ImageFilter.GaussianBlur(14 * S))
+sh = Image.new('L', (W, W), 0)
+sh.paste(shadow, (6 * S, 14 * S))
+bg = Image.composite(Image.new('RGB', (W, W), (0, 0, 0)), bg, sh.point(lambda v: int(v * 0.8)))
 
-    # Goldener Rand mit Verlauf
-    rim = vertical_gradient((W, W), STEEL_LIGHT, STEEL_DARK, int(top), int(top + height)).convert('RGBA')
-    img.paste(rim, (0, 0), mask_of(outer))
+# Rote Lichtkante (Glühen von hinten an den Rändern)
+rim = mask.filter(ImageFilter.MaxFilter(13)).filter(ImageFilter.GaussianBlur(10 * S))
+bg = Image.composite(Image.new('RGB', (W, W), (255, 90, 40)), bg, ImageChops.subtract(rim, mask).point(lambda v: int(v * 0.9)))
 
-    # Dunkle Innenfläche
-    inner_mask = mask_of(inner)
-    img.paste(Image.new('RGBA', (W, W), INSIDE + (255,)), (0, 0), inner_mask)
+bg.paste(stone, (0, 0), mask)
 
-    # Drei Balken, am Schild beschnitten, mit Glanz wie die TWF-Lebensbalken
-    for i, (light, dark) in enumerate(BARS):
-        a = top + height * (BAR_FIRST + i * (BAR_HEIGHT + BAR_GAP))
-        b = a + height * BAR_HEIGHT
-        bar = vertical_gradient((W, W), light, dark, int(a), int(b)).convert('RGBA')
-        bar_mask = Image.new('L', (W, W), 0)
-        ImageDraw.Draw(bar_mask).rectangle([0, a, W, b], fill=255)
-        clip = Image.composite(bar_mask, Image.new('L', (W, W), 0), inner_mask)
-        img.paste(bar, (0, 0), clip)
-        # Glanzstreifen oben
-        gloss_mask = Image.new('L', (W, W), 0)
-        ImageDraw.Draw(gloss_mask).rectangle([0, a + (b - a) * 0.10, W, a + (b - a) * 0.42], fill=70)
-        gloss_clip = Image.composite(gloss_mask, Image.new('L', (W, W), 0), inner_mask)
-        img.paste(Image.new('RGBA', (W, W), (255, 255, 255, 255)), (0, 0), gloss_clip)
-        # dunkle Unterkante
-        edge_mask = Image.new('L', (W, W), 0)
-        ImageDraw.Draw(edge_mask).rectangle([0, b - (b - a) * 0.10, W, b], fill=90)
-        edge_clip = Image.composite(edge_mask, Image.new('L', (W, W), 0), inner_mask)
-        img.paste(Image.new('RGBA', (W, W), (0, 0, 0, 255)), (0, 0), edge_clip)
+# Lichtkante oben links / dunkle Kante unten rechts (Steinrelief)
+edge = ImageChops.subtract(mask, mask.transform(mask.size, Image.AFFINE, (1, 0, 4 * S, 0, 1, 4 * S)))
+bg = Image.composite(Image.new('RGB', (W, W), (215, 205, 185)), bg, edge.point(lambda v: int(v * 0.7)))
+edge2 = ImageChops.subtract(mask, mask.transform(mask.size, Image.AFFINE, (1, 0, -4 * S, 0, 1, -4 * S)))
+bg = Image.composite(Image.new('RGB', (W, W), (30, 26, 24)), bg, edge2.point(lambda v: int(v * 0.8)))
 
-    # Feine helle Innenkante am Rand
-    line = Image.new('RGBA', (W, W), (0, 0, 0, 0))
-    ImageDraw.Draw(line).line(inner + [inner[0]], fill=(255, 240, 190, 110), width=int(W * 0.004))
-    img.alpha_composite(line)
+# Glühen aus dem Riss
+cg = Image.new('L', (W, W), 0)
+ImageDraw.Draw(cg).line(crack, fill=255, width=26 * S)
+cg = ImageChops.multiply(cg.filter(ImageFilter.GaussianBlur(9 * S)), mask)
+bg = Image.composite(Image.new('RGB', (W, W), (255, 110, 50)), bg, cg.point(lambda v: int(v * 0.75)))
+ImageDraw.Draw(bg).line(crack, fill=(255, 225, 160), width=3 * S, joint='curve')
 
-    if with_text:
-        font = ImageFont.truetype('C:/Windows/Fonts/impact.ttf', int(W * 0.155))
-        text = 'TWF'
-        d = ImageDraw.Draw(img)
-        box = d.textbbox((0, 0), text, font=font)
-        tw = box[2] - box[0]
-        x = cx - tw / 2 - box[0]
-        y = W * 0.800
-        sh = Image.new('RGBA', (W, W), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).text((x, y + W * 0.008), text, font=font, fill=(0, 0, 0, 230))
-        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(W * 0.008)))
-        grad = vertical_gradient((W, W), (255, 232, 150), (200, 132, 24), int(y + W * 0.02), int(y + W * 0.17)).convert('RGBA')
-        tmask = Image.new('L', (W, W), 0)
-        ImageDraw.Draw(tmask).text((x, y), text, font=font, fill=255)
-        img.paste(grad, (0, 0), tmask)
-
-    return img.resize((N, N), Image.LANCZOS)
-
-
-out_dir = 'ThreatWallForever/logo'
-os.makedirs(out_dir, exist_ok=True)
-for name, with_text in (('schild', False), ('schild-twf', True)):
-    logo = build(with_text)
-    for size in (1024, 400, 64):
-        path = f'{out_dir}/twf-logo-{name}-{size}.png'
-        logo.resize((size, size), Image.LANCZOS).convert('RGB').save(path)
-        print(path)
+bg = bg.resize((N, N), Image.LANCZOS)
+os.makedirs(OUT_DIR, exist_ok=True)
+for size in (1024, 400, 64):
+    path = f'{OUT_DIR}/twf-logo-mauer-{size}.png'
+    bg.resize((size, size), Image.LANCZOS).save(path)
+    print(path)

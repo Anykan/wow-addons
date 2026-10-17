@@ -5,7 +5,8 @@
     an  – Blizzards Nameplates (Gegner und Spieler) werden unsichtbar (SetAlpha 0).
           Sie bleiben im Spiel aktiv (Daten, Klickfläche). Gegner im Kampf bekommen
           eine TWF-Nameplate: Lebensbalken in Ampelfarbe im Zauberbalken-Stil,
-          Name darüber, Leben in % im Balken. Dein Ziel bekommt zusätzlich Blizzards
+          Name darüber, Leben in % rechts im Balken, eigene Aggro in % links
+          (Checkbox "Aggro-% am Balken", Anforderung P). Dein Ziel bekommt zusätzlich Blizzards
           eigene Zauberleiste.
           Gegner außerhalb des Kampfs zeigen nur ihren Namen in der Farbe des Spiels
           (rot feindlich, gelb passiv; Anforderung N). Blizzards eigener Namenstext
@@ -28,6 +29,9 @@ local C = ns.Config
 local N = C.NAMEPLATES
 
 local fallbackWarned = false   -- Debug-Hinweis "Lebensleiste nicht gefunden" nur einmal
+local threatSecretSeen = false -- Debug-Hinweis "Aggro-% geheim" nur einmal
+local threatFailWarned = false -- Debug-Hinweis "Aggro-% nicht anzeigbar" nur einmal
+local foreignSeen = false      -- Debug-Hinweis "fremder Mob" nur einmal
 local atlasOK                  -- nil = noch nicht geprüft
 
 local function active()
@@ -152,6 +156,16 @@ local function getPlate(nameplate)
   p.pct:SetDrawLayer('OVERLAY', N.PCT_LAYER)
   p.pct:SetPoint('RIGHT', bar, 'RIGHT', N.PCT_X, 0)
 
+  -- Eigene Aggro in Prozent, links im Balken (Anforderung P)
+  p.threat = bar:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  p.threat:SetDrawLayer('OVERLAY', N.PCT_LAYER)
+  p.threat:SetPoint('LEFT', bar, 'LEFT', N.THREAT_PCT_X, 0)
+
+  -- Rot blinkender Rahmen: gelber oder roter Balken, Aggro-Problem (Anforderung S)
+  p.alarm = ns.createGlow(bar, N.ALARM)
+  -- Gelb blinkender Rahmen: du ziehst einem anderen Tank gleich die Aggro ab (Anforderung T)
+  p.alarmPull = ns.createGlow(bar, N.ALARM_PULL)
+
   -- Name über dem Balken
   p.name = p:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
   p.name:SetPoint('BOTTOM', p, 'TOP', 0, N.NAME_Y)
@@ -210,6 +224,25 @@ local function fill(p, unit)
   p.pct:SetShown(okP and true or false)
 end
 
+-- Eigene Aggro in % (Anforderung P). Über nameplateN ist der Wert evtl. geheim:
+-- dann nur an den Text weiterreichen, nie vergleichen. nil = nicht auf der Bedrohungsliste.
+local function fillThreat(p, unit)
+  if not (ns.db and ns.db.threatPct) then p.threat:Hide() return end
+  local ok, _, _, pct = pcall(UnitDetailedThreatSituation, 'player', unit)
+  local secret = ok and ns.IsSecret(pct)
+  if not ok or (not secret and pct == nil) then p.threat:Hide() return end
+  if secret and not threatSecretSeen then
+    threatSecretSeen = true
+    ns.dbg('NAMEPLATES', 'Aggro-% ist geheim, wird nur an den Text weitergereicht')
+  end
+  local okF, err = pcall(p.threat.SetFormattedText, p.threat, N.THREAT_PCT_FORMAT, pct)
+  if not okF and not threatFailWarned then
+    threatFailWarned = true
+    ns.dbg('NAMEPLATES', 'Aggro-% lässt sich nicht anzeigen: ' .. tostring(err))
+  end
+  p.threat:SetShown(okF)
+end
+
 -- Position des Namens: über dem Balken, oder (wenn nur der Name zu sehen ist) an der
 -- Stelle des Balkens, damit er nicht höher schwebt als der Name aus der Ferne.
 local function placeName(p, nameOnly)
@@ -244,6 +277,15 @@ function ns.isOccluded(nameplate)
   return alpha ~= nil and alpha < N.OCCLUDED_ALPHA
 end
 
+-- Deckkraft eines TWF-Balkens aus den Einstellungen (Anforderung R): Ziel immer mit
+-- dem Ziel-Wert, auch hinter Wänden; sonst Wand-Wert oder Wert für andere Gegner.
+local function barAlpha(nameplate, isTarget)
+  local db = ns.db
+  if isTarget then return db.alphaTarget end
+  if ns.isOccluded(nameplate) then return db.alphaOccluded end
+  return db.alphaOther
+end
+
 -- Eine Nameplate aktualisieren
 local function update(nameplate, targetPlate)
   local unit = unitOf(nameplate)
@@ -265,11 +307,19 @@ local function update(nameplate, targetPlate)
 
   -- Ziel per Frame-Vergleich erkennen: liest keinen geheimen Wert
   local isTarget = (nameplate == targetPlate)
-  local colorKey
-  if ns.engaged(unit) then
-    colorKey = ns.unitColor(unit) or 'blue'
-  elseif isTarget then
-    colorKey = 'grey'
+  local colorKey, pullFromTank
+  if ns.engaged(unit) and ns.isForeign(unit) then
+    colorKey = 'foreign'   -- gehört einer anderen Gruppe: dunkelgrau, keine Ampel, kein Blinken (Anforderung U)
+    if not foreignSeen then
+      foreignSeen = true
+      ns.dbg('NAMEPLATES', 'Fremder Mob erkannt (andere Gruppe), Balken dunkelgrau')
+    end
+  elseif ns.engaged(unit) then
+    local c
+    c, pullFromTank = ns.unitColor(unit)
+    colorKey = c or 'blue'
+  elseif isTarget or ns.db.barsOutOfCombat then
+    colorKey = 'grey'      -- außerhalb des Kampfs: dein Ziel, mit Checkbox alle (Anforderung Q)
   end
 
   local p = getPlate(nameplate)
@@ -278,6 +328,7 @@ local function update(nameplate, targetPlate)
     -- Außerhalb des Kampfs und nicht dein Ziel (Anforderung N): nur der Name, kein Balken.
     -- Gleiche Schrift und Stelle wie bei der vollen TWF-Nameplate, Farbe wie im Spiel.
     p.bar:Hide()
+    p:SetAlpha(1)
     p:SetIgnoreParentAlpha(N.NAME_ONLY_FULL_ALPHA)
     placeName(p, true)
     fillName(p, unit, true)
@@ -290,9 +341,15 @@ local function update(nameplate, targetPlate)
     return
   end
   p.bar:Show()
-  p:SetIgnoreParentAlpha(false)   -- mit Balken gilt wieder Blizzards Deckkraft (Ziel heller als der Rest)
+  -- Deckkraft setzt TWF selbst nach den drei Reglern, Blizzards Abdunkeln zählt nicht
+  p:SetIgnoreParentAlpha(true)
+  p:SetAlpha(barAlpha(nameplate, isTarget))
+  local alarm = ns.db.alarmFrame and (colorKey == 'yellow' or colorKey == 'red')
+  ns.setGlow(p.alarm, alarm and not pullFromTank)
+  ns.setGlow(p.alarmPull, alarm and pullFromTank)
   setColor(p, colorKey)
   fill(p, unit)
+  fillThreat(p, unit)
   placeName(p, false)
   fillName(p, unit, false)
   p.name:Show()
@@ -384,6 +441,16 @@ local function onLogin()
 end
 
 local function onSettingChanged(key)
+  if key == 'threatPct' or key == 'barsOutOfCombat' or key == 'alarmFrame' then
+    ns.dbg('NAMEPLATES', key .. ' ' .. (ns.db[key] and 'an' or 'aus'))
+    if active() then updateAll() end
+    return
+  end
+  if key == 'alphaTarget' or key == 'alphaOther' or key == 'alphaOccluded' then
+    ns.dbg('NAMEPLATES', 'Deckkraft ' .. key .. ' = ' .. ns.db[key])
+    if active() then updateAll() end
+    return
+  end
   if key ~= 'twfNameplates' then return end
   ns.dbg('NAMEPLATES', 'Modus gewechselt: ' .. (active() and 'TWF-Nameplates' or 'Blizzard-Original'))
   if active() then updateAll() else restoreAll() end

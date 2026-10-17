@@ -167,7 +167,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 - **Ein-/ausschaltbar:** Checkbox „Aggro-Ziel anzeigen“ (`symbolMarks`, Standard an) im Abschnitt Nameplates.
 - Symbolsatz und Größen in `Config.lua` (`C.SYMBOLS`, `C.SYMBOL_LAYOUT`), leicht austauschbar.
 - Umsetzung: `Symbols.lua` (Zeile über dem Mobnamen), `Detection.lua` (`ns.aggroHolder`), Symbolfeld in `List.lua`.
-- Stand: ✅ umgesetzt, im Spiel getestet und committet am 2026-10-13. Offen: Test in einer Instanz.
+- Stand: ✅ umgesetzt, im Spiel getestet und committet am 2026-10-13; laut Nutzer auch in der Instanz getestet (2026-10-13).
 - Beim Test angepasst: Symbol über dem Mob 20 px, Spielername in normaler Schriftgröße, Symbol in der Liste 18 px mit 5 px Abstand; Schlachtzugsymbol in der Liste abgeschaltet (`C.ROW.SHOW_RAID_MARK = false`), bis forever-bugs#166 behoben ist.
 
 ## L (alt, Version 1) — ZURÜCKGENOMMEN 2026-10-12
@@ -248,6 +248,46 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Umsetzung (2026-10-13): `nameplate:GetAlpha()` ist lesbar (gemessen: frei 0,6, hinter einem Baum 0,23). `ns.isOccluded()` in `Nameplates.lua` erkennt verdeckte Nameplates an der Deckkraft (Schwelle `C.NAMEPLATES.OCCLUDED_ALPHA = 0.5`); dann blendet TWF den Namen im Nur-Name-Zustand aus. Schlachtzugsymbol, Balken (Kampf/Ziel) und Aggro-Zeile bleiben wie sie sind. Die Spiel-Option wird nicht verändert.
 - Stand: ✅ umgesetzt, im Spiel getestet, Baseline `twf-baseline-2026-10-13`. Balken im Kampf/beim Ziel bleiben hinter Wänden sichtbar (vom Nutzer bestätigt).
 
+## P. Aggro in % links im TWF-Balken (vom Nutzer beschlossen 2026-10-16)
+- **Anforderung:** Im TWF-Balken steht **links die eigene Aggro in %**, **rechts** wie bisher das **Leben in %**.
+- Wert: eigene Bedrohung auf den Mob (`UnitDetailedThreatSituation('player', nameplateN)`, skalierter Prozentwert; 100 % = du hast bzw. ziehst die Aggro). Leer, solange du nicht auf der Bedrohungsliste stehst (blauer/grauer Balken).
+- Einstellung: Checkbox **„Aggro-% am Balken“** im Abschnitt Nameplates, Standard **an** (`db.threatPct`).
+- Geheime Werte werden nur an den Text weitergereicht (`SetFormattedText`), nie verglichen. Beleg, dass es auf WoW Forever geht: Threat Plates 13.3 und Forever Threat 1.23 zeigen den Wert an (nur angesehen, kein Code übernommen; Threat Plates ist GPL).
+- Werte in `C.NAMEPLATES.THREAT_PCT_X` / `THREAT_PCT_FORMAT`; Debug-Meldungen (einmalig): Wert geheim, Anzeige fehlgeschlagen; Umschalten der Checkbox.
+- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+
+## Q. Graue Balken auch außerhalb des Kampfs + Leuchtrahmen am Ziel (vom Nutzer beschlossen 2026-10-16, war Idee I7)
+- **Checkbox „Balken auch außerhalb des Kampfs“** im Abschnitt Nameplates, Standard **aus** (`db.barsOutOfCombat`). An: Gegner außerhalb des Kampfs bekommen statt nur des Namens (Anforderung N) einen **grauen Balken** wie heute dein Ziel außerhalb des Kampfs. Aus: wie bisher.
+- ~~**Dein Ziel außerhalb des Kampfs** (grauer Balken) bekommt einen **hellgelb leuchtenden, pulsierenden Rahmen** (`C.NAMEPLATES.GLOW`). Gleicher Rahmen-Code wie die Ziel-Zeile in der Liste (`ns.createGlow` in `Utils.lua`, aus `List.lua` herausgezogen).~~ **Vom Nutzer wieder herausgenommen (2026-10-16).** Der gemeinsame Rahmen-Code bleibt (Liste, Anforderungen S und T).
+- Stand: gebaut 2026-10-16, im Spiel getestet: Checkbox an/aus i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+
+## S. Rot blinkender Rahmen bei Aggro-Problem (vom Nutzer beschlossen 2026-10-16)
+- **Gelbe und rote** TWF-Balken bekommen einen **rot blinkenden Rahmen** (`C.NAMEPLATES.ALARM`: rot, 3 px, 0,3 s, Deckkraft 1 → 0,1). Gleicher Rahmen-Code wie der Ziel-Rahmen (`ns.createGlow`).
+- Gilt für **alle Mobs** (nicht nur das Ziel) und in **beiden Modi**: Tank = du verlierst die Aggro, DD/Heal = du ziehst Aggro.
+- Checkbox **„Rot blinkender Rahmen“** im Abschnitt Nameplates, Standard **an** (`db.alarmFrame`).
+- Der Rahmen erbt die Deckkraft des Balkens (Anforderung R), ist bei anderen Gegnern also etwas blasser als beim Ziel.
+- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. inkl. DD/Heal-Modus und Checkbox aus (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+
+## T. Anderer Tank hält den Mob: braun (vom Nutzer beschlossen 2026-10-16, war Idee I5)
+- **Nur Tank-Modus.** Hält ein **anderer Spieler mit der Rolle Tank** (`UnitGroupRolesAssigned`) den Mob, wird aus **Rot → Braun**, an der Nameplate **und in der Liste** (braune Zeile, eigener Tooltip). **Kein Blinkrahmen** bei braun. **Warnton bleibt** (braun zählt wie eine Verschlechterung von grün).
+- Ziehst du dem anderen Tank gleich die Aggro ab (Stufe 1 → gelb), bleibt der Balken **gelb** und bekommt einen **gelb blinkenden** Rahmen (`C.NAMEPLATES.ALARM_PULL`) statt des roten.
+- Hält ihn ein DD/Heiler oder hat der andere Tank keine Rolle zugewiesen: unverändert rot. **DD/Heal-Modus unverändert.**
+- Umsetzung: `ns.withOtherTank` + `ns.groupRole` in `Detection.lua` (eine Quelle für Liste und Nameplates; Rollenabfrage aus `Symbols.lua` dorthin verschoben), Halter über das vorhandene `ns.aggroHolder`. Farbe `C.COLOR.brown`, Füllung entsättigt + getönt wie Blau/Grau.
+- Stand: gebaut 2026-10-16, im Spiel in der Gruppe getestet: braun mit zweitem Tank und gelb blinkender Rahmen beim Abziehen i. O. (Nutzer, 2026-10-17). Offen: Instanz.
+
+## U. Fremde Mobs dunkelgrau (vom Nutzer beschlossen 2026-10-16, war Idee I2)
+- Mobs, die einer **anderen Gruppe gehören** (keine EP, keine Beute; im Original ausgegraut), bekommen einen **dunkelgrauen Balken** (`C.COLOR.foreign`), **ohne Ampelfarbe und ohne Blinkrahmen** (Variante a).
+- Sie erscheinen **nicht in der Problem-Liste** und lösen keinen Warnton aus, auch wenn du auf ihrer Bedrohungsliste stehst.
+- Erkennung: `ns.isForeign` (`UnitIsTapDenied`) in `Detection.lua`; lesbar über Nameplate-Token, auch im Kampf (getestet 2026-10-16). Geheim/unlesbar gilt als „nicht fremd“.
+- Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
+- Stand: gebaut 2026-10-16, erster Test im Spiel „passt auf den ersten Blick“ (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+
+## R. Deckkraft der TWF-Balken als Regler (vom Nutzer beschlossen 2026-10-16)
+- Drei Schieberegler im Abschnitt Nameplates, 10-%-Schritte: **Ziel** (`alphaTarget`, Standard 100 %), **andere Gegner** (`alphaOther`, 60 %), **hinter Wänden** (`alphaOccluded`, 30 %).
+- TWF setzt die Deckkraft selbst (`SetIgnoreParentAlpha(true)`), Blizzards Abdunkeln zählt für die Balken nicht mehr. Dein **Ziel** behält den Ziel-Wert auch **hinter Wänden** (Nutzer-Entscheid).
+- Die Aggro-Ziel-Zeile über dem Mob (Anforderung L) übernimmt die Deckkraft des Balkens. Zauberleiste und Schlachtzugsymbol bleiben voll sichtbar. Nur-Name-Zustand unverändert (voll sichtbar, hinter Wänden ausgeblendet).
+- Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
+
 ## TODO (nächste Sitzung)
 - Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bei Gelegenheit.
 - ✅ Die Neuerungen vom 13.10. (Name außerhalb des Kampfs, Schlachtzugsymbol, Name hinter Wänden) wurden laut Nutzer **auch in der Instanz getestet** (bestätigt 2026-10-13).
@@ -263,8 +303,9 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   4. `/run K=C_CurveUtil.CreateColorCurve()K:AddPoint(0,CreateColor(0,1,0))K:AddPoint(50,CreateColor(1,.8,0))K:AddPoint(100,CreateColor(1,0,0))Q=Q or UIParent:CreateTexture()Q:SetSize(40,40)Q:SetPoint("CENTER",0,120)Q:SetColorTexture(1,1,1)print("bereit")`
   5. `/run local _,_,p=UnitDetailedThreatSituation("player","target")print("Ergebnis:",pcall(function()Q:SetVertexColor(K:Evaluate(p):GetRGB())end))` → true + Quadrat ändert die Farbe = machbar
 
-- **I2 Fremde Gegner erkennbar machen** (Idee des Nutzers für den nächsten Fix, 2026-10-13; **noch keine Anforderung**): Im Blizzard-Original sieht man an der Nameplate, ob ein kämpfender Gegner der eigenen Gruppe „gehört“ (EP/Beute) oder jemand anderem; fremde Gegner sind dort meist **grau**. Bei den TWF-Nameplates fehlt diese Information. Technik-Idee: `UnitIsTapDenied(unit)` (wahr = gehört anderen); vorher im Kampf testen, ob der Wert über `nameplateN` lesbar oder geheim ist. Zu klären: TWF nutzt Grau heute für „dein Ziel außerhalb des Kampfs“ und Blau für „kämpft, aber nicht mit dir“ → Farbbelegung neu ordnen.
-  - Testzeile (fremden Gegner im Kampf anvisieren): `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("fremd (target):",S(UnitIsTapDenied("target")))` und für alle Nameplates: `/run for _,p in ipairs(C_NamePlate.GetNamePlates())do local u=p.namePlateUnitToken print(u,S(UnitIsTapDenied(u)))end`
+- **I2 Fremde Gegner erkennbar machen** — ✅ **zur Anforderung U geworden (2026-10-16, dunkelgrau)**. (Idee des Nutzers für den nächsten Fix, 2026-10-13; **noch keine Anforderung**): Im Blizzard-Original sieht man an der Nameplate, ob ein kämpfender Gegner der eigenen Gruppe „gehört“ (EP/Beute) oder jemand anderem; fremde Gegner sind dort meist **grau**. Bei den TWF-Nameplates fehlt diese Information. Technik-Idee: `UnitIsTapDenied(unit)` (wahr = gehört anderen); vorher im Kampf testen, ob der Wert über `nameplateN` lesbar oder geheim ist. Zu klären: TWF nutzt Grau heute für „dein Ziel außerhalb des Kampfs“ und Blau für „kämpft, aber nicht mit dir“ → Farbbelegung neu ordnen.
+  - **Getestet 2026-10-16 (draußen):** `UnitIsTapDenied` ist über `target` **und über den Nameplate-Token lesbar**, auch wenn du selbst im Kampf bist (Ausgabe `true`/`false`, nicht geheim). Hinweis: Die Nameplate hat evtl. kein `namePlateUnitToken`, Token über `UnitFrame.unit` holen. Ausweichweg falls später geheim: Blizzards Balkenfarbe (grau 0.9/0.9/0.9) lesen, wie ForeverThreatPlate.
+  - Alte Testzeile (fremden Gegner im Kampf anvisieren): `/run S=function(v)return issecretvalue and issecretvalue(v)and"GEHEIM"or tostring(v)end print("fremd (target):",S(UnitIsTapDenied("target")))` und für alle Nameplates: `/run for _,p in ipairs(C_NamePlate.GetNamePlates())do local u=p.namePlateUnitToken print(u,S(UnitIsTapDenied(u)))end`
 
 - **I3 Weitere Sprachen** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, Details werden erst geklärt, wenn es umgesetzt wird): Spielertexte zusätzlich auf **Spanisch, Französisch, Russisch und Chinesisch**. Umschaltung wie bisher über die Spielsprache, Englisch bleibt der Rückfall, Debug-Texte bleiben Deutsch.
 
@@ -278,7 +319,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Vorher testen: Welche Werte gibt der Client über `focus` und `target` für die **einzelnen Gruppenmitglieder** heraus? Über `target` war „tankt ja/nein“ lesbar, über `nameplateN` nur die einfache Stufe. Sind **Bedrohungs-Prozent** der Gruppenmitglieder lesbar oder geheim? (Die Mitbewerber melden, dass Werte z. B. bei Bossen geheim sind und die Liste dann unsortiert bleibt.) Geheime Werte lassen sich evtl. direkt an Balken/Text weiterreichen (wie beim Leben), dann aber ohne Sortierung.
   - Aufbau: **ein** Modul für die klassische Liste (z. B. `ThreatList.lua`), das zweimal verwendet wird (Quelle `focus` bzw. `target`), kein doppelter Code (Regel 2). Fenster-Rahmen vom bestehenden TWF-Fenster wiederverwenden. Werte in `Config.lua`, Texte in allen Sprachen, abgeschaltete Fenster kosten keine Leistung.
 
-- **I5 Eigene Balkenfarbe, wenn ein anderer Tank den Mob hält** (Idee aus der Konkurrenzanalyse, vom Nutzer als „sehr gute Idee“ bewertet, 2026-10-13; **keine Anforderung**):
+- **I5 Eigene Balkenfarbe, wenn ein anderer Tank den Mob hält** — ✅ **zur Anforderung T geworden (2026-10-16, Farbe braun)**. (Idee aus der Konkurrenzanalyse, vom Nutzer als „sehr gute Idee“ bewertet, 2026-10-13; **keine Anforderung**):
   - Heute ist ein Mob im Tank-Modus **rot**, sobald du ihn nicht hältst, auch wenn ihn der zweite Tank sicher hat. Das ist ein Fehlalarm, vor allem in Schlachtzügen mit zwei Tanks.
   - Neu: Hält ein **anderer Spieler mit der Rolle Tank** den Mob, bekommt der Balken eine eigene Farbe (Vorschlag: Lila, wie bei „Forever: Threat (Plates & Bar)“).
   - Technik ist vorhanden: `ns.aggroHolder` + `UnitGroupRolesAssigned` (wie beim Aggro-Ziel). Eine Quelle für Liste und Nameplate.
@@ -288,8 +329,23 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Hürde: An der Nameplate zeichnet **Blizzard** das Symbol selbst (`UnitFrame.RaidTargetFrame`), dort muss TWF nichts lesen. Für die Liste braucht TWF die **Symbol-Nummer** (`GetRaidTargetIndex`), und die war im Kampf geheim (forever-bugs#166, Stand 13.10. offen). Blizzards Element lässt sich nicht einfach in die Liste kopieren.
   - Wege zum Testen: (1) erneut prüfen, ob die Nummer inzwischen lesbar ist; (2) Nummer **merken, solange sie lesbar ist** (außerhalb des Kampfs bzw. beim Ereignis `RAID_TARGET_UPDATE`) und im Kampf aus dem Merkzettel anzeigen, Zuordnung über GUID bzw. Token (in Instanzen ist die Gegner-GUID geheim → dort evtl. nur über den Token); (3) prüfen, ob sich ein geheimer Index direkt an eine Textur weiterreichen lässt (bisher nein, siehe `Marks.lua`).
 
+- **I7 Schalter „Balken auch außerhalb des Kampfs zeigen“** — ✅ **zur Anforderung Q geworden (2026-10-16)**. (Wunsch eines Spielers, vom Nutzer als „gute Idee, zum Einschalten“ bewertet, 2026-10-16; **keine Anforderung**): Heute zeigt TWF bei Mobs außerhalb des Kampfs nur den Namen (Anforderung N), auch wenn die Blizzard-Nameplate schon sichtbar ist. Mit dem Schalter bekämen diese Mobs schon vorher einen Balken.
+  - Gedacht als Einstellung, **Standard aus**; dann ändert sich für bisherige Nutzer nichts.
+  - Offene Punkte (erst klären, wenn es umgesetzt wird): Farbe des Balkens vor dem Kampf (neutral grau wie beim Ziel?), Verhalten hinter Wänden (wie Anforderung O).
+  - Verwandt: Die **Reichweite** der Nameplates bestimmt allein Blizzard (`nameplateMaxDistance`, Classic Era Standard 20 m, max. 41 m); ob WoW Forever mehr zulässt, ist noch ungetestet. TWF prüft selbst keine Entfernung.
+
+- **I8 Vorschau im Einstellungsfenster** (Idee des Nutzers, 2026-10-16; **keine Anforderung**): Beispiel-Balken mit festen Testwerten (Ziel grün, anderer Gegner rot mit Blinkrahmen, hinter Wand gelb, anderer Tank braun, außerhalb des Kampfs grau), die sich sofort mit Reglern und Checkboxen ändern (Deckkraft, Aggro-%, Blinkrahmen, graue Balken, Rolle).
+  - Aufbau: Bau-Code des TWF-Balkens aus `Nameplates.lua` in eine gemeinsame Funktion ziehen, die auch die Vorschau nutzt (kein doppelter Code). Liest keine Spielwerte.
+  - Zu klären, wenn es umgesetzt wird: im Fenster (300 px breit, wird länger), weniger Balken, oder eigenes kleines Fenster daneben; Deckkraft wirkt auf dem dunklen Fensterhintergrund anders als vor der Spielwelt.
+
 ## Offene Bugs
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
+
+## Veröffentlichung 0.2 — 2026-10-17 bei CurseForge veröffentlicht
+- Inhalt: Anforderungen **P–U** (Aggro-% im Balken, graue Balken außerhalb des Kampfs, Deckkraft-Regler, rot blinkender Rahmen, zweiter Tank braun, fremde Mobs dunkelgrau). Allein und (T) in der Gruppe getestet; offen: Instanz-Test.
+- Paket `release/ThreatWallForever-0.2.zip`, Changelog `release/ThreatWallForever-0.2-patchnotes.html` (nur 0.2), Gesamtprotokoll `PATCHNOTES.html`.
+- Neues Logo „TWF als Burgmauer“ (`logo/twf-logo-mauer-*`, `release/logo-bauen.py`); das Schild-Logo war zu nah an ForeverThreatPlate.
+- Offen: CurseForge-Beschreibung auf 0.2 bringen; Projektname/Kurzbeschreibung/Kategorien für die Suche (Vorschlag: „ThreatWall Forever – Aggro Warning & Threat Nameplates“); Screenshots aus dem Spiel.
 
 ## Veröffentlichung 0.1 — vorbereitet 2026-10-13
 - ✅ Code bereinigt (eigener Commit): tote Variablen (`placePending`, `scroll`, `ns.ADDON`), ungenutzte Texte/Codes (`TT_CLICK`, `NO_NAMEPLATES`, `DEBUG_ON/OFF`), veraltete Kommentare; Debug-Texte komplett Deutsch (Dump, laufende Meldungen, `/twf mark`); Spieler-Hilfe ohne Entwickler-Befehle.
@@ -298,7 +354,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - ✅ `CURSEFORGE-BESCHREIBUNG.html` (erst Deutsch, dann Englisch), inkl. Bedeutung der Balkenfarben (Blau = noch nicht erfasst, aktiv eingreifen).
 - ✅ Release-Paket `wow-addons/release/ThreatWallForever-0.1.zip` (nur Lua-Dateien, TOC, LICENSE; ohne Doku).
 - ✅ Abschlusstest bestanden, `master` + Baseline-Tag gepusht, **Upload bei CurseForge durch den Nutzer am 2026-10-13** (wartet auf Freischaltung).
-- ✅ Logo (`logo/`, gebaut mit `release/logo-bauen.py`), Beschreibung und Patchnotes farbig gestaltet. KI-Hinweis: CurseForge verlangt keine Kennzeichnung von KI-Code (nur bei irreführenden Vorschaubildern); freiwilliger Satz in der Beschreibung wurde vorgeschlagen, Entscheidung offen.
+- ✅ Logo (`logo/`, gebaut mit `release/logo-bauen.py`; ab 0.2 neues Motiv „TWF als Burgmauer“ `twf-logo-mauer-*`, das Schild war zu nah an ForeverThreatPlate), Beschreibung und Patchnotes farbig gestaltet. KI-Hinweis: CurseForge verlangt keine Kennzeichnung von KI-Code (nur bei irreführenden Vorschaubildern); freiwilliger Satz in der Beschreibung wurde vorgeschlagen, Entscheidung offen.
 - ✅ Entschieden: Der Knopf „Spiel-Optionen öffnen“ im Hinweis-Popup **bleibt** (`C.HINT.SHOW_OPTIONS_BUTTON = true`). Regel 5: Rechenschritte (`+ 0.5`, `/ 2`, `2 *`) sind erlaubt.
 
 ## Weitere Anforderungen

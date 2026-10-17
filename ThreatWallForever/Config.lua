@@ -62,6 +62,12 @@ C.DEFAULTS = {
   markMethod = 1,            -- Index in Marks.lua (1–3)
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
   symbolMarks = true,        -- Aggro-Ziel am Mob und in der Liste anzeigen (Anforderung L)
+  threatPct = true,          -- eigene Aggro in % links im TWF-Balken (Anforderung P)
+  alarmFrame = true,         -- rot blinkender Rahmen um gelbe und rote TWF-Balken (Anforderung S)
+  barsOutOfCombat = false,   -- an = graue Balken auch bei Gegnern außerhalb des Kampfs (Anforderung Q)
+  alphaTarget = 1,           -- Deckkraft der TWF-Balken: dein Ziel (auch hinter Wänden) (Anforderung R)
+  alphaOther = 0.6,          -- … andere Gegner
+  alphaOccluded = 0.3,       -- … Gegner hinter Wänden
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -93,15 +99,18 @@ C.COLOR = {
   red = { 0.82, 0.14, 0.14 },
   yellow = { 0.92, 0.72, 0.12 },
   green = { 0.25, 0.75, 0.25 },
+  brown = { 0.6, 0.38, 0.15 },  -- anderer Tank hält den Mob (Anforderung T)
+  foreign = { 0.22, 0.22, 0.22 }, -- Mob gehört einer anderen Gruppe (Anforderung U)
 }
--- Rangfolge zum Sortieren (höher = schlimmer)
-C.RANK = { red = 2, yellow = 1, green = 0 }
+-- Rangfolge zum Sortieren (höher = schlimmer); braun zwischen grün und gelb
+C.RANK = { red = 2, yellow = 1, brown = 0.5, green = 0 }
 
 -- Textfarben im Zeilen-Tooltip (R, G, B)
 C.TOOLTIP_COLOR = {
   red = { 1, 0.3, 0.3 },
   yellow = { 1, 0.8, 0.2 },
   green = { 0.3, 1, 0.3 },
+  brown = { 0.85, 0.6, 0.35 },
 }
 
 C.TITLE_COLOR = { 1, 0.82, 0 }        -- Gold für Fenstertitel und Abschnitts-Überschriften
@@ -198,11 +207,15 @@ C.ROW = {
                                -- (forever-bugs#166: Symbol-Nummer im Kampf geheim). Code bleibt in Marks.lua.
   GAP = 4,                     -- Abstand Punkt → Symbol → Name
   NAME_RIGHT = -6,
-  TARGET_GLOW = { 0.55, 0.85, 1 }, -- Rahmenfarbe Ziel (hell blau-weiß, hebt sich von der Ampel ab)
-  GLOW_EDGE = 2,               -- Rahmenstärke in px
-  GLOW_ALPHA_FROM = 1,         -- Pulsieren: Deckkraft von …
-  GLOW_ALPHA_TO = 0.4,         -- … bis
-  GLOW_DURATION = 0.7,         -- Sekunden pro Pulsschritt
+  -- Pulsierender Rahmen um die Zeile deines Ziels (ns.createGlow)
+  GLOW = {
+    COLOR = { 0.55, 0.85, 1 }, -- hell blau-weiß, hebt sich von der Ampel ab
+    EDGE = 2,                  -- Rahmenstärke in px
+    INSET = 0,                 -- Rahmen liegt auf dem Zeilenrand
+    ALPHA_FROM = 1,            -- Pulsieren: Deckkraft von …
+    ALPHA_TO = 0.4,            -- … bis
+    DURATION = 0.7,            -- Sekunden pro Pulsschritt
+  },
 }
 
 -- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS)
@@ -266,6 +279,26 @@ C.NAMEPLATES = {
   RAID_ICON_GAP = 4,           -- Schlachtzugsymbol links vor dem Balken: Abstand zum Balken
   PCT_LAYER = 7,               -- Zeichen-Unterebene der Prozentzahl (über dem Rahmen)
   PCT_FORMAT = '%.0f%%',       -- Anzeige des Lebens in Prozent
+  THREAT_PCT_X = 3,            -- Abstand der Aggro-Prozentanzeige vom linken Balkenrand (Anforderung P)
+  THREAT_PCT_FORMAT = '%.0f%%', -- Anzeige der eigenen Aggro in Prozent (100 % = du hast bzw. ziehst die Aggro)
+  -- Rot blinkender Rahmen um gelbe und rote Balken: Aggro-Warnung in beiden Modi (Anforderung S)
+  ALARM = {
+    COLOR = { 1, 0.1, 0.1 },   -- rot
+    EDGE = 3,                  -- gleiche Stärke wie der Ziel-Rahmen
+    INSET = 5,
+    ALPHA_FROM = 1,            -- Blinken: Deckkraft von …
+    ALPHA_TO = 0.1,            -- … bis fast aus
+    DURATION = 0.3,            -- Sekunden pro Blinkschritt (schneller als der Ziel-Rahmen)
+  },
+  -- Gelb blinkender Rahmen: Tank-Modus, du ziehst einem anderen Tank gleich die Aggro ab (Anforderung T)
+  ALARM_PULL = {
+    COLOR = { 1, 0.85, 0.1 },  -- gelb
+    EDGE = 3,
+    INSET = 5,
+    ALPHA_FROM = 1,
+    ALPHA_TO = 0.1,
+    DURATION = 0.3,
+  },
   ADD_DELAY = 0,               -- Sekunden Verzögerung nach "Nameplate erscheint" (0 = nächster Frame; Blizzard richtet sie erst ein)
   WORLD_DELAY = 1,             -- Sekunden nach Betreten der Welt bis zur kompletten Neuprüfung
   -- Füllung je Ampelfarbe (Atlanten im Stil von Blizzards Zauberbalken, getestet in T8c)
@@ -275,11 +308,15 @@ C.NAMEPLATES = {
     red = 'ui-castingbar-interrupted',
     blue = 'ui-castingbar-filling-standard',   -- entsättigt + blau getönt (siehe TINT)
     grey = 'ui-castingbar-filling-standard',   -- entsättigt + grau getönt
+    brown = 'ui-castingbar-filling-standard',  -- entsättigt + braun getönt
+    foreign = 'ui-castingbar-filling-standard', -- entsättigt + dunkelgrau getönt
   },
   -- Farben ohne eigene Blizzard-Füllung: goldene Füllung entsättigen und tönen (R, G, B)
   TINT = {
     blue = { 0.35, 0.55, 1 },  -- im Kampf, aber nicht mit dir/deiner Gruppe
     grey = { 0.6, 0.6, 0.6 },  -- dein Ziel außerhalb des Kampfs
+    brown = C.COLOR.brown,     -- anderer Tank hält den Mob (Anforderung T)
+    foreign = C.COLOR.foreign, -- Mob gehört einer anderen Gruppe (Anforderung U)
   },
   BAR_BG = 'ui-castingbar-background',
   BAR_BORDER = 'ui-castingbar-frame',
@@ -400,6 +437,12 @@ C.OPTIONS = {
   { type = 'section', label = 'SEC_NAMEPLATES' },
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
   { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
+  { type = 'check', key = 'threatPct', label = 'OPT_THREAT_PCT', tip = 'TIP_THREAT_PCT' },
+  { type = 'check', key = 'alarmFrame', label = 'OPT_ALARM_FRAME', tip = 'TIP_ALARM_FRAME' },
+  { type = 'check', key = 'barsOutOfCombat', label = 'OPT_BARS_OOC', tip = 'TIP_BARS_OOC' },
+  { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
+  { type = 'slider', key = 'alphaOther', label = 'OPT_ALPHA_OTHER', tip = 'TIP_ALPHA_OTHER', min = 0.1, max = 1, step = 0.1 },
+  { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 
   { type = 'section', label = 'SEC_LOOK' },
   { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },

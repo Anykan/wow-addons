@@ -3,7 +3,7 @@
 ## Notes: Aggro watcher for tanks and DD/healers: a compact list of the enemies with an aggro problem, plus nameplates colored by threat that show who a mob is attacking.
 ## Notes-deDE: Aggro-Warner für Tanks und DD/Heiler: eine kompakte Liste der Gegner mit Aggro-Problem, dazu Nameplates in Ampelfarbe, die zeigen, wen ein Mob angreift.
 ## Author: Anykan
-## Version: 0.1
+## Version: 0.2
 ## SavedVariables: ThreatWallForeverDB
 
 # Lade-Reihenfolge: Config zuerst (alle Werte), dann Texte, Kern, Module

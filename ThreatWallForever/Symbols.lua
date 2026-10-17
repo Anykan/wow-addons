@@ -43,20 +43,13 @@ local function holderOf(mob)
   return holder
 end
 
-local function roleKey(holder)
-  local ok, role = pcall(UnitGroupRolesAssigned, holder)
-  role = ok and ns.plain(role)
-  if role == 'TANK' or role == 'HEALER' or role == 'DAMAGER' then return role end
-  return 'NONE'
-end
-
 -- Symbol für einen Mob (Schlüssel in C.SYMBOLS) und sein Halter (Gruppen-Token).
 -- nil, wenn die Anzeige aus ist, niemand aus der Gruppe ihn hält oder du selbst ihn hältst.
 function ns.symbolFor(mob)
   if not active() or not mob then return nil end
   local holder = holderOf(mob)
   if not holder or holder == 'player' then return nil end
-  return roleKey(holder), holder
+  return ns.groupRole(holder), holder
 end
 
 -- Grafik setzen: Atlas oder Datei, optional mit Bildausschnitt
@@ -140,6 +133,10 @@ local function showLine(nameplate, key, holder, showName)
     or (uf and (uf.name or uf.healthBar or uf.HealthBar)) or nameplate
   f:ClearAllPoints()
   f:SetPoint('BOTTOM', anchor, 'TOP', 0, Y.LINE_Y)
+  -- Gleiche Deckkraft wie der TWF-Balken (Anforderung R); ohne TWF-Nameplate Blizzards Deckkraft
+  local ownAlpha = plate and plate:IsShown()
+  f:SetIgnoreParentAlpha(ownAlpha and true or false)
+  f:SetAlpha(ownAlpha and plate:GetAlpha() or 1)
   f:Show()
 end
 
