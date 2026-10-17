@@ -32,7 +32,7 @@ Debug bei Bedarf: `/twf debug 1` (aus: `/twf debug 0`), Momentaufnahme: `/twf du
 | 15 | Checkbox „Aggro-Ziel anzeigen“ **aus** | Zeile über Mobs und Symbole in der Liste sofort weg; **an** = wieder da | ✔ |
 | 16 | Checkbox „TWF-Nameplates“ **aus** (Blizzard-Original) | Zeile erscheint über Blizzards Nameplate (Position ggf. unschön → notieren) | ✔ nach Korrektur: Zeile am Blizzard-Mobnamen ausgerichtet |
 | 17 | **In einer Instanz** | 8–13 funktionieren gleich; über Mitspielern **keine** Blizzard-Balken mehr | ✔ im Kampf (nach Korrektur: Textbreite an Nameplates ist in Instanzen geheim, nichts mehr messen). Blauer Balken in der Instanz: keine Anzeige möglich (Ziel des Mobs dort komplett geheim) = bekannte Grenze |
-| 18 | `/twf debug 1`, Mitspieler zieht Aggro | Zeile „[021] Halter von nameplateN: party1“, beim Zurückholen „… : player“ | offen |
+| 18 | `/twf debug 1`, Mitspieler zieht Aggro | Zeile „[021] Halter von nameplateN: party1“, beim Zurückholen „… : player“ | ✔ (Nutzer, 2026-10-17) |
 
 ## Optik (nur Geschmack, alles Werte in `Config.lua` → `C.SYMBOL_LAYOUT`)
 - Symbolgröße über dem Mob (`ICON_SIZE`, 14 px), Abstand zum Namen (`ICON_GAP`), Höhe über dem Mobnamen (`LINE_Y`), Symbolgröße in der Liste (`LIST_SIZE`).

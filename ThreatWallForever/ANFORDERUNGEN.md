@@ -322,7 +322,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Stand: ✅ gebaut 2026-10-16, getestet. In 0.3 teilweise durch V ersetzt; Ziel/Wand-Regler bleiben.
 
 ## TODO (nächste Sitzung)
-- Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bei Gelegenheit.
+- ✅ Test 18 aus `TESTS-L-AGGROZIEL.md` (Debug-Zeilen) bestanden (2026-10-17). Keine offenen Tests mehr.
 - ✅ Die Neuerungen vom 13.10. (Name außerhalb des Kampfs, Schlachtzugsymbol, Name hinter Wänden) wurden laut Nutzer **auch in der Instanz getestet** (bestätigt 2026-10-13).
 - Siehe auch „TODO vor Veröffentlichung“.
 
