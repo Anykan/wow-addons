@@ -402,6 +402,11 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Vorher testen:** Sind Zauber-ID und Ziel des Mitspielers auf Forever lesbar oder geheim (draußen und in Instanzen)?
   - Aufwand mittel; Nutzen vor allem für Tanks (Schlachtzug, Tank-Wechsel).
 
+- **I13 Begleiter-Bedrohung (Pet)** (aus der Konkurrenzanalyse – Hunter Threat, ForeverThreat, BlizzThreatPlates; vom Nutzer zur gesonderten Betrachtung vorgemerkt 2026-10-17, **ggf. zusammen mit den Fenstern (I4)**; **keine Anforderung**):
+  - Heute zeigt TWF nur **deine** Bedrohung. Jäger/Hexenmeister, deren Begleiter tankt, sehen dann Rot, obwohl alles in Ordnung ist.
+  - Möglich: Option „Begleiter zählt mit“ – hält dein Pet den Mob, ist das kein Problem (eigener Zustand oder grün; Technik wie beim zweiten Tank, `UnitThreatSituation('pet', mob)`); evtl. Pet-Bedrohung in % im Balken/in der Liste; bei I4 (Fokus-/Ziel-Liste) das Pet als eigene Zeile.
+  - Vorher prüfen: Werte für `pet` über Nameplates lesbar/geheim?
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
