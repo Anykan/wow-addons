@@ -393,6 +393,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Später evtl.: eigene Sounddateien; „Warnton nur in Gruppe“.
   - Vor dem Bauen: Test im Spiel, welche Töne es auf Forever gibt und wie der Bildschirmrand aussieht.
 
+- **I11 Fenster nur in Instanzen** (aus der Konkurrenzanalyse – bei Forever Threat gewünscht und eingebaut; vom Nutzer auf die Ideenliste gesetzt 2026-10-17; **keine Anforderung**): Weitere Checkbox **„Nur in Instanzen“** unter Allgemein → Anzeige (Dungeons/Schlachtzüge, evtl. Schlachtfelder), kombinierbar mit „nur im Kampf“ und „nur in Gruppe“. Technik: `IsInInstance()` ist offen lesbar. Aufwand klein. Offene Frage: nur das Fenster (Vorschlag) oder auch die Nameplates?
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
