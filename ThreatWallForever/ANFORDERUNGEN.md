@@ -385,6 +385,14 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Wichtig:** Alpha-Animation direkt auf Verlaufs-Texturen macht sie weiß → Schein in einen eigenen Rahmen legen und nur den Rahmen pulsieren lassen.
   - Testskripte (Probebalken, Regler `G(Streifen, Zuschnitt, Ecke, Helligkeit)`) stehen im Chatverlauf vom 2026-10-17.
 
+- **I10 Warnungen pro Zustand: Warnton, Kanal, Bildschirmrand** (Idee des Nutzers + Konkurrenzanalyse, 2026-10-17; **keine Anforderung**):
+  - Heute: ein fester Warnton (Sound-ID 8959) über den **Master-Kanal** (`C.ALERT_CHANNEL = 'Master'`) – genau das wurde bei Omen3 bemängelt (zu laut, folgt nicht der Effekt-Lautstärke).
+  - **Tabelle im Reiter Nameplates** bekommt pro Zustand zwei Zeilen: **„Warnton“** (Auswahl aus 6–10 Blizzard-Tönen oder „aus“, mit **Probehören**) und **„Bildschirmrand“** (Checkbox; Rand leuchtet/pulsiert in einer Farbe, wenn ein Mob in diesen Zustand wechselt). Beispiel: „Problem“ = Alarm + roter Rand, „Knapp“ = kein Ton.
+  - **Lautstärke:** Addons können keine Lautstärke pro Ton setzen → stattdessen Auswahl **„Kanal“** (Master/Effekte/Musik/Umgebung/Dialog), Standard **Effekte**; die Lautstärke regelt der Spiel-Regler des Kanals. Trick über kurzzeitiges Umstellen der Spiel-Lautstärke: nicht empfohlen.
+  - **Bildschirmrand:** Vollbild-Textur, nur der Rand leuchtet; Farbe pro Zustand, Stärke/Deckkraft, einmal aufblitzen oder pulsieren solange das Problem besteht. Blizzard-Grafik dafür vorher auf Forever testen.
+  - Später evtl.: eigene Sounddateien; „Warnton nur in Gruppe“.
+  - Vor dem Bauen: Test im Spiel, welche Töne es auf Forever gibt und wie der Bildschirmrand aussieht.
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
