@@ -1,7 +1,7 @@
 import re, sys, glob
 from luaparser import ast
 from luaparser.astnodes import *
-files=[l.strip() for l in open('ThreatWallForever.toc',encoding='utf-8') if l.strip().endswith('.lua')]
+files=[l.strip().replace(chr(92),'/') for l in open('ThreatWallForever.toc',encoding='utf-8') if l.strip().endswith('.lua')]  # Unterordner: \ -> /
 defs=set(); uses={}
 glob_uses={}
 for f in files:

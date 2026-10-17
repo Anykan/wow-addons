@@ -1,5 +1,5 @@
 import re
-files=[l.strip() for l in open('ThreatWallForever.toc',encoding='utf-8') if l.strip().endswith('.lua')]
+files=[l.strip().replace(chr(92),'/') for l in open('ThreatWallForever.toc',encoding='utf-8') if l.strip().endswith('.lua')]  # Unterordner: \ -> /
 old=['frame','db','refresh','applyLook','updateMinimap','say','IsSecret','plain','num','testMode','rows','tracked','collect','classify','worse','engaged','myStatus','candidateUnits','setMark','layoutRow','showMenu','SETTINGS','toggleRole','resetPlace','toggleWindow','savePlace','placeFrame','stopMove','startMove','dbg','roleName','getCVar','backdrop','hasAtlas','setAtlas','header','titleText','subText','gear','roleBtn','minimize','grip','mm','showHintPopup','checkNameplateSetting','cycleMarkMethod','MARK_METHOD_NAMES','toggleDebug','placePending','DEFAULTS','HEADER_H','FLAT','COLOR','RANK','TICK','GRACE','MAX_ROWS','MAX_LOG','CODES','PREFIX','VERSION','TEST','L']
 for f in files:
     src=open(f,encoding='utf-8').read()

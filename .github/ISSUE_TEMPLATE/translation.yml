@@ -1,0 +1,45 @@
+name: "Übersetzung verbessern / Improve translation"
+description: "Fehler oder bessere Formulierung in einer Übersetzung melden. Report a mistake or a better wording in a translation."
+title: "[Translation] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke! / Thank you!
+        Alle Texte stehen in `ThreatWallForever/Locales/<Sprache>.lua` – siehe [TRANSLATING.md](https://github.com/Anykan/wow-addons/blob/master/ThreatWallForever/TRANSLATING.md).
+        All texts live in `ThreatWallForever/Locales/<language>.lua` – see [TRANSLATING.md](https://github.com/Anykan/wow-addons/blob/master/ThreatWallForever/TRANSLATING.md).
+  - type: dropdown
+    id: addon
+    attributes:
+      label: "Addon"
+      options:
+        - ThreatWall Forever
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: "Sprache / Language"
+      options:
+        - Deutsch (deDE)
+        - English (enUS)
+        - Español (esES / esMX)
+        - Français (frFR)
+        - "Neue Sprache / New language"
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: "Wo? Schlüssel oder aktueller Text / Where? Key or current text"
+      description: "z. B. / e.g. MENU_LOCK oder / or „Bloquear ventana“ – ein Screenshot hilft auch / a screenshot helps too."
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: "Vorschlag / Suggestion"
+      description: "Wie soll der Text lauten? / What should the text say?"
+    validations:
+      required: true

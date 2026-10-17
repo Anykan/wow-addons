@@ -284,6 +284,14 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## Y. Übersetzungen über GitHub verbessern (vom Nutzer beschlossen 2026-10-17, Version 0.3)
+- **Eine Datei pro Sprache:** `Locales/enUS.lua` (Vorlage, immer geladen = Rückfall), `deDE.lua`, `esES.lua` (esES + esMX), `frFR.lua`; gleiche Reihenfolge der Schlüssel, Kopf mit Regeln für Übersetzer. Vorher eine `Locales.lua`.
+- **`TRANSLATING.md`** (DE/EN): Dateien, Regeln (Schlüssel nie ändern, `%s`/`%d`/`\n` behalten, keine `"`), Einreichen per „Edit this file“ → Pull Request, neue Sprache anlegen, Testen.
+- **GitHub-Issue-Vorlage** „Übersetzung verbessern / Improve translation“ (`.github/ISSUE_TEMPLATE/translation.yml` im Repo).
+- **Prüfskript 5** (`release/pruefung/5-sprachen.py`): Sprachdateien gegen die Vorlage, auch für eingereichte Übersetzungen.
+- Patchnotes 0.3 verlinken die Anleitung in allen vier Sprachen. Skripte (Prüfung, Paket) können jetzt Unterordner.
+- Stand: gebaut 2026-10-17. Test im Spiel: Sprache bleibt richtig (Deutsch), keine Lua-Fehler – offen.
+
 ## X. Live-Aggro-% in der Liste (vom Nutzer beschlossen 2026-10-17, Version 0.3)
 - Jede Listenzeile zeigt **ganz links** deine **Live-Aggro in %**, dahinter Ampelpunkt, Symbol, Name.
 - Checkbox **„Aggro-% in der Liste“** unter Allgemein → Anzeige, Standard **an**. Textfarbe = „Aggro-%-Farbe“ des Zustands aus der Tabelle (Reiter Nameplates).

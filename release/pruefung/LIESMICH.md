@@ -10,6 +10,7 @@ cd "X:/Claude Workspace/wow-addons/ThreatWallForever"
 python ../release/pruefung/1-syntax-und-verweise.py
 python ../release/pruefung/3-offene-strings.py
 python ../release/pruefung/4-ungueltige-escapes.py
+python ../release/pruefung/5-sprachen.py
 ```
 
 | Skript | Prüft | Braucht |
@@ -18,12 +19,13 @@ python ../release/pruefung/4-ungueltige-escapes.py
 | `2-alte-lokale-namen.py` | Reste aus dem Modul-Umbau: alte lokale Namen (`frame`, `db`, `refresh` …), die jetzt über `ns.` laufen müssen. Meldet `Utils.lua titleText` fälschlich (Funktionsparameter). | – |
 | `3-offene-strings.py` | Lua-Strings, die über das Zeilenende hinausgehen. **Wichtig:** `luaparser` verzeiht das, WoW nicht (Fehler „unfinished string“ am 2026-10-04). | – |
 | `4-ungueltige-escapes.py` | Ungültige Backslashes in Strings, z. B. `'Interface\RaidFrame'` statt `'Interface\\RaidFrame'`. | – |
+| `5-sprachen.py` | Sprachdateien `Locales/*.lua` gegen die Vorlage `enUS.lua`: ungültige Zeilen (z. B. `"` im Text), unbekannte oder doppelte Schlüssel, andere Platzhalter (`%s`, `%d`, `\n`), im Code benutzte Texte ohne Vorlage. Fehlende Übersetzungen nur als Hinweis (Spiel zeigt dann Englisch). Auch für eingereichte Übersetzungen (Pull Requests). | – |
 
 Die Skripte 1 und 2 lesen die Dateiliste aus `ThreatWallForever.toc` (Name im Skript fest);
 für ein anderes Addon dort den TOC-Namen anpassen.
 
 ## Weitere Prüfungen, die bisher von Hand (als Einzeiler) liefen
-- Jeder benutzte Text (`L.X`, `label`/`tip` in `Config.lua`) ist in **jeder** Sprache vorhanden, und es gibt keine ungenutzten Texte.
+- (Seit Skript 5 automatisch: benutzte Texte in der Vorlage, Sprachen vollständig.) Ungenutzte Texte prüfen weiter von Hand.
 - Jeder benutzte Config-Schlüssel (`C.TABELLE.SCHLUESSEL`) ist in `Config.lua` definiert.
 - Keine versehentlichen globalen Funktionen (`^function name(`) und keine globalen Zuweisungen.
 - Spielordner und Repo sind identisch (`cmp` über alle Lua-Dateien und die TOC).

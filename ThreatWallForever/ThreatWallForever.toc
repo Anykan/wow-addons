@@ -11,7 +11,10 @@
 
 # Lade-Reihenfolge: Config zuerst (alle Werte), dann Texte, Kern, Module
 Config.lua
-Locales.lua
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\frFR.lua
 Core.lua
 Utils.lua
 Debug.lua

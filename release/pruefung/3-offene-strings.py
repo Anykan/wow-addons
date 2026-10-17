@@ -1,6 +1,6 @@
 import re, sys
 # Findet Lua-Strings, die über das Zeilenende hinausgehen (luaparser verzeiht das, WoW nicht).
-files = [l.strip() for l in open('ThreatWallForever.toc', encoding='utf-8') if l.strip().endswith('.lua')]
+files = [l.strip().replace(chr(92), '/') for l in open('ThreatWallForever.toc', encoding='utf-8') if l.strip().endswith('.lua')]  # Unterordner: \ -> /
 STR = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
 bad = 0
 for f in files:

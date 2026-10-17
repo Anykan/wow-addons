@@ -2,7 +2,7 @@ import re, glob
 # Findet ungültige Lua-Escapes in Strings (z. B. 'Interface\RaidFrame' statt 'Interface\\RaidFrame').
 VALID = set('\\nt"\'0123456789abfrv\n')
 bad = 0
-for f in glob.glob('*.lua'):
+for f in glob.glob('**/*.lua', recursive=True):  # auch Locales/
     for n, line in enumerate(open(f, encoding='utf-8'), 1):
         for m in re.finditer(r"'(?:\\.|[^'\\\n])*'|\"(?:\\.|[^\"\\\n])*\"", line):
             s = m.group(0)[1:-1]
