@@ -29,6 +29,7 @@ function ns.createGlow(parent, G)
   local glow = CreateFrame('Frame', nil, parent)
   glow:SetPoint('TOPLEFT', -G.INSET, G.INSET)
   glow:SetPoint('BOTTOMRIGHT', G.INSET, -G.INSET)
+  glow.lines = {}
   for _, edge in ipairs({
     { 'TOPLEFT', 'TOPRIGHT', nil, G.EDGE },
     { 'BOTTOMLEFT', 'BOTTOMRIGHT', nil, G.EDGE },
@@ -42,6 +43,7 @@ function ns.createGlow(parent, G)
     line:SetPoint(edge[2])
     if edge[3] then line:SetWidth(edge[3]) end
     if edge[4] then line:SetHeight(edge[4]) end
+    glow.lines[#glow.lines + 1] = line
   end
   glow:Hide()
   -- Das Pulsieren ist nur Optik: Weicht die Animations-API dieses Clients ab,
@@ -57,6 +59,11 @@ function ns.createGlow(parent, G)
     glow.anim = anim
   end)
   return glow
+end
+
+-- Farbe des Rahmens ändern (z. B. pro Zustand der Nameplate, Anforderung V)
+function ns.setGlowColor(glow, color)
+  for _, line in ipairs(glow.lines) do line:SetVertexColor(color[1], color[2], color[3], 1) end
 end
 
 -- Rahmen ein- oder ausschalten (startet bzw. stoppt das Pulsieren nur beim Wechsel)
@@ -97,8 +104,10 @@ function ns.say(msg, codeKey)
   DEFAULT_CHAT_FRAME:AddMessage(C.PREFIX .. tag .. msg)
 end
 
-function ns.roleName()
-  return ns.db.role == 'tank' and L.ROLE_TANK or L.ROLE_DPS
+-- Name einer Rolle (ohne Angabe: die gespielte Rolle)
+function ns.roleName(role)
+  local names = { tank = L.ROLE_TANK, dps = L.ROLE_DPS, heal = L.ROLE_HEAL }
+  return names[role or ns.db.role] or L.ROLE_TANK
 end
 
 function ns.getCVar(name)

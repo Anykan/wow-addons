@@ -65,11 +65,8 @@ end
 local function updateRoleLook()
   local ui = ns.ui
   if ui.roleBtn.setArt then ui.roleBtn.setArt() end
-  if ns.db.role == 'tank' then
-    ui.titleText:SetText(L.TITLE_TANK .. ' ' .. ns.VERSION)
-  else
-    ui.titleText:SetText(L.TITLE_DPS .. ' ' .. ns.VERSION)
-  end
+  local title = { tank = L.TITLE_TANK, dps = L.TITLE_DPS, heal = L.TITLE_HEAL }
+  ui.titleText:SetText((title[ns.db.role] or L.TITLE_TANK) .. ' ' .. ns.VERSION)
 end
 
 function ns.applyLook()
@@ -92,10 +89,21 @@ function ns.toggleWindow()
   ns.refresh()
 end
 
-function ns.toggleRole()
-  ns.db.role = (ns.db.role == 'tank') and 'dps' or 'tank'
+-- Rolle setzen (Einstellungsfenster) bzw. reihum weiterschalten Tank → DD → Heal (Fensterkopf, /twf role)
+function ns.setRole(role)
+  ns.db.role = role
   ns.applyLook()
   ns.refresh()
+  ns.notifyModules('OnSettingChanged', 'role')
+end
+
+function ns.toggleRole()
+  local roles = C.ROLES
+  local nextRole = roles[1]
+  for i, r in ipairs(roles) do
+    if r == ns.db.role then nextRole = roles[i % #roles + 1] end
+  end
+  ns.setRole(nextRole)
 end
 
 function ns.resetPlace()
@@ -247,7 +255,7 @@ local function buildFrame()
     else
       roleBtn.icon:Hide()
       roleBtn.text:Show()
-      roleBtn.text:SetText(db.role == 'tank' and 'T' or 'D')
+      roleBtn.text:SetText(C.ROLE_SHORT[db.role] or C.ROLE_SHORT.tank)
       ns.backdrop(roleBtn, W.ROLE_BACKDROP_ALPHA)
     end
   end
@@ -260,6 +268,7 @@ local function buildFrame()
     GameTooltip:AddLine(L.TT_ROLE_TITLE)
     GameTooltip:AddLine(L.TT_ROLE_TANK, unpack(C.WHITE))
     GameTooltip:AddLine(L.TT_ROLE_DPS, unpack(C.WHITE))
+    GameTooltip:AddLine(L.TT_ROLE_HEAL, unpack(C.WHITE))
     GameTooltip:Show()
   end)
   roleBtn:SetScript('OnLeave', function() GameTooltip:Hide() end)

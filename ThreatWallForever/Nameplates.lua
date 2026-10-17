@@ -8,9 +8,11 @@
           Name darüber, Leben in % rechts im Balken, eigene Aggro in % links
           (Checkbox "Aggro-% am Balken", Anforderung P). Dein Ziel bekommt zusätzlich Blizzards
           eigene Zauberleiste.
-          Gegner außerhalb des Kampfs zeigen nur ihren Namen in der Farbe des Spiels
-          (rot feindlich, gelb passiv; Anforderung N). Blizzards eigener Namenstext
-          der Nameplate ist grau und wird deshalb nicht verwendet.
+          Farbe, Deckkraft, blinkender Rahmen und "Balken zeigen" kommen pro Zustand
+          aus der Tabelle im Reiter Nameplates (PlateStates.lua, Anforderung V).
+          Zustände mit "Balken zeigen" aus (Standard: außerhalb des Kampfs) zeigen nur
+          den Namen in der Farbe des Spiels (rot feindlich, gelb passiv; Anforderung N).
+          Blizzards eigener Namenstext der Nameplate ist grau und wird nicht verwendet.
           Schlachtzugsymbole bleiben sichtbar (Bug B1).
     aus – alles im Blizzard-Original, TWF-Nameplates ausgeblendet.
 
@@ -40,7 +42,7 @@ end
 
 local function atlasesAvailable()
   if atlasOK == nil then
-    atlasOK = ns.hasAtlas(N.FILL.yellow) and ns.hasAtlas(N.FILL.green) and ns.hasAtlas(N.FILL.red)
+    atlasOK = ns.hasAtlas(N.FILL)
       and ns.hasAtlas(N.BAR_BG) and ns.hasAtlas(N.BAR_BORDER)
     if not atlasOK then ns.dbg('NAMEPLATES', 'Zauberbalken-Atlanten fehlen, nutze schlichte Balken') end
   end
@@ -161,10 +163,8 @@ local function getPlate(nameplate)
   p.threat:SetDrawLayer('OVERLAY', N.PCT_LAYER)
   p.threat:SetPoint('LEFT', bar, 'LEFT', N.THREAT_PCT_X, 0)
 
-  -- Rot blinkender Rahmen: gelber oder roter Balken, Aggro-Problem (Anforderung S)
-  p.alarm = ns.createGlow(bar, N.ALARM)
-  -- Gelb blinkender Rahmen: du ziehst einem anderen Tank gleich die Aggro ab (Anforderung T)
-  p.alarmPull = ns.createGlow(bar, N.ALARM_PULL)
+  -- Blinkender Rahmen; ob und in welcher Farbe, steht pro Zustand in der Tabelle (Anforderung V)
+  p.alarm = ns.createGlow(bar, N.BLINK)
 
   -- Name über dem Balken
   p.name = p:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
@@ -190,25 +190,20 @@ local function place(p, nameplate, uf)
   end
 end
 
-local function setColor(p, colorKey)
-  if p.colorKey == colorKey then return end
-  p.colorKey = colorKey
+-- Balkenfarbe (Anforderung V): Zauberbalken-Füllung entsättigt und in der Farbe des
+-- Zustands getönt, damit jede Farbe frei wählbar ist. Die Füllung wird nur einmal gesetzt.
+local function setColor(p, color)
   local bar = p.bar
-  local tint = N.TINT[colorKey]
-  if atlasesAvailable() then
-    bar:SetStatusBarTexture(N.FILL[colorKey])
-    local tex = bar:GetStatusBarTexture()
-    if tint then
-      tex:SetDesaturated(true)
-      bar:SetStatusBarColor(unpack(tint))
+  if not p.fillSet then
+    p.fillSet = true
+    if atlasesAvailable() then
+      bar:SetStatusBarTexture(N.FILL)
+      bar:GetStatusBarTexture():SetDesaturated(true)
     else
-      tex:SetDesaturated(false)
-      bar:SetStatusBarColor(unpack(C.WHITE))   -- Füllung bringt ihre Farbe selbst mit
+      bar:SetStatusBarTexture(N.PLAIN_FILL)
     end
-  else
-    bar:SetStatusBarTexture(N.PLAIN_FILL)
-    bar:SetStatusBarColor(unpack(tint or C.COLOR[colorKey]))
   end
+  bar:SetStatusBarColor(color[1], color[2], color[3])
 end
 
 -- Werte setzen. Leben und Name können geheim sein: nur weiterreichen, nie auswerten.
@@ -277,13 +272,30 @@ function ns.isOccluded(nameplate)
   return alpha ~= nil and alpha < N.OCCLUDED_ALPHA
 end
 
--- Deckkraft eines TWF-Balkens aus den Einstellungen (Anforderung R): Ziel immer mit
--- dem Ziel-Wert, auch hinter Wänden; sonst Wand-Wert oder Wert für andere Gegner.
-local function barAlpha(nameplate, isTarget)
+-- Deckkraft eines TWF-Balkens: Ziel immer mit dem Ziel-Wert (auch hinter Wänden), hinter
+-- Wänden der Wand-Wert (beide Regler unter "Allgemein"), sonst die Deckkraft des Zustands (V).
+local function barAlpha(nameplate, isTarget, cfg)
   local db = ns.db
   if isTarget then return db.alphaTarget end
   if ns.isOccluded(nameplate) then return db.alphaOccluded end
-  return db.alphaOther
+  return cfg.alpha
+end
+
+-- Zustand der Nameplate (Schlüssel in C.PLATE_STATES)
+local function stateOf(unit)
+  if ns.engaged(unit) and ns.isForeign(unit) then
+    if not foreignSeen then
+      foreignSeen = true
+      ns.dbg('NAMEPLATES', 'Fremder Mob erkannt (andere Gruppe)')
+    end
+    return 'foreign'       -- gehört einer anderen Gruppe (Anforderung U)
+  end
+  if ns.engaged(unit) then
+    local c, pullFromTank = ns.unitColor(unit)
+    if c == 'yellow' and pullFromTank then return 'pull' end  -- du ziehst dem anderen Tank ab (T)
+    return c or 'blue'     -- blau: kämpft, aber nicht mit dir
+  end
+  return 'grey'            -- außerhalb des Kampfs
 end
 
 -- Eine Nameplate aktualisieren
@@ -307,25 +319,13 @@ local function update(nameplate, targetPlate)
 
   -- Ziel per Frame-Vergleich erkennen: liest keinen geheimen Wert
   local isTarget = (nameplate == targetPlate)
-  local colorKey, pullFromTank
-  if ns.engaged(unit) and ns.isForeign(unit) then
-    colorKey = 'foreign'   -- gehört einer anderen Gruppe: dunkelgrau, keine Ampel, kein Blinken (Anforderung U)
-    if not foreignSeen then
-      foreignSeen = true
-      ns.dbg('NAMEPLATES', 'Fremder Mob erkannt (andere Gruppe), Balken dunkelgrau')
-    end
-  elseif ns.engaged(unit) then
-    local c
-    c, pullFromTank = ns.unitColor(unit)
-    colorKey = c or 'blue'
-  elseif isTarget or ns.db.barsOutOfCombat then
-    colorKey = 'grey'      -- außerhalb des Kampfs: dein Ziel, mit Checkbox alle (Anforderung Q)
-  end
+  local cfg = ns.plateState(stateOf(unit))
 
   local p = getPlate(nameplate)
   place(p, nameplate, uf)
-  if not colorKey then
-    -- Außerhalb des Kampfs und nicht dein Ziel (Anforderung N): nur der Name, kein Balken.
+  -- "Balken zeigen" aus (Standard bei "Außer Kampf", Anforderung N/V): nur der Name.
+  -- Dein Ziel bekommt immer einen Balken.
+  if not (cfg.show or isTarget) then
     -- Gleiche Schrift und Stelle wie bei der vollen TWF-Nameplate, Farbe wie im Spiel.
     p.bar:Hide()
     p:SetAlpha(1)
@@ -341,13 +341,12 @@ local function update(nameplate, targetPlate)
     return
   end
   p.bar:Show()
-  -- Deckkraft setzt TWF selbst nach den drei Reglern, Blizzards Abdunkeln zählt nicht
+  -- Deckkraft setzt TWF selbst, Blizzards Abdunkeln zählt nicht
   p:SetIgnoreParentAlpha(true)
-  p:SetAlpha(barAlpha(nameplate, isTarget))
-  local alarm = ns.db.alarmFrame and (colorKey == 'yellow' or colorKey == 'red')
-  ns.setGlow(p.alarm, alarm and not pullFromTank)
-  ns.setGlow(p.alarmPull, alarm and pullFromTank)
-  setColor(p, colorKey)
+  p:SetAlpha(barAlpha(nameplate, isTarget, cfg))
+  ns.setGlowColor(p.alarm, cfg.frame)
+  ns.setGlow(p.alarm, cfg.blink)
+  setColor(p, cfg.color)
   fill(p, unit)
   fillThreat(p, unit)
   placeName(p, false)
@@ -441,13 +440,18 @@ local function onLogin()
 end
 
 local function onSettingChanged(key)
-  if key == 'threatPct' or key == 'barsOutOfCombat' or key == 'alarmFrame' then
+  if key == 'threatPct' then
     ns.dbg('NAMEPLATES', key .. ' ' .. (ns.db[key] and 'an' or 'aus'))
     if active() then updateAll() end
     return
   end
-  if key == 'alphaTarget' or key == 'alphaOther' or key == 'alphaOccluded' then
+  if key == 'alphaTarget' or key == 'alphaOccluded' then
     ns.dbg('NAMEPLATES', 'Deckkraft ' .. key .. ' = ' .. ns.db[key])
+    if active() then updateAll() end
+    return
+  end
+  -- Tabelle im Reiter Nameplates oder Rolle geändert (Anforderung V)
+  if key == 'plates' or key == 'plateShared' or key == 'role' then
     if active() then updateAll() end
     return
   end

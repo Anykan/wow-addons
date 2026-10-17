@@ -256,12 +256,12 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Werte in `C.NAMEPLATES.THREAT_PCT_X` / `THREAT_PCT_FORMAT`; Debug-Meldungen (einmalig): Wert geheim, Anzeige fehlgeschlagen; Umschalten der Checkbox.
 - Stand: gebaut 2026-10-16, im Spiel getestet: i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
-## Q. Graue Balken auch außerhalb des Kampfs + Leuchtrahmen am Ziel (vom Nutzer beschlossen 2026-10-16, war Idee I7)
+## Q. Graue Balken auch außerhalb des Kampfs + Leuchtrahmen am Ziel (vom Nutzer beschlossen 2026-10-16, war Idee I7) — **in 0.3 durch Anforderung V ersetzt** (Einstellungen jetzt in der Tabelle im Reiter Nameplates)
 - **Checkbox „Balken auch außerhalb des Kampfs“** im Abschnitt Nameplates, Standard **aus** (`db.barsOutOfCombat`). An: Gegner außerhalb des Kampfs bekommen statt nur des Namens (Anforderung N) einen **grauen Balken** wie heute dein Ziel außerhalb des Kampfs. Aus: wie bisher.
 - ~~**Dein Ziel außerhalb des Kampfs** (grauer Balken) bekommt einen **hellgelb leuchtenden, pulsierenden Rahmen** (`C.NAMEPLATES.GLOW`). Gleicher Rahmen-Code wie die Ziel-Zeile in der Liste (`ns.createGlow` in `Utils.lua`, aus `List.lua` herausgezogen).~~ **Vom Nutzer wieder herausgenommen (2026-10-16).** Der gemeinsame Rahmen-Code bleibt (Liste, Anforderungen S und T).
 - Stand: gebaut 2026-10-16, im Spiel getestet: Checkbox an/aus i. O. (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
-## S. Rot blinkender Rahmen bei Aggro-Problem (vom Nutzer beschlossen 2026-10-16)
+## S. Rot blinkender Rahmen bei Aggro-Problem (vom Nutzer beschlossen 2026-10-16) — **in 0.3 durch Anforderung V ersetzt** (Einstellungen jetzt in der Tabelle im Reiter Nameplates)
 - **Gelbe und rote** TWF-Balken bekommen einen **rot blinkenden Rahmen** (`C.NAMEPLATES.ALARM`: rot, 3 px, 0,3 s, Deckkraft 1 → 0,1). Gleicher Rahmen-Code wie der Ziel-Rahmen (`ns.createGlow`).
 - Gilt für **alle Mobs** (nicht nur das Ziel) und in **beiden Modi**: Tank = du verlierst die Aggro, DD/Heal = du ziehst Aggro.
 - Checkbox **„Rot blinkender Rahmen“** im Abschnitt Nameplates, Standard **an** (`db.alarmFrame`).
@@ -282,7 +282,21 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: gebaut 2026-10-16, erster Test im Spiel „passt auf den ersten Blick“ (Nutzer, 2026-10-16). Offen: Gruppe, Instanz.
 
-## R. Deckkraft der TWF-Balken als Regler (vom Nutzer beschlossen 2026-10-16)
+## V. Aussehen pro Zustand einstellbar, Reiter im Einstellungsfenster, Rolle Tank/DD/Heal (vom Nutzer beschlossen 2026-10-17, Version 0.3)
+- **Einstellungsfenster mit Reitern** „Allgemein“ und „Nameplates“, beide gleich groß (760 px breit, Höhe = längster Inhalt, springt nicht). „Allgemein“ in drei Spalten (`{ type = 'column' }` in `C.OPTIONS`).
+- **Reiter Nameplates:** Tabelle mit **einer Spalte pro Zustand** (Sicher, Unsicher, Problem, Anderer Tank, Ziehst vom Tank, Nicht mit dir, Außer Kampf, Fremde Gruppe) und den Zeilen **Farbe** (Klick → Blizzards Farbwähler, auf Forever getestet), **Deckkraft** (Anzeige in %, Klick → Popup mit Schieberegler 0–100 %), **Blinken** (Checkbox), **Rahmenfarbe** (nur sichtbar, wenn Blinken an; Farbwähler), **Balken zeigen** (Checkbox; aus = nur der Name).
+- **Checkbox „Farben für alle Modi gleich“** (Standard an): eine Tabelle für alle Modi, Farben wie bisher an die Ampel-Bedeutung gebunden (Tank: Rot = Aggro verloren; DD/Heal: Rot = Aggro gezogen). **Aus:** drei Tabellen untereinander (Tank, DD, Heal), jede mit eigenen Werten; in DD/Heal sind „Anderer Tank“ und „Ziehst vom Tank“ ausgegraut. Die gespielte Rolle ist mit „(aktiv)“ markiert.
+- **Knopf „Farben zurücksetzen“** im Reiter Nameplates: alle Tabellen auf Standard (= Aussehen wie 0.2).
+- **Deckkraft:** Ziel und hinter Wänden weiter als Regler unter „Allgemein“ (Ziel gilt auch hinter Wänden); sonst die Deckkraft des Zustands. Regler „andere Gegner“ entfernt.
+- **Entfernt:** Checkbox „Rot blinkender Rahmen“ (S) und „Balken auch außerhalb des Kampfs“ (Q) – beides steckt jetzt in der Tabelle (Blinken pro Zustand, „Balken zeigen“ bei „Außer Kampf“). Feste Rahmen `ALARM`/`ALARM_PULL` und feste Füllungen ersetzt: alle Balken entsättigt + getönt (`C.NAMEPLATES.FILL`), Blinkstärke/-tempo in `C.NAMEPLATES.BLINK` (vorbereitet, später pro Zustand einstellbar).
+- **Dein Ziel bekommt immer einen Balken**, auch wenn „Balken zeigen“ für seinen Zustand aus ist (wie bisher beim grauen Ziel).
+- **Rolle dreiteilig** Tank / DD / Heal: Einstellungsfenster (drei Knöpfe), Knopf im TWF-Fenster schaltet reihum, `/twf role` ebenso. DD und Heal verhalten sich bei der Aggro gleich, nur die Farben können getrennt sein.
+- **Liste:** Punktfarbe folgt der Balkenfarbe des Zustands.
+- **Umstieg von 0.2** (einmalig, `PlateStates.lua`): Deckkraft „andere Gegner“ → Deckkraft aller Zustände, „Rot blinkender Rahmen“ aus → Blinken aus, „Balken außerhalb des Kampfs“ an → „Balken zeigen“ bei „Außer Kampf“.
+- Umsetzung: neue Datei `PlateStates.lua` (Daten, Standardwerte, Umstieg), `Settings.lua` (Reiter, Tabelle, Farbwähler, Deckkraft-Popup), `Nameplates.lua` (Zustand → Aussehen), Debug-Code `PLATES` (022).
+- Stand: ✅ gebaut und im Spiel getestet 2026-10-17: Test 1 (Fenster/Bedienung), Test 2 (Wirkung am Balken), Test 3 (Modi Tank/DD/Heal, getrennte Tabellen), Test 4 (Umstieg von 0.2) i. O. (Nutzer). Offen: Instanz-Test. Veröffentlicht als 0.3.
+
+## R. Deckkraft der TWF-Balken als Regler (vom Nutzer beschlossen 2026-10-16) — **in 0.3 teilweise durch V ersetzt:** Regler „andere Gegner“ entfällt (Deckkraft pro Zustand); „Ziel“ und „hinter Wänden“ bleiben unter „Allgemein“
 - Drei Schieberegler im Abschnitt Nameplates, 10-%-Schritte: **Ziel** (`alphaTarget`, Standard 100 %), **andere Gegner** (`alphaOther`, 60 %), **hinter Wänden** (`alphaOccluded`, 30 %).
 - TWF setzt die Deckkraft selbst (`SetIgnoreParentAlpha(true)`), Blizzards Abdunkeln zählt für die Balken nicht mehr. Dein **Ziel** behält den Ziel-Wert auch **hinter Wänden** (Nutzer-Entscheid).
 - Die Aggro-Ziel-Zeile über dem Mob (Anforderung L) übernimmt die Deckkraft des Balkens. Zauberleiste und Schlachtzugsymbol bleiben voll sichtbar. Nur-Name-Zustand unverändert (voll sichtbar, hinter Wänden ausgeblendet).
@@ -341,11 +355,16 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 ## Offene Bugs
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
+## Veröffentlichung 0.3 — vorbereitet 2026-10-17
+- Inhalt: Anforderung **V** (Reiter Allgemein/Nameplates, Tabelle pro Zustand mit Farbe, Deckkraft, Blinken, Rahmenfarbe, Balken zeigen; „Farben gleich“ oder je Tank/DD/Heal; Rolle dreiteilig). Tests 1–4 bestanden; offen: Instanz-Test.
+- Paket `release/ThreatWallForever-0.3.zip`, Changelog `release/ThreatWallForever-0.3-patchnotes.html`, Gesamtprotokoll `PATCHNOTES.html`.
+- Achtung: neue Datei `PlateStates.lua` → TOC geändert, nach dem Update ist ein kompletter Neustart des Spiels nötig (steht in den Patchnotes).
+
 ## Veröffentlichung 0.2 — 2026-10-17 bei CurseForge veröffentlicht
 - Inhalt: Anforderungen **P–U** (Aggro-% im Balken, graue Balken außerhalb des Kampfs, Deckkraft-Regler, rot blinkender Rahmen, zweiter Tank braun, fremde Mobs dunkelgrau). Allein und (T) in der Gruppe getestet; offen: Instanz-Test.
 - Paket `release/ThreatWallForever-0.2.zip`, Changelog `release/ThreatWallForever-0.2-patchnotes.html` (nur 0.2), Gesamtprotokoll `PATCHNOTES.html`.
 - Neues Logo „TWF als Burgmauer“ (`logo/twf-logo-mauer-*`, `release/logo-bauen.py`); das Schild-Logo war zu nah an ForeverThreatPlate.
-- Offen: CurseForge-Beschreibung auf 0.2 bringen; Projektname/Kurzbeschreibung/Kategorien für die Suche (Vorschlag: „ThreatWall Forever – Aggro Warning & Threat Nameplates“); Screenshots aus dem Spiel.
+- Offen: CurseForge-Beschreibung auf 0.2 bringen; Projektname/Kurzbeschreibung/Kategorien für die Suche (Vorschlag: „ThreatWall Forever – Aggro Warning & Threat Nameplates“). ✅ Screenshots bei CurseForge hochgeladen (Nutzer, 2026-10-17). Instanz-Test folgt.
 
 ## Veröffentlichung 0.1 — vorbereitet 2026-10-13
 - ✅ Code bereinigt (eigener Commit): tote Variablen (`placePending`, `scroll`, `ns.ADDON`), ungenutzte Texte/Codes (`TT_CLICK`, `NO_NAMEPLATES`, `DEBUG_ON/OFF`), veraltete Kommentare; Debug-Texte komplett Deutsch (Dump, laufende Meldungen, `/twf mark`); Spieler-Hilfe ohne Entwickler-Befehle.

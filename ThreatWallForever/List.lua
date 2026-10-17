@@ -14,8 +14,11 @@ local ROW = C.ROW
 
 ns.rows = {}
 
+-- Punkt in der Farbe, die der Zustand an der Nameplate hat (Tabelle im Reiter Nameplates,
+-- Anforderung V); so passen Liste und Balken auch bei eigenen Farben zusammen.
 local function setDot(tex, colorName)
-  local c = C.COLOR[colorName] or C.COLOR.yellow
+  local st = ns.plateState(colorName)
+  local c = st and st.color or C.COLOR[colorName] or C.COLOR.yellow
   tex:SetVertexColor(c[1], c[2], c[3])
 end
 

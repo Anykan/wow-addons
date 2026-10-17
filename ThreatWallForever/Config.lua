@@ -36,6 +36,7 @@ C.CODES = {
   GAME_OPTIONS = '019',  -- Debug: Prüfung der Spiel-Optionen
   NAMEPLATES = '020',    -- Debug: TWF-Nameplates
   SYMBOLS = '021',       -- Debug: Aggro-Ziel am Mob (wer hält welchen Mob)
+  PLATES = '022',        -- Debug: Aussehen pro Zustand (Tabelle im Reiter Nameplates)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -50,7 +51,7 @@ C.DEFAULTS = {
   alpha = 0.4,               -- Deckkraft des Hintergrunds (0–1)
   rowHeight = 20,            -- Zeilenhöhe in px
   textScale = 1,
-  role = 'tank',             -- 'tank' oder 'dps'
+  role = 'tank',             -- 'tank', 'dps' oder 'heal' (C.ROLES)
   combatOnly = false,
   groupOnly = true,
   showAll = false,
@@ -63,11 +64,10 @@ C.DEFAULTS = {
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
   symbolMarks = true,        -- Aggro-Ziel am Mob und in der Liste anzeigen (Anforderung L)
   threatPct = true,          -- eigene Aggro in % links im TWF-Balken (Anforderung P)
-  alarmFrame = true,         -- rot blinkender Rahmen um gelbe und rote TWF-Balken (Anforderung S)
-  barsOutOfCombat = false,   -- an = graue Balken auch bei Gegnern außerhalb des Kampfs (Anforderung Q)
   alphaTarget = 1,           -- Deckkraft der TWF-Balken: dein Ziel (auch hinter Wänden) (Anforderung R)
-  alphaOther = 0.6,          -- … andere Gegner
-  alphaOccluded = 0.3,       -- … Gegner hinter Wänden
+  alphaOccluded = 0.3,       -- … Gegner hinter Wänden (außer dein Ziel); sonst gilt die Deckkraft des Zustands
+  plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
+  -- plates (Aussehen pro Zustand) legt PlateStates.lua an, Standardwerte aus C.PLATE_STATES
 }
 
 -- Takt und Zeiten -------------------------------------------------------------------
@@ -101,7 +101,12 @@ C.COLOR = {
   green = { 0.25, 0.75, 0.25 },
   brown = { 0.6, 0.38, 0.15 },  -- anderer Tank hält den Mob (Anforderung T)
   foreign = { 0.22, 0.22, 0.22 }, -- Mob gehört einer anderen Gruppe (Anforderung U)
+  blue = { 0.35, 0.55, 1 },     -- kämpft, aber nicht mit dir/deiner Gruppe
+  grey = { 0.6, 0.6, 0.6 },     -- außerhalb des Kampfs
 }
+-- Rollen (Anforderung V: DD und Heal getrennt). Reihenfolge = Umschalten im Fensterkopf.
+C.ROLES = { 'tank', 'dps', 'heal' }
+C.ROLE_SHORT = { tank = 'T', dps = 'D', heal = 'H' }  -- Rollen-Knopf ohne Atlas
 -- Rangfolge zum Sortieren (höher = schlimmer); braun zwischen grün und gelb
 C.RANK = { red = 2, yellow = 1, brown = 0.5, green = 0 }
 
@@ -148,7 +153,8 @@ C.ATLAS = {
   GEAR = 'common-dropdown-a-button-settings-shadowless',
   GEAR_PRESSED = 'common-dropdown-a-button-settings-pressed-shadowless',
   GEAR_HOVER = 'common-dropdown-a-button-settings-hover-shadowless',
-  ROLE = { tank = 'groupfinder-icon-role-large-tank', dps = 'groupfinder-icon-role-large-dps' },
+  ROLE = { tank = 'groupfinder-icon-role-large-tank', dps = 'groupfinder-icon-role-large-dps',
+           heal = 'groupfinder-icon-role-large-heal' },
   GRIP = 'damagemeters-scalehandle',
   GRIP_HOVER = 'damagemeters-scalehandle-hover',
   GRIP_PRESSED = 'damagemeters-scalehandle-pressed',
@@ -281,43 +287,22 @@ C.NAMEPLATES = {
   PCT_FORMAT = '%.0f%%',       -- Anzeige des Lebens in Prozent
   THREAT_PCT_X = 3,            -- Abstand der Aggro-Prozentanzeige vom linken Balkenrand (Anforderung P)
   THREAT_PCT_FORMAT = '%.0f%%', -- Anzeige der eigenen Aggro in Prozent (100 % = du hast bzw. ziehst die Aggro)
-  -- Rot blinkender Rahmen um gelbe und rote Balken: Aggro-Warnung in beiden Modi (Anforderung S)
-  ALARM = {
-    COLOR = { 1, 0.1, 0.1 },   -- rot
-    EDGE = 3,                  -- gleiche Stärke wie der Ziel-Rahmen
-    INSET = 5,
+  -- Blinkender Rahmen (Anforderung V): ob und in welcher Farbe, steht pro Zustand in der Tabelle
+  -- (C.PLATE_STATES bzw. Einstellungen). Stärke und Tempo gelten für alle Zustände; so gebaut,
+  -- dass sie später pro Zustand einstellbar werden können.
+  BLINK = {
+    COLOR = { 1, 0.1, 0.1 },   -- Startfarbe, wird pro Zustand überschrieben
+    EDGE = 3,                  -- Rahmenstärke in px
+    INSET = 5,                 -- Rahmen liegt außen um den Balkenrahmen (BORDER_INSET 2 + EDGE)
     ALPHA_FROM = 1,            -- Blinken: Deckkraft von …
     ALPHA_TO = 0.1,            -- … bis fast aus
-    DURATION = 0.3,            -- Sekunden pro Blinkschritt (schneller als der Ziel-Rahmen)
-  },
-  -- Gelb blinkender Rahmen: Tank-Modus, du ziehst einem anderen Tank gleich die Aggro ab (Anforderung T)
-  ALARM_PULL = {
-    COLOR = { 1, 0.85, 0.1 },  -- gelb
-    EDGE = 3,
-    INSET = 5,
-    ALPHA_FROM = 1,
-    ALPHA_TO = 0.1,
-    DURATION = 0.3,
+    DURATION = 0.3,            -- Sekunden pro Blinkschritt
   },
   ADD_DELAY = 0,               -- Sekunden Verzögerung nach "Nameplate erscheint" (0 = nächster Frame; Blizzard richtet sie erst ein)
   WORLD_DELAY = 1,             -- Sekunden nach Betreten der Welt bis zur kompletten Neuprüfung
-  -- Füllung je Ampelfarbe (Atlanten im Stil von Blizzards Zauberbalken, getestet in T8c)
-  FILL = {
-    green = 'ui-castingbar-filling-channel',
-    yellow = 'ui-castingbar-filling-standard',
-    red = 'ui-castingbar-interrupted',
-    blue = 'ui-castingbar-filling-standard',   -- entsättigt + blau getönt (siehe TINT)
-    grey = 'ui-castingbar-filling-standard',   -- entsättigt + grau getönt
-    brown = 'ui-castingbar-filling-standard',  -- entsättigt + braun getönt
-    foreign = 'ui-castingbar-filling-standard', -- entsättigt + dunkelgrau getönt
-  },
-  -- Farben ohne eigene Blizzard-Füllung: goldene Füllung entsättigen und tönen (R, G, B)
-  TINT = {
-    blue = { 0.35, 0.55, 1 },  -- im Kampf, aber nicht mit dir/deiner Gruppe
-    grey = { 0.6, 0.6, 0.6 },  -- dein Ziel außerhalb des Kampfs
-    brown = C.COLOR.brown,     -- anderer Tank hält den Mob (Anforderung T)
-    foreign = C.COLOR.foreign, -- Mob gehört einer anderen Gruppe (Anforderung U)
-  },
+  -- Füllung im Stil von Blizzards Zauberbalken: entsättigt und in der Farbe des Zustands getönt,
+  -- damit jede Farbe frei wählbar ist (Anforderung V; vorher feste Atlanten für Grün/Gelb/Rot)
+  FILL = 'ui-castingbar-filling-standard',
   BAR_BG = 'ui-castingbar-background',
   BAR_BORDER = 'ui-castingbar-frame',
   PLAIN_FILL = 'Interface\\TargetingFrame\\UI-StatusBar',  -- Rückfall, falls die Atlanten fehlen
@@ -405,7 +390,7 @@ C.SETTINGS = {
   CHECK_BORDER = 1,            -- Rahmenstärke des Kästchens in px
   CHECK_BG = { 0, 0, 0, 0.6 }, -- Innenfarbe des Kästchens
   LINE_ALPHA = 0.15,           -- Trennlinie unter Abschnitts-Überschriften
-  ROLE_BUTTON_W = 70,          -- Breite der Rollen-Knöpfe
+  ROLE_BUTTON_W = 54,          -- Breite der Rollen-Knöpfe (drei nebeneinander)
   TEXT_GAP = 8,                -- Abstand Kästchen → Text
   SLIDER_ROW_H = 38,           -- Höhe einer Schieberegler-Zeile (Text oben, Regler unten)
   SLIDER_H = 6,                -- Höhe der Bahn
@@ -423,40 +408,67 @@ C.SETTINGS = {
   TAB_BOTTOM_GAP = 6,          -- Abstand unter der Reiterleiste
 }
 
--- Reiter "Nameplates" (0.3, Schritt 1: nur Platzhalter, noch ohne Funktion) -----------------
--- Eine Spalte pro Zustand der TWF-Nameplate. Die Werte zeigen den heutigen festen Stand.
--- frame = Rahmenfarbe (nil = kein Rahmen), blink = Rahmen blinkt.
+-- Reiter "Nameplates": Aussehen pro Zustand (Anforderung V) -----------------------------------
+-- Eine Spalte pro Zustand der TWF-Nameplate. Hier stehen die Standardwerte ("Farben zurücksetzen").
+-- color = Balkenfarbe · alpha = Deckkraft (Ziel und hinter Wänden: Regler unter "Allgemein") ·
+-- blink = blinkender Rahmen · frame = Rahmenfarbe · show = Balken zeigen (aus = nur der Name) ·
+-- tankOnly = Zustand gibt es nur im Tank-Modus (in den Tabellen DD/Heal ausgegraut)
+local ALARM_RED = { 1, 0.1, 0.1 }
+local ALARM_YELLOW = { 1, 0.85, 0.1 }
 C.PLATE_STATES = {
-  { key = 'green', label = 'STATE_GREEN', color = C.COLOR.green },
-  { key = 'yellow', label = 'STATE_YELLOW', color = C.COLOR.yellow, frame = C.NAMEPLATES.ALARM.COLOR, blink = true },
-  { key = 'red', label = 'STATE_RED', color = C.COLOR.red, frame = C.NAMEPLATES.ALARM.COLOR, blink = true },
-  { key = 'brown', label = 'STATE_BROWN', color = C.COLOR.brown },
-  { key = 'pull', label = 'STATE_PULL', color = C.COLOR.yellow, frame = C.NAMEPLATES.ALARM_PULL.COLOR, blink = true },
-  { key = 'blue', label = 'STATE_BLUE', color = C.NAMEPLATES.TINT.blue },
-  { key = 'grey', label = 'STATE_GREY', color = C.NAMEPLATES.TINT.grey },
-  { key = 'foreign', label = 'STATE_FOREIGN', color = C.COLOR.foreign },
+  { key = 'green', label = 'STATE_GREEN', tip = 'TIP_STATE_GREEN', color = C.COLOR.green, alpha = 0.6, frame = ALARM_RED, show = true },
+  { key = 'yellow', label = 'STATE_YELLOW', tip = 'TIP_STATE_YELLOW', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_RED, show = true },
+  { key = 'red', label = 'STATE_RED', tip = 'TIP_STATE_RED', color = C.COLOR.red, alpha = 0.6, blink = true, frame = ALARM_RED, show = true },
+  { key = 'brown', label = 'STATE_BROWN', tip = 'TIP_STATE_BROWN', color = C.COLOR.brown, alpha = 0.6, frame = ALARM_RED, show = true, tankOnly = true },
+  { key = 'pull', label = 'STATE_PULL', tip = 'TIP_STATE_PULL', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_YELLOW, show = true, tankOnly = true },
+  { key = 'blue', label = 'STATE_BLUE', tip = 'TIP_STATE_BLUE', color = C.COLOR.blue, alpha = 0.6, frame = ALARM_RED, show = true },
+  { key = 'grey', label = 'STATE_GREY', tip = 'TIP_STATE_GREY', color = C.COLOR.grey, alpha = 0.6, frame = ALARM_RED, show = false },
+  { key = 'foreign', label = 'STATE_FOREIGN', tip = 'TIP_STATE_FOREIGN', color = C.COLOR.foreign, alpha = 0.6, frame = ALARM_RED, show = true },
 }
--- Zeilen der Tabelle (Reihenfolge = Anzeige)
-C.PLATE_ROWS = { 'ROW_COLOR', 'ROW_ALPHA', 'ROW_FRAME', 'ROW_BLINK' }
+-- Sätze: 'shared' = eine Tabelle für alle Modi, sonst je Rolle (C.ROLES)
+C.PLATE_SETS = { 'shared', 'tank', 'dps', 'heal' }
+C.PLATE_SET_LABEL = { shared = 'SET_SHARED', tank = 'ROLE_TANK', dps = 'ROLE_DPS', heal = 'ROLE_HEAL' }
+C.PLATE_VERSION = 1          -- Stand der gespeicherten Tabelle (für den einmaligen Umstieg von 0.2)
+-- Zeilen der Tabelle (Reihenfolge = Anzeige); Rahmenfarbe nur sichtbar, wenn Blinken an ist
+C.PLATE_ROWS = {
+  { key = 'color', label = 'ROW_COLOR', tip = 'TIP_ROW_COLOR' },
+  { key = 'alpha', label = 'ROW_ALPHA', tip = 'TIP_ROW_ALPHA' },
+  { key = 'blink', label = 'ROW_BLINK', tip = 'TIP_ROW_BLINK' },
+  { key = 'frame', label = 'ROW_FRAME', tip = 'TIP_ROW_FRAME' },
+  { key = 'show', label = 'ROW_SHOW', tip = 'TIP_ROW_SHOW' },
+}
 C.PLATE_TABLE = {
   LABEL_W = 100,               -- Breite der linken Spalte mit den Zeilennamen
   COL_W = 78,                  -- Breite einer Zustands-Spalte
-  HEAD_H = 34,                 -- Höhe der Kopfzeile (Zustandsname, bis zwei Zeilen)
-  ROW_H = 26,                  -- Höhe einer Tabellenzeile
+  TOP_H = 28,                  -- Zeile mit Checkbox "Farben gleich" und Knopf "Farben zurücksetzen"
+  RESET_W = 150,               -- Breite des Knopfs "Farben zurücksetzen"
+  TITLE_H = 20,                -- Überschrift einer Tabelle (Alle Modi / Tank / DD / Heal)
+  HEAD_H = 30,                 -- Kopfzeile (Zustandsname, bis zwei Zeilen)
+  ROW_H = 22,                  -- Höhe einer Tabellenzeile
+  TABLE_GAP = 6,               -- Abstand zwischen zwei Tabellen
   SWATCH = 16,                 -- Größe eines Farbfelds
   SWATCH_BORDER = 1,           -- Rahmen ums Farbfeld
   STRIPE_ALPHA = 0.05,         -- jede zweite Zeile leicht aufgehellt
-  NOTE_H = 20,                 -- Höhe der Hinweiszeile über der Tabelle
-  EMPTY = '–',                 -- Anzeige "nichts" (kein Rahmen, kein Wert)
+  DISABLED_ALPHA = 0.3,        -- ausgegraute Spalte (Zustand gibt es in diesem Modus nicht)
+  EMPTY = '–',                 -- Anzeige "nichts"
+  ACTIVE_COLOR = { 0.4, 1, 0.4 }, -- Hinweis "(aktiv)" an der Tabelle der gespielten Rolle
+}
+-- Popup mit Schieberegler für die Deckkraft einer Zelle
+C.ALPHA_POPUP = {
+  NAME = 'ThreatWallForeverAlphaPopup',
+  WIDTH = 200,
+  HEIGHT = 74,
+  MIN = 0, MAX = 1, STEP = 0.05,  -- 0–100 % in 5-%-Schritten
+  OK_W = 50,
 }
 
--- Optionen im Einstellungsfenster (Reihenfolge = Anzeige-Reihenfolge).
--- type:   'section' Überschrift · 'role' zwei Rollen-Knöpfe · 'check' Checkbox ·
---         'slider' Schieberegler · 'button' Knopf
+-- Optionen im Reiter "Allgemein" (Reihenfolge = Anzeige-Reihenfolge).
+-- type:   'section' Überschrift · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
+--         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
+--         (Spalten teilen die Fensterbreite gleich auf)
 -- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
 -- label/tip: Schlüssel in Locales.lua · action: Funktion in ns, die der Knopf aufruft
 -- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent)
--- Reiter "Allgemein". { type = 'column' } beginnt eine neue Spalte (Spalten teilen die Breite gleich auf).
 C.OPTIONS = {
   { type = 'section', label = 'SEC_GENERAL' },
   { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
@@ -475,10 +487,7 @@ C.OPTIONS = {
   { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
   { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
   { type = 'check', key = 'threatPct', label = 'OPT_THREAT_PCT', tip = 'TIP_THREAT_PCT' },
-  { type = 'check', key = 'alarmFrame', label = 'OPT_ALARM_FRAME', tip = 'TIP_ALARM_FRAME' },
-  { type = 'check', key = 'barsOutOfCombat', label = 'OPT_BARS_OOC', tip = 'TIP_BARS_OOC' },
   { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
-  { type = 'slider', key = 'alphaOther', label = 'OPT_ALPHA_OTHER', tip = 'TIP_ALPHA_OTHER', min = 0.1, max = 1, step = 0.1 },
   { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
 
   { type = 'column' },

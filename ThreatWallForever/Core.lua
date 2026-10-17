@@ -70,6 +70,7 @@ local function loadDB()
   if type(ThreatWallForeverDB) ~= 'table' then ThreatWallForeverDB = {} end
   ns.db = ThreatWallForeverDB
   for k, v in pairs(C.DEFAULTS) do if ns.db[k] == nil then ns.db[k] = v end end
+  ns.ensurePlates(ns.db)   -- Aussehen pro Zustand (PlateStates.lua, Anforderung V)
 end
 
 -- Start und Takt --------------------------------------------------------------------
@@ -90,6 +91,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
       db = ThreatWallForeverDB
       ns.db = db
       for k, v in pairs(C.DEFAULTS) do if db[k] == nil then db[k] = v end end
+      ns.ensurePlates(db)
       if ns.frame then
         ns.placeFrame()
         ns.applyLook()

@@ -17,7 +17,10 @@ local W = C.WINDOW
 
 local win
 local updaters = {}     -- pro Option eine Funktion, die die Anzeige an den aktuellen Wert anpasst
-local updating = false  -- verhindert, dass das Anpassen der Anzeige selbst als Änderung zählt
+
+local function updateAll()
+  for _, fn in ipairs(updaters) do fn() end
+end
 
 -- Werte lesen/schreiben: gespeicherte Einstellung (key) oder Laufzeit-Zustand (state)
 local function getValue(opt)
@@ -72,6 +75,66 @@ local function newRow(parent, y, height)
   return row
 end
 
+-- Kästchen: heller Rahmen, dunkle Innenfläche, Haken darüber. Nimmt keine Maus an
+-- (der Klick gehört der Zeile bzw. Zelle). box.setChecked(v) zeigt/versteckt den Haken.
+local function makeCheckBox(parent)
+  local box = CreateFrame('Frame', nil, parent)
+  box:SetSize(S.CHECK_SIZE, S.CHECK_SIZE)
+  local border = box:CreateTexture(nil, 'ARTWORK', nil, 1)
+  border:SetAllPoints()
+  border:SetTexture(T.FLAT)
+  border:SetVertexColor(unpack(C.BACKDROP.BORDER_COLOR))
+  local inner = box:CreateTexture(nil, 'ARTWORK', nil, 2)
+  inner:SetPoint('TOPLEFT', S.CHECK_BORDER, -S.CHECK_BORDER)
+  inner:SetPoint('BOTTOMRIGHT', -S.CHECK_BORDER, S.CHECK_BORDER)
+  inner:SetTexture(T.FLAT)
+  inner:SetVertexColor(unpack(S.CHECK_BG))
+  local check = box:CreateTexture(nil, 'OVERLAY')
+  check:SetAllPoints()
+  check:SetTexture(T.CHECK)
+  function box.setChecked(v) check:SetShown(v and true or false) end
+  return box
+end
+
+local function percentText(v)
+  return math.floor(v * S.PERCENT + 0.5) .. '%'
+end
+
+-- Schieberegler im TWF-Look. onChange(v) bekommt den auf ganze Prozent gerundeten Wert;
+-- slider.setQuiet(v) stellt den Regler ein, ohne onChange auszulösen.
+local function makeSlider(parent, min, max, step, onChange)
+  local slider = CreateFrame('Slider', nil, parent)
+  slider:SetOrientation('HORIZONTAL')
+  slider:SetHeight(S.THUMB_H)
+  slider:EnableMouse(true)
+  local track = slider:CreateTexture(nil, 'BACKGROUND')
+  track:SetTexture(T.FLAT)
+  track:SetVertexColor(unpack(S.TRACK_COLOR))
+  track:SetHeight(S.SLIDER_H)
+  track:SetPoint('LEFT')
+  track:SetPoint('RIGHT')
+  slider:SetThumbTexture(T.FLAT)
+  local thumb = slider:GetThumbTexture()
+  thumb:SetSize(S.THUMB_W, S.THUMB_H)
+  thumb:SetVertexColor(unpack(C.TITLE_COLOR))
+  slider:SetMinMaxValues(min, max)
+  slider:SetValueStep(step)
+  if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
+
+  local quiet = false
+  function slider.setQuiet(v)
+    quiet = true
+    slider:SetValue(v)
+    quiet = false
+  end
+  slider:SetScript('OnValueChanged', function(_, v)
+    if quiet then return end
+    -- auf ganze Prozent runden (vermeidet 0.30000000004 usw.)
+    onChange(math.floor(v * S.PERCENT + 0.5) / S.PERCENT)
+  end)
+  return slider
+end
+
 local function buildCheck(parent, opt, y)
   local row = newRow(parent, y, S.ROW_H)
   local hl = row:CreateTexture(nil, 'HIGHLIGHT')
@@ -79,27 +142,13 @@ local function buildCheck(parent, opt, y)
   hl:SetTexture(T.FLAT)
   hl:SetVertexColor(1, 1, 1, D.ROW_HIGHLIGHT_ALPHA)
 
-  -- Kästchen: heller Rahmen, dunkle Innenfläche, Haken darüber
-  local border = row:CreateTexture(nil, 'ARTWORK', nil, 1)
-  border:SetSize(S.CHECK_SIZE, S.CHECK_SIZE)
-  border:SetPoint('LEFT')
-  border:SetTexture(T.FLAT)
-  border:SetVertexColor(unpack(C.BACKDROP.BORDER_COLOR))
-  local inner = row:CreateTexture(nil, 'ARTWORK', nil, 2)
-  inner:SetPoint('TOPLEFT', border, 'TOPLEFT', S.CHECK_BORDER, -S.CHECK_BORDER)
-  inner:SetPoint('BOTTOMRIGHT', border, 'BOTTOMRIGHT', -S.CHECK_BORDER, S.CHECK_BORDER)
-  inner:SetTexture(T.FLAT)
-  inner:SetVertexColor(unpack(S.CHECK_BG))
-  local check = row:CreateTexture(nil, 'OVERLAY')
-  check:SetSize(S.CHECK_SIZE, S.CHECK_SIZE)
-  check:SetPoint('CENTER', border, 'CENTER')
-  check:SetTexture(T.CHECK)
-
+  local box = makeCheckBox(row)
+  box:SetPoint('LEFT')
   local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  label:SetPoint('LEFT', border, 'RIGHT', S.TEXT_GAP, 0)
+  label:SetPoint('LEFT', box, 'RIGHT', S.TEXT_GAP, 0)
   label:SetText(L[opt.label])
 
-  local function update() check:SetShown(getValue(opt) and true or false) end
+  local function update() box.setChecked(getValue(opt)) end
   row:SetScript('OnClick', function()
     local v = not getValue(opt)
     setValue(opt, v)
@@ -112,34 +161,41 @@ local function buildCheck(parent, opt, y)
   return y - S.ROW_H
 end
 
+-- Drei Rollen-Knöpfe Tank / DD / Heal (C.ROLES), rechtsbündig
 local function buildRole(parent, opt, y)
   local row = newRow(parent, y, S.ROW_H)
   local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
   label:SetPoint('LEFT')
   label:SetText(L[opt.label])
 
-  local dps = ns.makeFlatButton(row, L.ROLE_DPS, S.ROLE_BUTTON_W)
-  dps:SetPoint('RIGHT')
-  local tank = ns.makeFlatButton(row, L.ROLE_TANK, S.ROLE_BUTTON_W)
-  tank:SetPoint('RIGHT', dps, 'LEFT', -D.BUTTON_GAP, 0)
+  local buttons, prev = {}, nil
+  for i = #C.ROLES, 1, -1 do
+    local role = C.ROLES[i]
+    local btn = ns.makeFlatButton(row, ns.roleName(role), S.ROLE_BUTTON_W)
+    if prev then btn:SetPoint('RIGHT', prev, 'LEFT', -D.BUTTON_GAP, 0) else btn:SetPoint('RIGHT') end
+    prev = btn
+    buttons[role] = btn
+  end
 
   local function update()
-    local isTank = ns.db.role == 'tank'
-    tank.bg:SetVertexColor(unpack(isTank and D.BUTTON_BG_ACTIVE or D.BUTTON_BG))
-    dps.bg:SetVertexColor(unpack(isTank and D.BUTTON_BG or D.BUTTON_BG_ACTIVE))
-  end
-  local function pick(role)
-    if ns.db.role ~= role then
-      ns.toggleRole()
-      ns.dbg('SETTING', 'Einstellung role = ' .. role)
+    for role, btn in pairs(buttons) do
+      btn.bg:SetVertexColor(unpack(ns.db.role == role and D.BUTTON_BG_ACTIVE or D.BUTTON_BG))
     end
-    update()
   end
-  tank:SetScript('OnClick', function() pick('tank') end)
-  dps:SetScript('OnClick', function() pick('dps') end)
-  for _, f in ipairs({ row, tank, dps }) do
-    f:SetScript('OnEnter', function(self) showTip(self, opt) end)
-    f:SetScript('OnLeave', hideTip)
+  for role, btn in pairs(buttons) do
+    btn:SetScript('OnClick', function()
+      if ns.db.role ~= role then
+        ns.setRole(role)
+        ns.dbg('SETTING', 'Einstellung role = ' .. role)
+      end
+      update()
+    end)
+  end
+  row:SetScript('OnEnter', function(self) showTip(self, opt) end)
+  row:SetScript('OnLeave', hideTip)
+  for _, btn in pairs(buttons) do
+    btn:SetScript('OnEnter', function(self) showTip(self, opt) end)
+    btn:SetScript('OnLeave', hideTip)
   end
   updaters[#updaters + 1] = update
   return y - S.ROW_H
@@ -155,45 +211,20 @@ local function buildSlider(parent, opt, y)
   value:SetWidth(S.VALUE_W)
   value:SetJustifyH('RIGHT')
 
-  local slider = CreateFrame('Slider', nil, row)
-  slider:SetOrientation('HORIZONTAL')
-  slider:SetHeight(S.THUMB_H)
-  slider:SetPoint('BOTTOMLEFT')
-  slider:SetPoint('BOTTOMRIGHT')
-  slider:EnableMouse(true)
-  local track = slider:CreateTexture(nil, 'BACKGROUND')
-  track:SetTexture(T.FLAT)
-  track:SetVertexColor(unpack(S.TRACK_COLOR))
-  track:SetHeight(S.SLIDER_H)
-  track:SetPoint('LEFT')
-  track:SetPoint('RIGHT')
-  slider:SetThumbTexture(T.FLAT)
-  local thumb = slider:GetThumbTexture()
-  thumb:SetSize(S.THUMB_W, S.THUMB_H)
-  thumb:SetVertexColor(unpack(C.TITLE_COLOR))
-  slider:SetMinMaxValues(opt.min, opt.max)
-  slider:SetValueStep(opt.step)
-  if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
-
-  local function showValue(v)
-    value:SetText(math.floor(v * S.PERCENT + 0.5) .. '%')
-  end
-  local function update()
-    local v = getValue(opt)
-    updating = true
-    slider:SetValue(v)
-    updating = false
-    showValue(v)
-  end
-  slider:SetScript('OnValueChanged', function(_, v)
-    if updating then return end
-    -- auf ganze Prozent runden (vermeidet 0.30000000004 usw.)
-    v = math.floor(v * S.PERCENT + 0.5) / S.PERCENT
+  local slider = makeSlider(row, opt.min, opt.max, opt.step, function(v)
     if v == getValue(opt) then return end
     setValue(opt, v)
-    showValue(v)
+    value:SetText(percentText(v))
     afterChange(opt, v)
   end)
+  slider:SetPoint('BOTTOMLEFT')
+  slider:SetPoint('BOTTOMRIGHT')
+
+  local function update()
+    local v = getValue(opt)
+    slider.setQuiet(v)
+    value:SetText(percentText(v))
+  end
   for _, f in ipairs({ row, slider }) do
     f:SetScript('OnEnter', function(self) showTip(self, opt) end)
     f:SetScript('OnLeave', hideTip)
@@ -222,18 +253,84 @@ local BUILDERS = {
   button = buildButton,
 }
 
--- Reiter "Nameplates": Tabelle der Zustände (0.3, Schritt 1: nur Platzhalter) --------------
+-- Reiter "Nameplates": Aussehen pro Zustand (Anforderung V) ---------------------------------
 
 local PT = C.PLATE_TABLE
+local AP = C.ALPHA_POPUP
 
--- Farbfeld mit dünnem Rahmen; color = nil zeigt den Platzhalter für "nichts"
-local function swatch(parent, color)
-  if not color then
-    local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
-    fs:SetPoint('CENTER')
-    fs:SetText(PT.EMPTY)
-    return
+-- Nach jeder Änderung in der Tabelle: Nameplates und Liste (Punktfarben) neu zeichnen
+local function platesChanged(what)
+  ns.dbg('PLATES', what)
+  ns.notifyModules('OnSettingChanged', 'plates')
+  ns.refresh()
+  updateAll()
+end
+
+-- Blizzards Farbwähler (Farbkreis). color wird direkt geändert, onChange nach jeder Änderung;
+-- "Abbrechen" stellt die alte Farbe wieder her.
+local function pickColor(color, onChange)
+  local old = { color[1], color[2], color[3] }
+  local function apply(r, g, b)
+    color[1], color[2], color[3] = r, g, b
+    onChange()
   end
+  local function fromPicker() apply(ColorPickerFrame:GetColorRGB()) end
+  local function cancel() apply(old[1], old[2], old[3]) end
+  if ColorPickerFrame.SetupColorPickerAndShow then
+    ColorPickerFrame:SetupColorPickerAndShow({
+      r = old[1], g = old[2], b = old[3], hasOpacity = false,
+      swatchFunc = fromPicker, cancelFunc = cancel,
+    })
+  else
+    -- ältere Fassung des Farbwählers
+    ColorPickerFrame.hasOpacity = false
+    ColorPickerFrame.func = fromPicker
+    ColorPickerFrame.cancelFunc = cancel
+    ColorPickerFrame:SetColorRGB(old[1], old[2], old[3])
+    ColorPickerFrame:Hide()
+    ColorPickerFrame:Show()
+  end
+  -- über unserem Einstellungsfenster anzeigen
+  pcall(ColorPickerFrame.SetFrameStrata, ColorPickerFrame, 'FULLSCREEN_DIALOG')
+end
+
+-- Kleines Popup mit Schieberegler 0–100 % für die Deckkraft einer Zelle
+local popup
+local function openAlphaPopup(anchor, title, getCfg, onChange)
+  if not popup then
+    popup = CreateFrame('Frame', AP.NAME, UIParent, BackdropTemplateMixin and 'BackdropTemplate' or nil)
+    popup:SetSize(AP.WIDTH, AP.HEIGHT)
+    popup:SetFrameStrata('FULLSCREEN_DIALOG')
+    popup:SetClampedToScreen(true)
+    popup:EnableMouse(true)
+    ns.backdrop(popup, D.BG_ALPHA)
+    if UISpecialFrames then table.insert(UISpecialFrames, AP.NAME) end   -- Esc schließt
+    popup.title = popup:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+    popup.title:SetPoint('TOPLEFT', D.PADDING, -D.PADDING)
+    popup.value = popup:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+    popup.value:SetPoint('TOPRIGHT', -D.PADDING, -D.PADDING)
+    popup.slider = makeSlider(popup, AP.MIN, AP.MAX, AP.STEP, function(v) popup.onValue(v) end)
+    popup.slider:SetPoint('LEFT', D.PADDING, 0)
+    popup.slider:SetPoint('RIGHT', -D.PADDING, 0)
+    local ok = ns.makeFlatButton(popup, L.BTN_OK, AP.OK_W)
+    ok:SetPoint('BOTTOMRIGHT', -D.PADDING, D.PADDING / 2)
+    ok:SetScript('OnClick', function() popup:Hide() end)
+  end
+  popup.title:SetText(title)
+  popup.onValue = function(v)
+    getCfg().alpha = v
+    popup.value:SetText(percentText(v))
+    onChange()
+  end
+  popup.slider.setQuiet(getCfg().alpha)
+  popup.value:SetText(percentText(getCfg().alpha))
+  popup:ClearAllPoints()
+  popup:SetPoint('TOP', anchor, 'BOTTOM', 0, -2)
+  popup:Show()
+end
+
+-- Farbfeld mit dünnem Rahmen; gibt eine Funktion zurück, die die Farbe setzt
+local function makeSwatch(parent)
   local border = parent:CreateTexture(nil, 'ARTWORK', nil, 1)
   border:SetSize(PT.SWATCH, PT.SWATCH)
   border:SetPoint('CENTER')
@@ -243,68 +340,185 @@ local function swatch(parent, color)
   fill:SetPoint('TOPLEFT', border, 'TOPLEFT', PT.SWATCH_BORDER, -PT.SWATCH_BORDER)
   fill:SetPoint('BOTTOMRIGHT', border, 'BOTTOMRIGHT', -PT.SWATCH_BORDER, PT.SWATCH_BORDER)
   fill:SetTexture(T.FLAT)
-  fill:SetVertexColor(color[1], color[2], color[3])
+  return function(c) fill:SetVertexColor(c[1], c[2], c[3]) end
 end
 
-local function cellText(parent, text)
-  local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  fs:SetPoint('CENTER')
-  fs:SetText(text)
+local function cellButton(parent, x, y)
+  local cell = CreateFrame('Button', nil, parent)
+  cell:SetSize(PT.COL_W, PT.ROW_H)
+  cell:SetPoint('TOPLEFT', x, y)
+  local hl = cell:CreateTexture(nil, 'HIGHLIGHT')
+  hl:SetAllPoints()
+  hl:SetTexture(T.FLAT)
+  hl:SetVertexColor(1, 1, 1, D.ROW_HIGHLIGHT_ALPHA)
+  return cell
 end
 
--- Inhalt einer Zelle (Zeile rowKey, Zustand st) – zeigt den heutigen festen Wert
+-- Zellen je Zeile: (cell, set, st, getCfg, changed) richtet die Zelle ein, gibt eine
+-- Update-Funktion zurück (Anzeige an den gespeicherten Wert anpassen)
 local CELLS = {
-  ROW_COLOR = function(cell, st) swatch(cell, st.color) end,
-  ROW_ALPHA = function(cell) cellText(cell, PT.EMPTY) end,  -- Deckkraft pro Zustand gibt es noch nicht
-  ROW_FRAME = function(cell, st) swatch(cell, st.frame) end,
-  ROW_BLINK = function(cell, st) cellText(cell, st.blink and L.VALUE_ON or L.VALUE_OFF) end,
+  color = function(cell, set, st, getCfg, changed)
+    local setSwatch = makeSwatch(cell)
+    cell:SetScript('OnClick', function()
+      pickColor(getCfg().color, function() changed(set .. '/' .. st.key .. ' Farbe') end)
+    end)
+    return function() setSwatch(getCfg().color) end
+  end,
+  alpha = function(cell, set, st, getCfg, changed)
+    local fs = cell:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+    fs:SetPoint('CENTER')
+    cell:SetScript('OnClick', function()
+      openAlphaPopup(cell, L[st.label] .. ' – ' .. L.ROW_ALPHA, getCfg,
+        function() changed(set .. '/' .. st.key .. ' Deckkraft ' .. percentText(getCfg().alpha)) end)
+    end)
+    return function() fs:SetText(percentText(getCfg().alpha)) end
+  end,
+  blink = function(cell, set, st, getCfg, changed)
+    local box = makeCheckBox(cell)
+    box:SetPoint('CENTER')
+    cell:SetScript('OnClick', function()
+      getCfg().blink = not getCfg().blink
+      changed(set .. '/' .. st.key .. ' Blinken ' .. tostring(getCfg().blink))
+    end)
+    return function() box.setChecked(getCfg().blink) end
+  end,
+  frame = function(cell, set, st, getCfg, changed)
+    -- Rahmenfarbe nur sichtbar und anklickbar, wenn Blinken an ist
+    local setSwatch = makeSwatch(cell)
+    local content = { cell:GetRegions() }
+    cell:SetScript('OnClick', function()
+      if not getCfg().blink then return end
+      pickColor(getCfg().frame, function() changed(set .. '/' .. st.key .. ' Rahmenfarbe') end)
+    end)
+    return function()
+      local on = getCfg().blink
+      setSwatch(getCfg().frame)
+      for _, region in ipairs(content) do
+        if region:GetDrawLayer() ~= 'HIGHLIGHT' then region:SetShown(on) end
+      end
+      cell:EnableMouse(on)
+    end
+  end,
+  show = function(cell, set, st, getCfg, changed)
+    local box = makeCheckBox(cell)
+    box:SetPoint('CENTER')
+    cell:SetScript('OnClick', function()
+      getCfg().show = not getCfg().show
+      changed(set .. '/' .. st.key .. ' Balken zeigen ' .. tostring(getCfg().show))
+    end)
+    return function() box.setChecked(getCfg().show) end
+  end,
 }
 
--- Baut die Tabelle in page; gibt die benötigte Höhe zurück
-local function buildPlateTable(page)
-  local note = page:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
-  note:SetPoint('TOPLEFT', D.PADDING, 0)
-  note:SetPoint('RIGHT', page, 'RIGHT', -D.PADDING, 0)
-  note:SetJustifyH('LEFT')
-  note:SetText(L.PLATE_NOTE)
+local function tableHeight()
+  return PT.TITLE_H + PT.HEAD_H + #C.PLATE_ROWS * PT.ROW_H
+end
 
-  local top = -PT.NOTE_H
-  local x0 = D.PADDING + PT.LABEL_W
-  for i, st in ipairs(C.PLATE_STATES) do
-    local head = page:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
-    head:SetPoint('TOPLEFT', x0 + (i - 1) * PT.COL_W, top)
-    head:SetSize(PT.COL_W, PT.HEAD_H)
-    head:SetJustifyH('CENTER')
-    head:SetJustifyV('MIDDLE')
-    head:SetWordWrap(true)
-    head:SetText(L[st.label])
-    head:SetTextColor(unpack(C.TITLE_COLOR))
+-- Eine Tabelle (Satz 'shared', 'tank', 'dps' oder 'heal') ab Höhe top; gibt ihren Rahmen zurück
+local function buildStateTable(page, set, top)
+  local tbl = CreateFrame('Frame', nil, page)
+  tbl:SetPoint('TOPLEFT', 0, top)
+  tbl:SetPoint('RIGHT', page, 'RIGHT')
+  tbl:SetHeight(tableHeight())
+
+  local title = tbl:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
+  title:SetPoint('TOPLEFT', D.PADDING, 0)
+  title:SetTextColor(unpack(C.TITLE_COLOR))
+  local ac = PT.ACTIVE_COLOR
+  local activeMark = string.format(' |cff%02x%02x%02x%s|r', ac[1] * 255, ac[2] * 255, ac[3] * 255, L.ACTIVE_MARK)
+  updaters[#updaters + 1] = function()
+    local text = L[C.PLATE_SET_LABEL[set]]
+    if set ~= 'shared' and ns.db.role == set then text = text .. activeMark end
+    title:SetText(text)
   end
 
-  local y = top - PT.HEAD_H
-  for r, rowKey in ipairs(C.PLATE_ROWS) do
+  local x0 = D.PADDING + PT.LABEL_W
+  local headY = -PT.TITLE_H
+  for i, st in ipairs(C.PLATE_STATES) do
+    local head = CreateFrame('Button', nil, tbl)
+    head:SetSize(PT.COL_W, PT.HEAD_H)
+    head:SetPoint('TOPLEFT', x0 + (i - 1) * PT.COL_W, headY)
+    local fs = head:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+    fs:SetAllPoints()
+    fs:SetJustifyH('CENTER')
+    fs:SetJustifyV('MIDDLE')
+    fs:SetWordWrap(true)
+    fs:SetText(L[st.label])
+    fs:SetTextColor(unpack(C.TITLE_COLOR))
+    if not ns.stateUsed(set, st) then head:SetAlpha(PT.DISABLED_ALPHA) end
+    head:SetScript('OnEnter', function(self) ns.showTooltip(self, L[st.label], L[st.tip]) end)
+    head:SetScript('OnLeave', hideTip)
+  end
+
+  local y = headY - PT.HEAD_H
+  local function changed(what) platesChanged(what) end
+  for r, row in ipairs(C.PLATE_ROWS) do
     if r % 2 == 1 then
-      local stripe = page:CreateTexture(nil, 'BACKGROUND', nil, 1)
+      local stripe = tbl:CreateTexture(nil, 'BACKGROUND', nil, 1)
       stripe:SetPoint('TOPLEFT', D.PADDING, y)
-      stripe:SetPoint('RIGHT', page, 'RIGHT', -D.PADDING, 0)
+      stripe:SetPoint('RIGHT', tbl, 'RIGHT', -D.PADDING, 0)
       stripe:SetHeight(PT.ROW_H)
       stripe:SetTexture(T.FLAT)
       stripe:SetVertexColor(1, 1, 1, PT.STRIPE_ALPHA)
     end
-    local label = page:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-    label:SetPoint('TOPLEFT', D.PADDING + S.TEXT_GAP, y)
-    label:SetHeight(PT.ROW_H)
-    label:SetJustifyV('MIDDLE')
-    label:SetText(L[rowKey])
+    local labelBtn = CreateFrame('Button', nil, tbl)
+    labelBtn:SetSize(PT.LABEL_W, PT.ROW_H)
+    labelBtn:SetPoint('TOPLEFT', D.PADDING, y)
+    local label = labelBtn:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+    label:SetPoint('LEFT', S.TEXT_GAP, 0)
+    label:SetText(L[row.label])
+    labelBtn:SetScript('OnEnter', function(self) ns.showTooltip(self, L[row.label], L[row.tip]) end)
+    labelBtn:SetScript('OnLeave', hideTip)
+
     for i, st in ipairs(C.PLATE_STATES) do
-      local cell = CreateFrame('Frame', nil, page)
-      cell:SetSize(PT.COL_W, PT.ROW_H)
-      cell:SetPoint('TOPLEFT', x0 + (i - 1) * PT.COL_W, y)
-      CELLS[rowKey](cell, st)
+      local x = x0 + (i - 1) * PT.COL_W
+      if ns.stateUsed(set, st) then
+        local cell = cellButton(tbl, x, y)
+        local function getCfg() return ns.db.plates[set][st.key] end
+        updaters[#updaters + 1] = CELLS[row.key](cell, set, st, getCfg, changed)
+      else
+        -- Zustand gibt es in diesem Modus nicht: ausgegraut, ohne Bedienung
+        local fs = tbl:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
+        fs:SetPoint('CENTER', tbl, 'TOPLEFT', x + PT.COL_W / 2, y - PT.ROW_H / 2)
+        fs:SetText(PT.EMPTY)
+      end
     end
     y = y - PT.ROW_H
   end
-  return -y
+  return tbl
+end
+
+-- Reiter "Nameplates": oben "Farben für alle Modi gleich" + "Farben zurücksetzen", darunter
+-- die gemeinsame Tabelle oder die drei Tabellen Tank/DD/Heal. Höhe immer für drei Tabellen,
+-- damit das Fenster beim Umschalten nicht springt.
+local function buildNameplates(page)
+  local topLeft = CreateFrame('Frame', nil, page)
+  topLeft:SetPoint('TOPLEFT')
+  topLeft:SetSize(S.WIDTH / 2, PT.TOP_H)
+  buildCheck(topLeft, { key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' }, 0)
+
+  local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
+  reset:SetPoint('TOPRIGHT', -D.PADDING, 0)
+  reset:SetScript('OnClick', function()
+    ns.resetPlates()
+    platesChanged('Farben zurückgesetzt')
+  end)
+  reset:SetScript('OnEnter', function(self) ns.showTooltip(self, L.BTN_RESET_COLORS, L.TIP_RESET_COLORS) end)
+  reset:SetScript('OnLeave', hideTip)
+
+  local top = -PT.TOP_H
+  local step = tableHeight() + PT.TABLE_GAP
+  local shared = buildStateTable(page, 'shared', top)
+  local perRole = {}
+  for i, role in ipairs(C.ROLES) do
+    perRole[#perRole + 1] = buildStateTable(page, role, top - (i - 1) * step)
+  end
+  updaters[#updaters + 1] = function()
+    local on = ns.db.plateShared
+    shared:SetShown(on)
+    for _, tbl in ipairs(perRole) do tbl:SetShown(not on) end
+  end
+  return PT.TOP_H + #C.ROLES * step - PT.TABLE_GAP
 end
 
 -- Reiter "Allgemein": die Optionen aus Config.OPTIONS, in Spalten nebeneinander
@@ -340,13 +554,9 @@ local function buildGeneral(page)
   return maxH
 end
 
-local PAGE_BUILDERS = { general = buildGeneral, nameplates = buildPlateTable }
+local PAGE_BUILDERS = { general = buildGeneral, nameplates = buildNameplates }
 
 -- Fenster ----------------------------------------------------------------------------------
-
-local function updateAll()
-  for _, fn in ipairs(updaters) do fn() end
-end
 
 local tabs = {}         -- key -> { button, page }
 local currentTab
@@ -385,7 +595,10 @@ local function build()
   selectTab(S.TABS[1].key)
   win:SetScript('OnShow', updateAll)
   -- Nach dem Schließen prüfen, ob eingeschaltete Funktionen weitere Spiel-Optionen brauchen (M)
-  win:SetScript('OnHide', function() ns.checkGameOptions(false) end)
+  win:SetScript('OnHide', function()
+    if popup then popup:Hide() end
+    ns.checkGameOptions(false)
+  end)
   ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #C.OPTIONS .. ' Einträge, '
     .. #S.TABS .. ' Reiter, ' .. #C.PLATE_STATES .. ' Zustände)')
 end
