@@ -396,6 +396,12 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 
 - **I11 Fenster nur in Instanzen** (aus der Konkurrenzanalyse – bei Forever Threat gewünscht und eingebaut; vom Nutzer auf die Ideenliste gesetzt 2026-10-17; **keine Anforderung**): Weitere Checkbox **„Nur in Instanzen“** unter Allgemein → Anzeige (Dungeons/Schlachtzüge, evtl. Schlachtfelder), kombinierbar mit „nur im Kampf“ und „nur in Gruppe“. Technik: `IsInInstance()` ist offen lesbar. Aufwand klein. Offene Frage: nur das Fenster (Vorschlag) oder auch die Nameplates?
 
+- **I12 Spott-Hinweis** (aus der Konkurrenzanalyse – ForeverThreat erkennt Spott/Tank-Wechsel; vom Nutzer zum Anschauen vorgemerkt 2026-10-17; **keine Anforderung**):
+  - Spottet ein Gruppenmitglied, erscheint kurz über dem Mob bzw. in der Liste ein Hinweis wie **„Spott: Name“**, evtl. mit Ton (passt zu I10). Optional: Hinweis, wenn **du** spottest und der Mob nicht wechselt.
+  - Technik: Kampflog ist auf Forever gesperrt → wie ForeverThreat über das Ereignis `UNIT_SPELLCAST_SUCCEEDED` (Mitspieler hat einen Zauber gewirkt) und eine Liste der Spott-Zauber-IDs (Krieger: Spott/Spöttischer Schlag/Herausforderungsruf, Druide: Knurren/Herausforderndes Gebrüll, Paladin falls vorhanden, Begleiter). Ob ein Spott **widerstanden** wurde, ist ohne Kampflog kaum erkennbar.
+  - **Vorher testen:** Sind Zauber-ID und Ziel des Mitspielers auf Forever lesbar oder geheim (draußen und in Instanzen)?
+  - Aufwand mittel; Nutzen vor allem für Tanks (Schlachtzug, Tank-Wechsel).
+
 ## Offene Bugs
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
