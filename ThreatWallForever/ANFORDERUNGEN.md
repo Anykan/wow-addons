@@ -390,7 +390,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - **Tabelle im Reiter Nameplates** bekommt pro Zustand zwei Zeilen: **„Warnton“** (Auswahl aus 6–10 Blizzard-Tönen oder „aus“, mit **Probehören**) und **„Bildschirmrand“** (Checkbox; Rand leuchtet/pulsiert in einer Farbe, wenn ein Mob in diesen Zustand wechselt). Beispiel: „Problem“ = Alarm + roter Rand, „Knapp“ = kein Ton.
   - **Lautstärke:** Addons können keine Lautstärke pro Ton setzen → stattdessen Auswahl **„Kanal“** (Master/Effekte/Musik/Umgebung/Dialog), Standard **Effekte**; die Lautstärke regelt der Spiel-Regler des Kanals. Trick über kurzzeitiges Umstellen der Spiel-Lautstärke: nicht empfohlen.
   - **Bildschirmrand:** Vollbild-Textur, nur der Rand leuchtet; Farbe pro Zustand, Stärke/Deckkraft, einmal aufblitzen oder pulsieren solange das Problem besteht. Blizzard-Grafik dafür vorher auf Forever testen.
-  - Später evtl.: eigene Sounddateien; „Warnton nur in Gruppe“.
+  - **„Warnton nur in Gruppe“** (bei ThreatMaster bemängelt: Ton auch solo, obwohl das Fenster auf „nur in Gruppe“ steht) – vom Nutzer zum Anschauen zusammen mit I10 (2026-10-17). Vorschlag: Checkbox, oder einfacher: Warnton nur, wenn auch das Fenster sichtbar ist. Vorher prüfen, ob der Ton heute bei verstecktem Fenster kommt.
+  - Später evtl.: eigene Sounddateien.
   - Vor dem Bauen: Test im Spiel, welche Töne es auf Forever gibt und wie der Bildschirmrand aussieht.
 
 - **I11 Fenster nur in Instanzen** (aus der Konkurrenzanalyse – bei Forever Threat gewünscht und eingebaut; vom Nutzer auf die Ideenliste gesetzt 2026-10-17; **keine Anforderung**): Weitere Checkbox **„Nur in Instanzen“** unter Allgemein → Anzeige (Dungeons/Schlachtzüge, evtl. Schlachtfelder), kombinierbar mit „nur im Kampf“ und „nur in Gruppe“. Technik: `IsInInstance()` ist offen lesbar. Aufwand klein. Offene Frage: nur das Fenster (Vorschlag) oder auch die Nameplates?
