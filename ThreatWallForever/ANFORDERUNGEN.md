@@ -285,6 +285,13 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## AE. Vorschau-Balken im Reiter Nameplates (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I8)
+- Oben in der Mitte (freie Spalte zwischen Optionen und Deckkraft) ein **Muster-Nameplate** mit Beispielwerten („Beispiel-Gegner“, Leben 72 % bzw. 8240, Aggro-% je Zustand).
+- Zeigt den **zuletzt geänderten Zustand** (Änderung in einer Spalte → diese Spalte; bei drei Tabellen inkl. Rolle); **Maus über einem Spaltenkopf** zeigt diesen Zustand, solange die Maus dort ist. Beim Öffnen: **„Sicher“**.
+- Zeigt alles aus der Tabelle: Balkenfarbe, Deckkraft, Blinken + Rahmenfarbe, Aggro-% an/aus + Farbe, Lebensfarbe, „Balken zeigen“ aus = nur Name; dazu „Leben in %“ und „Tank: Vorsprung“. Live, auch beim Ausprobieren im Farbwähler. Darunter klein der Zustandsname (bei drei Tabellen mit Rolle).
+- Technik: derselbe Balken-Aufbau wie im Spiel (`createPlate` in Nameplates.lua), Maler `ns.paintPreviewPlate`; Beispielwerte in `C.PLATE_TABLE.PREVIEW`.
+- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
+
 ## AD. Einstellungen in drei Reitern (vom Nutzer beschlossen 2026-10-18, Version 0.5)
 - Reiter **Allgemein** (Rolle, Rollen-Sync, Minimap-Button, **„Alles fixieren“** (umbenannt aus „Fenster fixieren“, aus Ansicht verschoben; sperrt später auch Fokus-/Ziel-Leiste, Nutzer 2026-10-18) | Anzeige: TWF-Nameplates, „Alle Gegner auflisten“ (umbenannt, vorher „Alle Kämpfe zeigen“, Nutzer 2026-10-18); Sichtbarkeit: nur im Kampf, nur in Gruppe (aus Ansicht verschoben, Nutzer 2026-10-18) | Warnung: Warnton | Werkzeuge: Testzeilen, Position zurücksetzen (aus Ansicht verschoben, Nutzer 2026-10-18)), **Nameplates** (links Optionen: Leben in %, Tank-Vorsprung, Farben für alle Modi gleich | Mitte frei | rechts Deckkraft: Ziel, hinter Wänden; darunter „Farben zurücksetzen“ und Farbtabelle wie bisher; Aggro-Ziel nach Allgemein/Anzeige verschoben, Nutzer 2026-10-18), **Ansicht** (Liste: Aggro-%, Tank-Vorsprung, Ziel hervorheben | Fenster: Min/Max-Zeilen | Aussehen: Hintergrund, Skalierung).
 - **Neue Tabellenzeile „Lebensfarbe“** (Nutzer 2026-10-18): unter „Aggro-%-Farbe“, Textfarbe des Lebens rechts im Balken (% oder Zahl) pro Zustand/Rolle, nur bei „Balken zeigen“ bedienbar, Standard Weiß, „Farben zurücksetzen“ inklusive; Feld `healthColor`.

@@ -128,12 +128,9 @@ end
 -- TWF-Nameplate ------------------------------------------------------------------------------
 
 -- Pro Blizzard-Nameplate einmal anlegen; das Spiel verwendet Nameplates wieder.
-local function getPlate(nameplate)
-  local p = nameplate.twfPlate
-  if p then return p end
-
-  p = CreateFrame('Frame', nil, nameplate)   -- nimmt keine Maus an → Klick geht an Blizzard
-  p:SetFrameLevel(nameplate:GetFrameLevel() + N.LEVEL)
+-- Aufbau eines TWF-Balkens (auch für die Vorschau im Einstellungsfenster, Anforderung AE)
+local function createPlate(parent)
+  local p = CreateFrame('Frame', nil, parent)   -- nimmt keine Maus an → Klick geht an Blizzard
 
   -- Balken im Stil von Blizzards Zauberbalken (übernommen aus SealTimersForever):
   -- Hintergrund 1 px und Rahmen 2 px größer als der Balken
@@ -170,7 +167,14 @@ local function getPlate(nameplate)
   -- Name über dem Balken
   p.name = p:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
   p.name:SetPoint('BOTTOM', p, 'TOP', 0, N.NAME_Y)
+  return p
+end
 
+local function getPlate(nameplate)
+  local p = nameplate.twfPlate
+  if p then return p end
+  p = createPlate(nameplate)
+  p:SetFrameLevel(nameplate:GetFrameLevel() + N.LEVEL)
   nameplate.twfPlate = p
   return p
 end
@@ -274,6 +278,53 @@ local function fillName(p, unit, reactionColor)
     p.name:SetTextColor(UnitSelectionColor(unit))
   end)
   if not colored then p.name:SetTextColor(unpack(C.WHITE)) end
+end
+
+-- Vorschau im Einstellungsfenster (Anforderung AE) --------------------------------------------
+-- Gleicher Balken, gleiche Zeichenschritte wie im Spiel, nur mit Beispielwerten statt Einheit.
+function ns.createPreviewPlate(parent)
+  local p = createPlate(parent)
+  p:SetSize(N.WIDTH, N.HEIGHT)
+  return p
+end
+
+function ns.paintPreviewPlate(p, cfg, stateKey)
+  local PV = C.PLATE_TABLE.PREVIEW
+  p.name:SetText(ns.L.PREVIEW_NAME)
+  if not cfg.show then
+    p.bar:Hide()
+    p:SetAlpha(1)
+    placeName(p, true)
+    p.name:SetTextColor(unpack(PV.NAME_COLOR))
+    return
+  end
+  p.bar:Show()
+  p:SetAlpha(cfg.alpha)
+  ns.setGlowColor(p.alarm, cfg.frame)
+  ns.setGlow(p.alarm, cfg.blink)
+  setColor(p, cfg.color)
+  p.bar:SetMinMaxValues(0, 100)
+  p.bar:SetValue(PV.HEALTH)
+  if ns.db.healthPct then
+    p.pct:SetFormattedText(N.PCT_FORMAT, PV.HEALTH)
+  else
+    p.pct:SetFormattedText(N.HEALTH_NUM_FORMAT, PV.HEALTH_NUM)
+  end
+  local hc = cfg.healthColor or C.WHITE
+  p.pct:SetTextColor(hc[1], hc[2], hc[3])
+  p.pct:Show()
+  if cfg.threat then
+    local v = PV.THREAT[stateKey] or 0
+    if ns.db.plateLead and ns.db.role == 'tank' and stateKey == 'green' then v = PV.LEAD end
+    p.threat:SetFormattedText(N.THREAT_PCT_FORMAT, v)
+    p.threat:SetTextColor(cfg.threatColor[1], cfg.threatColor[2], cfg.threatColor[3])
+    p.threat:Show()
+  else
+    p.threat:Hide()
+  end
+  placeName(p, false)
+  p.name:SetTextColor(unpack(C.WHITE))
+  p.name:Show()
 end
 
 local function hidePlate(nameplate)

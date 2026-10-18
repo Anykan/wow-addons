@@ -409,6 +409,41 @@ local function tableHeight()
 end
 
 -- Eine Tabelle (Satz 'shared', 'tank', 'dps' oder 'heal') ab Höhe top; gibt ihren Rahmen zurück
+-- Vorschau-Balken (Anforderung AE): zeigt den zuletzt geänderten Zustand; Maus über einem
+-- Spaltenkopf zeigt diesen Zustand, bis die Maus ihn wieder verlässt.
+local preview = { set = nil, key = nil, hoverSet = nil, hoverKey = nil }
+
+local function paintPreview()
+  if not preview.plate then return end
+  local set = preview.hoverSet or preview.set or ns.plateSet()
+  local key = preview.hoverKey or preview.key or PT.PREVIEW.START
+  if not (ns.db.plates[set] and ns.db.plates[set][key]) then set = ns.plateSet() end
+  local cfg = ns.db.plates[set][key]
+  ns.paintPreviewPlate(preview.plate, cfg, key)
+  local st
+  for _, s in ipairs(C.PLATE_STATES) do if s.key == key then st = s end end
+  local text = st and L[st.label] or key
+  if set ~= 'shared' then text = text .. ' · ' .. L[C.PLATE_SET_LABEL[set]] end
+  preview.label:SetText(text)
+end
+
+local function previewHover(set, key)
+  preview.hoverSet, preview.hoverKey = set, key
+  paintPreview()
+end
+
+local function buildPreview(page, x, w)
+  local col = CreateFrame('Frame', nil, page)
+  col:SetPoint('TOPLEFT', x, 0)
+  col:SetSize(w, 1)
+  buildSection(col, { label = 'SEC_PREVIEW' }, 0)
+  preview.plate = ns.createPreviewPlate(col)
+  preview.plate:SetPoint('TOP', col, 'TOP', 0, PT.PREVIEW.Y)
+  preview.label = col:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
+  preview.label:SetPoint('TOP', preview.plate, 'BOTTOM', 0, -PT.PREVIEW.LABEL_GAP)
+  updaters[#updaters + 1] = paintPreview
+end
+
 local function buildStateTable(page, set, top)
   local tbl = CreateFrame('Frame', nil, page)
   tbl:SetPoint('TOPLEFT', 0, top)
@@ -440,8 +475,14 @@ local function buildStateTable(page, set, top)
     fs:SetText(L[st.label])
     fs:SetTextColor(unpack(C.TITLE_COLOR))
     if not ns.stateUsed(set, st) then head:SetAlpha(PT.DISABLED_ALPHA) end
-    head:SetScript('OnEnter', function(self) ns.showTooltip(self, L[st.label], L[st.tip]) end)
-    head:SetScript('OnLeave', hideTip)
+    head:SetScript('OnEnter', function(self)
+      ns.showTooltip(self, L[st.label], L[st.tip])
+      if ns.stateUsed(set, st) then previewHover(set, st.key) end
+    end)
+    head:SetScript('OnLeave', function()
+      hideTip()
+      previewHover(nil, nil)
+    end)
   end
 
   local y = headY - PT.HEAD_H
@@ -469,7 +510,12 @@ local function buildStateTable(page, set, top)
       if ns.cellUsed(set, st, row) then
         local cell = cellButton(tbl, x, y)
         local function getCfg() return ns.db.plates[set][st.key] end
-        updaters[#updaters + 1] = CELLS[row.kind](cell, set, st, row, getCfg, changed)
+        -- Änderung in dieser Spalte: Vorschau springt auf diesen Zustand
+        local function cellChanged(what)
+          preview.set, preview.key = set, st.key
+          changed(what)
+        end
+        updaters[#updaters + 1] = CELLS[row.kind](cell, set, st, row, getCfg, cellChanged)
       else
         -- Zustand gibt es in diesem Modus nicht bzw. Zeile passt nicht dazu: ausgegraut, ohne Bedienung
         local fs = tbl:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
@@ -520,6 +566,9 @@ end
 -- Tabellen Tank/DD/Heal. Gibt eine Funktion zurück, die die nötige Höhe liefert (eine bzw. drei Tabellen).
 local function buildNameplates(page)
   local optH = buildOptions(page, C.OPTIONS.nameplates) + PT.OPTIONS_GAP
+  -- Vorschau in der freien mittleren Spalte (die Optionen haben drei Spalten)
+  buildPreview(page, S.WIDTH / 3, S.WIDTH / 3)
+  optH = math.max(optH, -PT.PREVIEW.Y + C.NAMEPLATES.HEIGHT + PT.PREVIEW.LABEL_GAP + PT.PREVIEW.LABEL_H)
 
   local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
   reset:SetPoint('TOPRIGHT', -D.PADDING, -optH)

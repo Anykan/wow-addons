@@ -468,6 +468,18 @@ C.PLATE_TABLE = {
   ROW_H = 22,                  -- Höhe einer Tabellenzeile
   TABLE_GAP = 6,               -- Abstand zwischen zwei Tabellen
   OPTIONS_GAP = 10,            -- Abstand zwischen den Schaltern oben und der Tabelle
+  -- Vorschau-Balken oben in der Mitte: zeigt den zuletzt geänderten bzw. überfahrenen Zustand
+  PREVIEW = {
+    START = 'green',           -- beim Öffnen gezeigter Zustand ("Sicher")
+    Y = -44,                   -- Abstand des Balkens unter der Spalten-Oberkante (Platz für den Namen)
+    LABEL_GAP = 6,             -- Abstand Zustandsname unter dem Balken
+    LABEL_H = 14,              -- Höhe des Zustandsnamens
+    HEALTH = 72,               -- Beispiel-Leben in % (Balkenfüllung und Text)
+    HEALTH_NUM = 8240,         -- Beispiel-Restleben als Zahl ("Leben in %" aus)
+    THREAT = { green = 100, yellow = 92, red = 45, brown = 60, pull = 104, blue = 0, foreign = 80, grey = 0 },
+    LEAD = 250,                -- Beispiel-Vorsprung (Tank: Vorsprung statt Aggro-%)
+    NAME_COLOR = { 1, 0.25, 0.2 },  -- Name im Nur-Name-Zustand (feindlich, wie im Spiel)
+  },
   SWATCH = 16,                 -- Größe eines Farbfelds
   SWATCH_BORDER = 1,           -- Rahmen ums Farbfeld
   STRIPE_ALPHA = 0.05,         -- jede zweite Zeile leicht aufgehellt
@@ -527,7 +539,7 @@ C.OPTIONS = {
     { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
     { type = 'check', key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' },
 
-    { type = 'column' },   -- Mitte bleibt frei, damit Deckkraft rechts steht
+    { type = 'column' },   -- Mitte: Vorschau-Balken (Settings.lua, Anforderung AE)
     { type = 'column' },
     { type = 'section', label = 'SEC_OPACITY' },
     { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
