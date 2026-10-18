@@ -290,7 +290,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Inhalt: **Kurzfassung aller Versionen, neueste oben, scrollbar** (Nutzer: Liste darf länger werden); Versionen seit dem letzten Besuch mit „NEU“ markiert (Update von ≤ 0.4: nur die aktuelle).
 - **Erste Installation:** oben ein **einladender Willkommenstext**, aufgebaut wie die CurseForge-Beschreibung (Nutzer 2026-10-18): Aufhänger, fünf Punkte mit Stichwort in Ampelfarben (Live-Aggro, Ampel statt Zahlenwand, Kompakte Liste, Für Tanks, Ganz nach deinem Geschmack), „So geht’s los“ mit Rollensymbolen im Text (keine Emojis – Spielschrift kann sie nicht); darunter die Versionsliste.
 - Texte in allen Sprachen (`NEWS_<Version>`, `NEWS_WELCOME` …), Werte in `C.NEWS`, Modul `News.lua` (neue Datei → Spielneustart). Kurzfassung 0.5 beim Abschluss von 0.5 mit den Patchnotes abgleichen.
-- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
+- Test 2026-10-18 (Nutzer): Text ok; Rollensymbole im Text größer (18 px); **„→“ erschien als Viereck** (Spielschrift kennt es nicht) → überall durch „>“ ersetzt (auch Tooltip Rollen-Sync seit 0.4), Prüfskript 5 meldet solche Zeichen jetzt als Fehler.
+- Stand: gebaut 2026-10-18, Feinschliff getestet bis auf Neustart-Ablauf.
 
 ## AE. Vorschau-Balken im Reiter Nameplates (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I8)
 - Oben in der Mitte (freie Spalte zwischen Optionen und Deckkraft) ein **Muster-Nameplate** mit Beispielwerten („Beispiel-Gegner“, Leben 72 % bzw. 8240, Aggro-% je Zustand).

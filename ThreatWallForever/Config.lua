@@ -379,7 +379,7 @@ C.NEWS = {
   NEW_COLOR = { 0.37, 0.83, 0.37 },  -- Markierung "neu"
   -- Willkommen (erste Installation): Stichwort-Farben der fünf Punkte, wie die TWF-Ampel
   WELCOME_COLORS = { C.COLOR.green, C.COLOR.yellow, C.COLOR.red, C.COLOR.brown, C.COLOR.blue },
-  ICON_SIZE = 14,                 -- Rollensymbole im Text
+  ICON_SIZE = 18,                 -- Rollensymbole im Text
   SECTION_GAP = 10,               -- Abstand vor "So geht's los" und vor der Versionsliste
 }
 

@@ -9,6 +9,7 @@ Fehler (Exit-Code 1):
   - doppelte Schlüssel
   - Platzhalter (%s, %d) oder Zeilenumbrüche (\\n) anders als in der Vorlage
   - Code-Texte (L.X / L["X"] in den Lua-Dateien, label/tip in Config.lua), die in enUS.lua fehlen
+  - Zeichen, die die Spielschrift nicht kennt (z. B. Pfeil →, Emojis) – erscheinen im Spiel als Viereck
 Hinweise (kein Fehler, das Spiel zeigt dann Englisch):
   - Texte, die in einer Sprache fehlen
 """
@@ -19,6 +20,13 @@ import sys
 
 LINE = re.compile(r'^L\["(\w+)"\] = "([^"]*)"$')
 PLACEHOLDER = re.compile(r'%[sd]|\\n')
+# Die Spielschrift kann Latin-1 und ein paar typografische Zeichen; alles andere wird ein Viereck
+# (getestet 2026-10-18: „→“ erschien als Viereck).
+FONT_EXTRA = set('–—‘’‚“”„•…€')
+
+
+def bad_chars(text):
+    return sorted({ch for ch in text if ord(ch) > 0xFF and ch not in FONT_EXTRA})
 
 
 def read(path):
@@ -35,6 +43,9 @@ def read(path):
         if key in entries:
             errors.append(f'{path}:{no}: Schlüssel doppelt: {key}')
         entries[key] = text
+        bad = bad_chars(text)
+        if bad:
+            errors.append(f'{path}:{no}: {key}: Zeichen, die die Spielschrift nicht kennt: {" ".join(bad)}')
     return entries, errors
 
 
