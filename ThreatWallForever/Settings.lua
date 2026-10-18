@@ -409,14 +409,14 @@ local function tableHeight()
 end
 
 -- Eine Tabelle (Satz 'shared', 'tank', 'dps' oder 'heal') ab Höhe top; gibt ihren Rahmen zurück
--- Vorschau-Balken (Anforderung AE): zeigt den zuletzt geänderten Zustand; Maus über einem
--- Spaltenkopf zeigt diesen Zustand, bis die Maus ihn wieder verlässt.
-local preview = { set = nil, key = nil, hoverSet = nil, hoverKey = nil }
+-- Vorschau-Balken (Anforderung AE): zeigt den zuletzt geänderten bzw. mit der Maus berührten
+-- Zustand (Spaltenkopf oder Zelle) und bleibt dabei, bis ein anderer Zustand dran ist.
+local preview = { set = nil, key = nil }
 
 local function paintPreview()
   if not preview.plate then return end
-  local set = preview.hoverSet or preview.set or ns.plateSet()
-  local key = preview.hoverKey or preview.key or PT.PREVIEW.START
+  local set = preview.set or ns.plateSet()
+  local key = preview.key or PT.PREVIEW.START
   if not (ns.db.plates[set] and ns.db.plates[set][key]) then set = ns.plateSet() end
   local cfg = ns.db.plates[set][key]
   ns.paintPreviewPlate(preview.plate, cfg, key)
@@ -427,8 +427,9 @@ local function paintPreview()
   preview.label:SetText(text)
 end
 
-local function previewHover(set, key)
-  preview.hoverSet, preview.hoverKey = set, key
+local function previewSelect(set, key)
+  if preview.set == set and preview.key == key then return end
+  preview.set, preview.key = set, key
   paintPreview()
 end
 
@@ -477,12 +478,9 @@ local function buildStateTable(page, set, top)
     if not ns.stateUsed(set, st) then head:SetAlpha(PT.DISABLED_ALPHA) end
     head:SetScript('OnEnter', function(self)
       ns.showTooltip(self, L[st.label], L[st.tip])
-      if ns.stateUsed(set, st) then previewHover(set, st.key) end
+      if ns.stateUsed(set, st) then previewSelect(set, st.key) end
     end)
-    head:SetScript('OnLeave', function()
-      hideTip()
-      previewHover(nil, nil)
-    end)
+    head:SetScript('OnLeave', hideTip)
   end
 
   local y = headY - PT.HEAD_H
@@ -516,6 +514,7 @@ local function buildStateTable(page, set, top)
           changed(what)
         end
         updaters[#updaters + 1] = CELLS[row.kind](cell, set, st, row, getCfg, cellChanged)
+        cell:HookScript('OnEnter', function() previewSelect(set, st.key) end)
       else
         -- Zustand gibt es in diesem Modus nicht bzw. Zeile passt nicht dazu: ausgegraut, ohne Bedienung
         local fs = tbl:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')

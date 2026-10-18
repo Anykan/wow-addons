@@ -287,7 +287,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 
 ## AE. Vorschau-Balken im Reiter Nameplates (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I8)
 - Oben in der Mitte (freie Spalte zwischen Optionen und Deckkraft) ein **Muster-Nameplate** mit Beispielwerten („Beispiel-Gegner“, Leben 72 % bzw. 8240, Aggro-% je Zustand).
-- Zeigt den **zuletzt geänderten Zustand** (Änderung in einer Spalte → diese Spalte; bei drei Tabellen inkl. Rolle); **Maus über einem Spaltenkopf** zeigt diesen Zustand, solange die Maus dort ist. Beim Öffnen: **„Sicher“**.
+- Zeigt den **zuletzt geänderten oder mit der Maus berührten Zustand** (Spaltenkopf oder Zelle; bei drei Tabellen inkl. Rolle) und **bleibt dabei**, bis ein anderer Zustand dran ist (Nutzer 2026-10-18: nicht zurückspringen). Beim Öffnen: **„Sicher“**.
 - Zeigt alles aus der Tabelle: Balkenfarbe, Deckkraft, Blinken + Rahmenfarbe, Aggro-% an/aus + Farbe, Lebensfarbe, „Balken zeigen“ aus = nur Name; dazu „Leben in %“ und „Tank: Vorsprung“. Live, auch beim Ausprobieren im Farbwähler. Darunter klein der Zustandsname (bei drei Tabellen mit Rolle).
 - Technik: derselbe Balken-Aufbau wie im Spiel (`createPlate` in Nameplates.lua), Maler `ns.paintPreviewPlate`; Beispielwerte in `C.PLATE_TABLE.PREVIEW`.
 - Stand: gebaut 2026-10-18, **Test im Spiel offen**.
