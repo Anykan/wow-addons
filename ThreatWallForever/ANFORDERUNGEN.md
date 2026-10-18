@@ -286,7 +286,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
 ## AD. Einstellungen in drei Reitern (vom Nutzer beschlossen 2026-10-18, Version 0.5)
-- Reiter **Allgemein** (Rolle, Rollen-Sync, Minimap-Button | Anzeige: Alle Kämpfe zeigen | Warnung: Warnton), **Nameplates** (oben: TWF-Nameplates, Aggro-Ziel | Inhalt: Leben in %, Tank-Vorsprung | Deckkraft: Ziel, hinter Wänden; darunter Farbtabelle wie bisher), **Ansicht** (Sichtbarkeit: nur im Kampf, nur in Gruppe; Liste: Aggro-%, Tank-Vorsprung, Ziel hervorheben | Fenster: fixieren, Min/Max-Zeilen | Aussehen: Hintergrund, Skalierung; Werkzeuge: Testzeilen, Position zurücksetzen).
+- Reiter **Allgemein** (Rolle, Rollen-Sync, Minimap-Button | Anzeige: TWF-Nameplates, „Alle Gegner auflisten“ (umbenannt, vorher „Alle Kämpfe zeigen“, Nutzer 2026-10-18) | Warnung: Warnton), **Nameplates** (oben: Aggro-Ziel | Inhalt: Leben in %, Tank-Vorsprung | Deckkraft: Ziel, hinter Wänden; darunter Farbtabelle wie bisher), **Ansicht** (Sichtbarkeit: nur im Kampf, nur in Gruppe; Liste: Aggro-%, Tank-Vorsprung, Ziel hervorheben | Fenster: fixieren, Min/Max-Zeilen | Aussehen: Hintergrund, Skalierung; Werkzeuge: Testzeilen, Position zurücksetzen).
 - Nur Anordnung geändert, Verhalten und gespeicherte Werte unverändert. Technik: `C.OPTIONS` je Reiter (`general`, `nameplates`, `view`), ein Baustein `buildOptions`. Neue Texte TAB_VIEW, SEC_VISIBILITY, SEC_LIST, SEC_ALERT, SEC_CONTENT, SEC_OPACITY (4 Sprachen).
 - Stand: gebaut 2026-10-18, **Test im Spiel offen**.
 
