@@ -319,6 +319,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Modul:** ein Code, mehrfach verwendet: **Fokus-Leiste** und **Ziel-Leiste** (zwei Leisten), jede einzeln an/aus; zweite Leiste dockt an die erste bzw. an die Seitenleiste.
 - **Einstellungen:** eigener **Reiter** (Leiste/Fokus), Sichtbarkeit **im Kampf / immer / aus**, Checkbox Rolle/Klasse, Checkbox %. Alle Werte in Config.lua, Texte in allen Sprachen.
 - **Werte:** Fokus/Ziel für dich lesbar (getestet); Mitspieler-Werte + Instanz noch zu testen; bei geheimen Werten **Balken-Trick** (getestet). Ohne Gruppe: nur du am Halter-Ende.
+- **Schlachtzugsymbol des Mobs unten in der Mauer** (Nutzer 2026-10-18: „soll immer dort mitkommen“; Ausnahme vom Design-Freeze auf ausdrückliche Ansage): über den Balken-Trick (8 Symbole als Streifen im Guckloch, StatusBar 0–8 ReverseFill), funktioniert mit geheimer Nummer und wechselt im Kampf mit (getestet am Fokus). Ohne Symbol bleibt die Stelle leer.
 - **Klick auf das Halter-Symbol oben** schaltet die Symbole zwischen Rolle und Klasse um (Nutzer 2026-10-18; zusätzlich zur Checkbox).
 - **Halter immer oben** (Nutzer 2026-10-18: „nur Tank-oben-Version“); `flip` aus dem Prototyp entfällt.
 - **Ohne Fokus bzw. Ziel:** richtet sich nach der Einstellung Sichtbarkeit (Nutzer: „wie in den Einstellungen“) – „im Kampf“/„aus“ → nicht sichtbar, „immer“ → leere Leiste bleibt stehen (Auslegung Claude, beim Bau bestätigen lassen).
