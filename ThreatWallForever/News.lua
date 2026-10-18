@@ -45,10 +45,11 @@ local function fillContent(welcome, lastSeen)
   wipe(lines)
   local y = 0
   if welcome then
-    -- Aufbau wie die CurseForge-Beschreibung: Aufhänger → Was TWF kann → So geht's los
+    -- Allgemein gehalten (Nutzer 2026-10-18): Dank → was TWF kann → So geht's los → Ideen
     local gold = hex(C.TITLE_COLOR)
     y = addLine(gold .. L.NEWS_W_TITLE .. '|r', 'GameFontNormalLarge', y)
-    y = addLine(L.NEWS_W_INTRO, 'GameFontHighlight', y, NW.HEAD_GAP)
+    y = addLine(L.NEWS_W_THANKS, 'GameFontHighlight', y, NW.HEAD_GAP)
+    y = addLine(L.NEWS_W_INTRO, 'GameFontHighlight', y, NW.SECTION_GAP)
     for i, c in ipairs(NW.WELCOME_COLORS) do
       local text = hex(c) .. L['NEWS_W_P' .. i .. '_T'] .. '|r – ' .. L['NEWS_W_P' .. i]
       y = addLine(text, 'GameFontHighlightSmall', y, i == 1 and NW.SECTION_GAP or NW.HEAD_GAP)
@@ -56,9 +57,12 @@ local function fillContent(welcome, lastSeen)
     y = addLine(gold .. L.NEWS_W_START .. '|r', 'GameFontNormal', y, NW.SECTION_GAP)
     local function icon(atlas) return string.format('|A:%s:%d:%d|a', atlas, NW.ICON_SIZE, NW.ICON_SIZE) end
     local s1 = string.format(L.NEWS_W_S1, icon(C.SYMBOLS.TANK), icon(C.SYMBOLS.DAMAGER), icon(C.SYMBOLS.HEALER))
-    for i, s in ipairs({ s1, L.NEWS_W_S2, L.NEWS_W_S3, L.NEWS_W_S4 }) do
-      y = addLine('• ' .. s, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
+    for _, s in ipairs({ s1, L.NEWS_W_S2 }) do
+      y = addLine(NW.BULLET .. s, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
     end
+    -- Rückmeldung über CurseForge
+    y = addLine(gold .. L.NEWS_W_IDEAS .. '|r', 'GameFontNormal', y, NW.SECTION_GAP)
+    y = addLine(L.NEWS_W_IDEAS_TEXT, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
     -- Erste Installation: nur die Beschreibung, keine Versionsliste (Nutzer 2026-10-18)
     content:SetHeight(-y + D.PADDING)
     return

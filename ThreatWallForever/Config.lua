@@ -414,7 +414,7 @@ C.NEWS = {
   SECTION_INDENT = 0, ITEM_INDENT = 10,  -- Einrückung der Punkte
   RULE_ALPHA = 0.15,                     -- Trennlinie zwischen Versionen
   -- Willkommen (erste Installation): Stichwort-Farben der fünf Punkte, wie die TWF-Ampel
-  WELCOME_COLORS = { C.COLOR.green, C.COLOR.yellow, C.COLOR.red, C.COLOR.brown, C.COLOR.blue },
+  WELCOME_COLORS = { C.COLOR.green, C.COLOR.yellow, C.COLOR.blue },
   ICON_SIZE = 18,                 -- Rollensymbole im Text
   SECTION_GAP = 10,               -- Abstand vor "So geht's los" und vor der Versionsliste
 }
