@@ -481,6 +481,12 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Buffs are unreadable in combat inside instances“ → „Auto“ per Haltung/Buff (Zorn der Gerechtigkeit) ginge in Instanzen im Kampf nicht; Gruppenrolle bleibt der verlässliche Weg.
   - **Getestet 2026-10-17:** `UnitSetRole` ist auf Forever für Addons **gesperrt** (Meldung „Aktion aufgrund eines AddOns fehlgeschlagen“). **TWF → Gruppe geht also nicht.** Möglich bleibt nur **Gruppe → TWF**: Rolle im Spiel (Porträt/Gruppensuche) setzen, TWF schaltet automatisch mit; ggf. Knopf „Auto“.
 
+- **I16 Versionsprüfung im Hintergrund** (Idee des Nutzers, 2026-10-18; **keine Anforderung**):
+  - Beim Einloggen schickt TWF **einmal** seine Version als unsichtbare Addon-Nachricht an die **Gilde**, beim Beitritt zu **Gruppe/Schlachtzug** einmal dorthin. Jedes TWF vergleicht; ist die gehörte Version neuer, **einmal pro Sitzung** Chat-Hinweis „Threat Wall Forever X ist verfügbar – du hast Y. Update über CurseForge.“
+  - Damit auch Ältere davon erfahren: ein neueres TWF antwortet einmal (gedrosselt, Zufallsverzögerung) auf eine ältere Version.
+  - **Weg gewählt (Nutzer):** Gilde + Gruppe + Schlachtzug. Realm-weiter eigener Chat-Kanal **verworfen** (belegt einen der 10 Kanalplätze, in der Kanalliste sichtbar, jeder kann beitreten, Beitritt auf Forever evtl. gesperrt).
+  - Vorher testen: kommen Addon-Nachrichten (`C_ChatInfo.SendAddonMessage`, Präfix registrieren) an Gilde/Gruppe auf Forever an? Braucht zwei Spieler mit TWF. Laut NKThreat in Instanzen im Kampf gesperrt – beim Einloggen/Gruppenbeitritt meist kein Kampf.
+
 # Teil 4 — Bugs
 
 ## Bugs (alle behoben)
