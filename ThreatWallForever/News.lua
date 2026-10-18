@@ -130,6 +130,7 @@ local function build()
   content:SetSize(NW.WIDTH - 2 * D.PADDING - (okT and NW.SCROLLBAR_W or 0), 1)
   scroll:SetScrollChild(content)
   win.scroll = scroll
+  win.padTop, win.padBottom = top, bottom
 
   local ok = ns.makeFlatButton(win, L.NEWS_OK, NW.OK_W)
   ok:SetPoint('BOTTOM', 0, D.PADDING)
@@ -142,6 +143,15 @@ function ns.showNews(welcome, lastSeen)
   win.titleText:SetText(welcome and L.NEWS_TITLE_WELCOME or L.NEWS_TITLE)
   fillContent(welcome, lastSeen)
   win.scroll:SetVerticalScroll(0)
+  -- Willkommen: kurzer Text ohne Schiebeleiste, Fenster so hoch wie der Inhalt.
+  -- Changelog: feste Höhe, scrollbar.
+  local bar = win.scroll.ScrollBar
+  if bar then bar:SetShown(not welcome) end
+  if welcome then
+    win:SetHeight(win.padTop + content:GetHeight() + win.padBottom)
+  else
+    win:SetHeight(NW.HEIGHT)
+  end
   win:Show()
 end
 
