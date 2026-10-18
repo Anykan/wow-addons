@@ -265,6 +265,13 @@ local function addPlayer(name, class, role, rate, me)
     GameTooltip:Show()
   end)
   p:SetScript('OnLeave', function() GameTooltip:Hide() end)
+  -- Klick auf den Halter oben: Symbole auf der Mauer zwischen Rolle und Klasse umschalten
+  p:SetScript('OnMouseUp', function(self, button)
+    if button == 'LeftButton' and self == players[1] then
+      opt.classIcon = not opt.classIcon
+      layout()
+    end
+  end)
   p.class, p.role, p.rate, p.me, p.th, p.cur = class, role, rate, me, 0, 0
   players[#players + 1] = p
   return p

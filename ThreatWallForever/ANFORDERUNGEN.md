@@ -297,6 +297,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Modul:** ein Code, mehrfach verwendet: **Fokus-Leiste** und **Ziel-Leiste** (zwei Leisten), jede einzeln an/aus; zweite Leiste dockt an die erste bzw. an die Seitenleiste.
 - **Einstellungen:** eigener **Reiter** (Leiste/Fokus), Sichtbarkeit **im Kampf / immer / aus**, Checkbox Rolle/Klasse, Checkbox %. Alle Werte in Config.lua, Texte in allen Sprachen.
 - **Werte:** Fokus/Ziel für dich lesbar (getestet); Mitspieler-Werte + Instanz noch zu testen; bei geheimen Werten **Balken-Trick** (getestet). Ohne Gruppe: nur du am Halter-Ende.
+- **Klick auf das Halter-Symbol oben** schaltet die Symbole zwischen Rolle und Klasse um (Nutzer 2026-10-18; zusätzlich zur Checkbox).
 - **Halter immer oben** (Nutzer 2026-10-18: „nur Tank-oben-Version“); `flip` aus dem Prototyp entfällt.
 - **Ohne Fokus bzw. Ziel:** richtet sich nach der Einstellung Sichtbarkeit (Nutzer: „wie in den Einstellungen“) – „im Kampf“/„aus“ → nicht sichtbar, „immer“ → leere Leiste bleibt stehen (Auslegung Claude, beim Bau bestätigen lassen).
 - **Offen:** Bauzeitpunkt/Version („schauen wir mal“).
