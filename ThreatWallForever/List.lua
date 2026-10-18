@@ -96,6 +96,7 @@ local function buildRow(i)
 end
 
 local function setTargetHighlight(row, on)
+  if on then ns.setGlowColor(row.glow, ns.db.highlightColor or ROW.GLOW.COLOR) end
   ns.setGlow(row.glow, on)
 end
 

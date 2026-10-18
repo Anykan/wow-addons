@@ -52,6 +52,7 @@ C.DEFAULTS = {
   targetBarCombat = false,   -- Ziel-Mauer nur im Kampf sichtbar
   focusBarGroup = false,     -- Fokus-Mauer nur in Gruppe/Schlachtzug sichtbar
   targetBarGroup = false,    -- Ziel-Mauer nur in Gruppe/Schlachtzug sichtbar
+  highlightColor = { 0.55, 0.85, 1 },  -- Farbe des pulsierenden Rahmens um die Zeile deines Ziels
   focusBarAlpha = 1,         -- Deckkraft der Fokus-Mauer
   targetBarAlpha = 1,        -- Deckkraft der Ziel-Mauer
   barClassIcons = false,     -- Leisten: Klassen- statt Rollensymbole auf dem Turm (Klick auf den Halter)
@@ -563,6 +564,7 @@ C.ALPHA_POPUP = {
 -- Optionen je Reiter (Reihenfolge = Anzeige-Reihenfolge). Reiter "Nameplates": diese Optionen
 -- stehen oben, darunter die Farbtabelle(n).
 -- type:   'section' Überschrift · 'text' einfacher Text · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
+--         'color' Farbfeld (öffnet den Farbwähler) ·
 --         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
 --         (Spalten teilen die Fensterbreite gleich auf)
 -- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
@@ -616,11 +618,11 @@ C.OPTIONS = {
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
+    { type = 'color', key = 'highlightColor', label = 'OPT_HIGHLIGHT_COLOR', tip = 'TIP_HIGHLIGHT_COLOR' },
     { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
       count = true, keepBelow = 'maxRows' },
     { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
       count = true, keepAbove = 'minRows' },
-    { type = 'section', label = 'SEC_LOOK' },
     { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
     { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
     { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },

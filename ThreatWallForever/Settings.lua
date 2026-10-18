@@ -358,6 +358,43 @@ local function makeSwatch(parent)
   return function(c) fill:SetVertexColor(c[1], c[2], c[3]) end
 end
 
+-- Farbfeld als Option (z. B. Rahmenfarbe des Ziels): Feld an der Stelle des Kästchens,
+-- dahinter der Text; Klick öffnet den Farbwähler, jede Änderung wirkt sofort.
+local function buildColor(parent, opt, y)
+  local row = newRow(parent, y, S.ROW_H)
+  local hl = row:CreateTexture(nil, 'HIGHLIGHT')
+  hl:SetAllPoints()
+  hl:SetTexture(T.FLAT)
+  hl:SetVertexColor(1, 1, 1, D.ROW_HIGHLIGHT_ALPHA)
+  local holder = CreateFrame('Frame', nil, row)
+  holder:SetSize(S.CHECK_SIZE, S.CHECK_SIZE)
+  holder:SetPoint('LEFT')
+  local paint = makeSwatch(holder)
+  local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  label:SetPoint('LEFT', holder, 'RIGHT', S.TEXT_GAP, 0)
+  label:SetText(L[opt.label])
+  local function color()
+    -- eigene Kopie, damit der Standardwert in Config.DEFAULTS unverändert bleibt
+    if ns.db[opt.key] == C.DEFAULTS[opt.key] then
+      local d = C.DEFAULTS[opt.key]
+      ns.db[opt.key] = { d[1], d[2], d[3] }
+    end
+    return ns.db[opt.key]
+  end
+  local function update() paint(color()) end
+  row:SetScript('OnClick', function()
+    pickColor(color(), function()
+      update()
+      afterChange(opt, color())
+    end)
+  end)
+  row:SetScript('OnEnter', function(self) showTip(self, opt) end)
+  row:SetScript('OnLeave', hideTip)
+  updaters[#updaters + 1] = update
+  return y - S.ROW_H
+end
+BUILDERS.color = buildColor
+
 local function cellButton(parent, x, y)
   local cell = CreateFrame('Button', nil, parent)
   cell:SetSize(PT.COL_W, PT.ROW_H)
