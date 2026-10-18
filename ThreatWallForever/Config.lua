@@ -576,7 +576,6 @@ C.OPTIONS = {
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
-    { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
     { type = 'section', label = 'SEC_WINDOW' },
     { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
       count = true, keepBelow = 'maxRows' },
@@ -585,6 +584,7 @@ C.OPTIONS = {
     { type = 'section', label = 'SEC_LOOK' },
     { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
     { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
+    { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_TARGET' },
