@@ -370,6 +370,12 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 - Technik: gemeinsame Bausteine in Utils.lua `ns.makeCastBar`/`ns.tintCastBar` (Nameplates + Liste) und `ns.createRaidMark`/`ns.setRaidMark` (Liste + Leisten). **Marks.lua und `/twf mark` entfernt** (alte, gescheiterte Symbol-Wege).
 - Stand: gebaut 2026-10-18, im Spiel getestet (Testzeilen, echte Mobs mit Symbol, keine Fehler): bestanden (Nutzer, 2026-10-18).
 
+## AH. Versionshinweis über Gilde/Gruppe/Schlachtzug (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I16)
+- Unsichtbare Addon-Nachricht (Präfix `TWF`, Inhalt `V:<Version>`): **einmal nach dem Einloggen an die Gilde** (falls in einer), **einmal beim Beitritt zu Gruppe/Schlachtzug**. Jedes TWF vergleicht; hört es eine **neuere** Version → **einmal pro Sitzung** Chat-Hinweis „Threat Wall Forever X ist verfügbar – du hast Y. Update über CurseForge.“ Hört ein neueres TWF eine **ältere** → antwortet einmal (Zufallsverzögerung 1–5 s, je Kanal höchstens 1 Nachricht pro 60 s).
+- Im Kampf wird nicht gesendet (in Instanzen gesperrt); nach dem Kampf in der Gruppe nachgeholt. Kein realm-weiter Kanal.
+- Modul `Versionscheck.lua`, Werte `C.VERSIONCHECK`, Text `VERSION_NEWER` (4 Sprachen), Debug-Code 025.
+- Stand: gebaut 2026-10-18, **Test offen (braucht zwei Spieler mit TWF; Nutzer hat noch keine Gilde, Gruppe geht)**.
+
 # Teil 3 — Ideen (keine Anforderungen)
 
 ## Ideen I1 – I15 und weitere
@@ -481,7 +487,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - **Erkenntnis 2026-10-17 (Beschreibung NKThreat):** „Buffs are unreadable in combat inside instances“ → „Auto“ per Haltung/Buff (Zorn der Gerechtigkeit) ginge in Instanzen im Kampf nicht; Gruppenrolle bleibt der verlässliche Weg.
   - **Getestet 2026-10-17:** `UnitSetRole` ist auf Forever für Addons **gesperrt** (Meldung „Aktion aufgrund eines AddOns fehlgeschlagen“). **TWF → Gruppe geht also nicht.** Möglich bleibt nur **Gruppe → TWF**: Rolle im Spiel (Porträt/Gruppensuche) setzen, TWF schaltet automatisch mit; ggf. Knopf „Auto“.
 
-- **I16 Versionsprüfung im Hintergrund** (Idee des Nutzers, 2026-10-18; **keine Anforderung**):
+- **I16 Versionsprüfung im Hintergrund** — ✅ **zur Anforderung AH geworden (2026-10-18, Version 0.5)**. (Idee des Nutzers, 2026-10-18):
   - Beim Einloggen schickt TWF **einmal** seine Version als unsichtbare Addon-Nachricht an die **Gilde**, beim Beitritt zu **Gruppe/Schlachtzug** einmal dorthin. Jedes TWF vergleicht; ist die gehörte Version neuer, **einmal pro Sitzung** Chat-Hinweis „Threat Wall Forever X ist verfügbar – du hast Y. Update über CurseForge.“
   - Damit auch Ältere davon erfahren: ein neueres TWF antwortet einmal (gedrosselt, Zufallsverzögerung) auf eine ältere Version.
   - **Weg gewählt (Nutzer):** Gilde + Gruppe + Schlachtzug. Realm-weiter eigener Chat-Kanal **verworfen** (belegt einen der 10 Kanalplätze, in der Kanalliste sichtbar, jeder kann beitreten, Beitritt auf Forever evtl. gesperrt).

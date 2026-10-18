@@ -172,6 +172,7 @@ L["PANEL_TEXT"] = "Alle Einstellungen findest du in einem eigenen Fenster."
 L["PANEL_BUTTON"] = "TWF-Einstellungen öffnen"
 
 -- Fenster "Was ist neu?" (News.lua): Kurzfassung je Version, Zeilen mit \n getrennt
+L["VERSION_NEWER"] = "Threat Wall Forever %s ist verfügbar – du hast %s. Update über CurseForge."
 L["NEWS_TITLE"] = "Threat Wall Forever – Was ist neu?"
 L["NEWS_TITLE_WELCOME"] = "Willkommen bei Threat Wall Forever"
 L["NEWS_VERSION"] = "Version %s"
@@ -194,7 +195,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Wünsche, Ideen oder Fehler? Schreib einen Kommentar a
 L["NEWS_SEC_NEW"] = "Neu"
 L["NEWS_SEC_CHANGED"] = "Geändert"
 L["NEWS_SEC_FIXED"] = "Behoben"
-L["NEWS_0_5_NEW"] = "Fokus- und Ziel-Mauer – wer den Mob hält, wie nah deine Gruppe an der Aggro ist, dazu sein Schlachtzugsymbol\nSchlachtzugsymbole – in Liste und Mauern, auch im Kampf\nVorschau-Balken – zeigt im Reiter Nameplates sofort, wie ein Zustand aussieht\nLebensfarbe – neue Tabellenzeile für die Lebensanzeige\nNeue Optionen – Rahmenfarbe Ziel, Liste anzeigen, Mauern nur im Kampf bzw. in Gruppe, Deckkraft\nWas ist neu? – dieses Fenster (/twf news)"
+L["NEWS_0_5_NEW"] = "Fokus- und Ziel-Mauer – wer den Mob hält, wie nah deine Gruppe an der Aggro ist, dazu sein Schlachtzugsymbol\nSchlachtzugsymbole – in Liste und Mauern, auch im Kampf\nVorschau-Balken – zeigt im Reiter Nameplates sofort, wie ein Zustand aussieht\nLebensfarbe – neue Tabellenzeile für die Lebensanzeige\nNeue Optionen – Rahmenfarbe Ziel, Liste anzeigen, Mauern nur im Kampf bzw. in Gruppe, Deckkraft\nVersionshinweis – meldet im Chat, wenn jemand in Gruppe oder Gilde eine neuere Version hat\nWas ist neu? – dieses Fenster (/twf news)"
 L["NEWS_0_5_CHANGED"] = "Liste – Balken in der Farbe des Zustands mit Leben, Symbol, Aggro-% und Aggro-Ziel\nEinstellungen – drei Reiter: Allgemein, Nameplates, Ansicht\nUmbenannt – „Alle Gegner auflisten“, „Alles fixieren“, „Deckkraft“"
 L["NEWS_0_5_FIXED"] = "Hinweis „fixiert“ – nennt jetzt den richtigen Weg zum Lösen\nTooltip Rollen-Sync – ein Zeichen wurde als Viereck angezeigt"
 L["NEWS_0_4_NEW"] = "Tank-Vorsprung – Vorsprung vor Platz 2 statt Aggro-%, für Balken und Liste getrennt\nLeben als Zahl – wahlweise Restleben statt Prozent\nRollen-Sync – TWF folgt deiner Gruppenrolle"

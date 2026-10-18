@@ -29,4 +29,5 @@ Settings.lua
 Minimap.lua
 Hint.lua
 News.lua
+Versionscheck.lua
 Slash.lua

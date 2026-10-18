@@ -173,6 +173,7 @@ L["PANEL_TEXT"] = "All settings are in their own window."
 L["PANEL_BUTTON"] = "Open TWF settings"
 
 -- Fenster "Was ist neu?" (News.lua): Kurzfassung je Version, Zeilen mit \n getrennt
+L["VERSION_NEWER"] = "Threat Wall Forever %s is available – you have %s. Update via CurseForge."
 L["NEWS_TITLE"] = "Threat Wall Forever – What's new?"
 L["NEWS_TITLE_WELCOME"] = "Welcome to Threat Wall Forever"
 L["NEWS_VERSION"] = "Version %s"
@@ -195,7 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Wishes, ideas or bugs? Leave a comment on CurseForge �
 L["NEWS_SEC_NEW"] = "New"
 L["NEWS_SEC_CHANGED"] = "Changed"
 L["NEWS_SEC_FIXED"] = "Fixed"
-L["NEWS_0_5_NEW"] = "Focus and target wall – who holds the mob, how close your group is to aggro, plus its raid marker\nRaid markers – in the list and the walls, even in combat\nPreview bar – shows right away in the Nameplates tab how a state looks\nHealth color – new table row for the health text\nNew options – target frame color, show list, walls only in combat or in a group, opacity\nWhat's new? – this window (/twf news)"
+L["NEWS_0_5_NEW"] = "Focus and target wall – who holds the mob, how close your group is to aggro, plus its raid marker\nRaid markers – in the list and the walls, even in combat\nPreview bar – shows right away in the Nameplates tab how a state looks\nHealth color – new table row for the health text\nNew options – target frame color, show list, walls only in combat or in a group, opacity\nVersion notice – tells you in chat when someone in your group or guild has a newer version\nWhat's new? – this window (/twf news)"
 L["NEWS_0_5_CHANGED"] = "List – bars in the state color with health, marker, aggro % and aggro target\nSettings – three tabs: General, Nameplates, View\nRenamed – “List all enemies”, “Lock everything”, “Opacity”"
 L["NEWS_0_5_FIXED"] = "“Locked” hint – now names the right way to unlock\nRole sync tooltip – a character was shown as a box"
 L["NEWS_0_4_NEW"] = "Tank lead – lead over 2nd place instead of aggro %, separately for bar and list\nHealth as a number – remaining health instead of percent\nRole sync – TWF follows your group role"

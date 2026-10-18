@@ -173,6 +173,7 @@ L["PANEL_TEXT"] = "Todos los ajustes están en su propia ventana."
 L["PANEL_BUTTON"] = "Abrir ajustes de TWF"
 
 -- Fenster "Was ist neu?" (News.lua): Kurzfassung je Version, Zeilen mit \n getrennt
+L["VERSION_NEWER"] = "Threat Wall Forever %s está disponible – tienes la %s. Actualiza en CurseForge."
 L["NEWS_TITLE"] = "Threat Wall Forever – ¿Qué hay de nuevo?"
 L["NEWS_TITLE_WELCOME"] = "Bienvenido a Threat Wall Forever"
 L["NEWS_VERSION"] = "Versión %s"
@@ -195,7 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "¿Deseos, ideas o errores? Deja un comentario en Curse
 L["NEWS_SEC_NEW"] = "Nuevo"
 L["NEWS_SEC_CHANGED"] = "Cambiado"
 L["NEWS_SEC_FIXED"] = "Corregido"
-L["NEWS_0_5_NEW"] = "Muro de foco y de objetivo – quién tiene al enemigo, lo cerca que está tu grupo del aggro y su marca de banda\nMarcas de banda – en la lista y en los muros, incluso en combate\nBarra de vista previa – muestra al instante en la pestaña Placas de nombre cómo se ve un estado\nColor de la vida – nueva fila de la tabla para el texto de la vida\nNuevas opciones – color del marco del objetivo, mostrar lista, muros solo en combate o en grupo, opacidad\n¿Qué hay de nuevo? – esta ventana (/twf news)"
+L["NEWS_0_5_NEW"] = "Muro de foco y de objetivo – quién tiene al enemigo, lo cerca que está tu grupo del aggro y su marca de banda\nMarcas de banda – en la lista y en los muros, incluso en combate\nBarra de vista previa – muestra al instante en la pestaña Placas de nombre cómo se ve un estado\nColor de la vida – nueva fila de la tabla para el texto de la vida\nNuevas opciones – color del marco del objetivo, mostrar lista, muros solo en combate o en grupo, opacidad\nAviso de versión – avisa en el chat si alguien de tu grupo o hermandad tiene una versión más reciente\n¿Qué hay de nuevo? – esta ventana (/twf news)"
 L["NEWS_0_5_CHANGED"] = "Lista – barras del color del estado con vida, marca, aggro % y objetivo del aggro\nAjustes – tres pestañas: General, Placas de nombre, Vista\nRenombrado – «Listar todos los enemigos», «Bloquear todo», «Opacidad»"
 L["NEWS_0_5_FIXED"] = "Aviso «bloqueado» – ahora indica la forma correcta de desbloquear\nTooltip de sincronizar rol – un carácter se mostraba como un cuadro"
 L["NEWS_0_4_NEW"] = "Ventaja del tanque – ventaja sobre el 2.º en vez de aggro %, por separado para barra y lista\nVida como número – vida restante en vez de porcentaje\nSincronizar rol – TWF sigue a tu rol de grupo"

@@ -39,6 +39,7 @@ C.CODES = {
   PLATES = '022',        -- Debug: Aussehen pro Zustand (Tabelle im Reiter Nameplates)
   MERGED = '023',        -- Debug: doppelte Listenzeile zusammengeführt (Bug B2)
   BAR = '024',           -- Debug: Fokus-/Ziel-Leiste (andocken, Symbole)
+  VERSION = '025',       -- Debug: Versionscheck (gesendet)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -380,6 +381,16 @@ C.BAR = {
   MARK = 24,                         -- Schlachtzugsymbol über der Leiste
   MARK_GAP = 2,                      -- Abstand Symbol → Oberkante der Leiste
   PCT_FORMAT = '%.0f %%',
+}
+
+-- Versionscheck über Gilde/Gruppe/Schlachtzug (Versionscheck.lua, Anforderung AH) ------------
+
+C.VERSIONCHECK = {
+  PREFIX = 'TWF',                -- Addon-Nachrichten-Präfix (max. 16 Zeichen)
+  TAG = 'V:',                    -- Nachricht = TAG .. Version, z. B. "V:0.5"
+  LOGIN_DELAY = 10,              -- s nach dem Login an Gilde/Gruppe senden
+  THROTTLE = 60,                 -- s: pro Kanal höchstens eine Nachricht
+  REPLY_MIN = 1, REPLY_MAX = 5,  -- s: Antwort an ältere Versionen zufällig verzögert
 }
 
 -- Fenster "Was ist neu?" (News.lua, Anforderung AF) ------------------------------------------

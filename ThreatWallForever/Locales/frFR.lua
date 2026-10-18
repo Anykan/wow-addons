@@ -173,6 +173,7 @@ L["PANEL_TEXT"] = "Tous les réglages se trouvent dans leur propre fenêtre."
 L["PANEL_BUTTON"] = "Ouvrir les réglages de TWF"
 
 -- Fenster "Was ist neu?" (News.lua): Kurzfassung je Version, Zeilen mit \n getrennt
+L["VERSION_NEWER"] = "Threat Wall Forever %s est disponible – tu as la %s. Mets à jour via CurseForge."
 L["NEWS_TITLE"] = "Threat Wall Forever – Quoi de neuf ?"
 L["NEWS_TITLE_WELCOME"] = "Bienvenue dans Threat Wall Forever"
 L["NEWS_VERSION"] = "Version %s"
@@ -195,7 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Envies, idées ou bugs ? Laisse un commentaire sur Cur
 L["NEWS_SEC_NEW"] = "Nouveau"
 L["NEWS_SEC_CHANGED"] = "Modifié"
 L["NEWS_SEC_FIXED"] = "Corrigé"
-L["NEWS_0_5_NEW"] = "Mur de focus et de cible – qui tient l'ennemi, à quel point ton groupe est proche de l'aggro, et son marqueur de raid\nMarqueurs de raid – dans la liste et les murs, même en combat\nBarre d'aperçu – montre tout de suite dans l'onglet Barres de nom l'apparence d'un état\nCouleur de la vie – nouvelle ligne du tableau pour le texte de la vie\nNouvelles options – couleur du cadre de la cible, afficher la liste, murs seulement en combat ou en groupe, opacité\nQuoi de neuf ? – cette fenêtre (/twf news)"
+L["NEWS_0_5_NEW"] = "Mur de focus et de cible – qui tient l'ennemi, à quel point ton groupe est proche de l'aggro, et son marqueur de raid\nMarqueurs de raid – dans la liste et les murs, même en combat\nBarre d'aperçu – montre tout de suite dans l'onglet Barres de nom l'apparence d'un état\nCouleur de la vie – nouvelle ligne du tableau pour le texte de la vie\nNouvelles options – couleur du cadre de la cible, afficher la liste, murs seulement en combat ou en groupe, opacité\nAvis de version – te prévient dans le chat si quelqu’un de ton groupe ou de ta guilde a une version plus récente\nQuoi de neuf ? – cette fenêtre (/twf news)"
 L["NEWS_0_5_CHANGED"] = "Liste – barres à la couleur de l'état avec la vie, le marqueur, l'aggro % et la cible de l'aggro\nOptions – trois onglets : Général, Barres de nom, Affichage\nRenommé – « Lister tous les ennemis », « Tout verrouiller », « Opacité »"
 L["NEWS_0_5_FIXED"] = "Indication « verrouillé » – indique maintenant la bonne façon de déverrouiller\nInfobulle de synchronisation du rôle – un caractère s'affichait en carré"
 L["NEWS_0_4_NEW"] = "Avance du tank – avance sur le 2e au lieu de l'aggro %, séparément pour la barre et la liste\nVie en nombre – vie restante au lieu du pourcentage\nSynchronisation du rôle – TWF suit ton rôle de groupe"
