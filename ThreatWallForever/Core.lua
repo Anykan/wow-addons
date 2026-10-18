@@ -67,7 +67,10 @@ end
 
 -- Gespeicherte Einstellungen laden und fehlende Werte mit Standardwerten füllen
 local function loadDB()
-  if type(ThreatWallForeverDB) ~= 'table' then ThreatWallForeverDB = {} end
+  if type(ThreatWallForeverDB) ~= 'table' then
+    ThreatWallForeverDB = {}
+    ns.freshInstall = true   -- erste Installation: "Willkommen" statt Neuigkeiten (News.lua)
+  end
   ns.db = ThreatWallForeverDB
   for k, v in pairs(C.DEFAULTS) do if ns.db[k] == nil then ns.db[k] = v end end
   ns.ensurePlates(ns.db)   -- Aussehen pro Zustand (PlateStates.lua, Anforderung V)

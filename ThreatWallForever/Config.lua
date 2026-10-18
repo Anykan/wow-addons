@@ -358,6 +358,27 @@ C.DIALOG = {
   TOOLTIP_TEXT = { 1, 1, 1 },  -- Farbe des Erklärtexts im Tooltip
 }
 
+-- Fenster "Was ist neu?" (News.lua, Anforderung AF) ------------------------------------------
+
+C.NEWS = {
+  NAME = 'ThreatWallForeverNews',
+  WIDTH = 440, HEIGHT = 380,
+  OFFSET_Y = 60,                  -- über der Bildschirmmitte
+  -- Versionen mit Kurzfassung (Texte NEWS_<Version> in den Locales), neueste zuerst
+  VERSIONS = { '0.5', '0.4', '0.3', '0.2', '0.1' },
+  DELAY = 5,                      -- Sekunden nach dem Login
+  RETRY = 2,                      -- im Kampf / bei offenem Hinweis-Popup: erneut prüfen nach … s
+  TOP_GAP = 10,                   -- Abstand unter der Kopfleiste
+  BUTTON_GAP = 10,                -- Abstand Text → OK-Knopf
+  OK_W = 90,
+  SCROLLBAR_W = 22,               -- Platz für die Schiebeleiste
+  WHEEL_STEP = 40,                -- Mausrad: Pixel pro Schritt
+  LINE_SPACING = 3,
+  HEAD_GAP = 4,                   -- Versions-Überschrift → Stichpunkte
+  VERSION_GAP = 12,               -- Abstand zwischen zwei Versionen
+  NEW_COLOR = { 0.37, 0.83, 0.37 },  -- Markierung "neu"
+}
+
 -- Hinweis-Popup: Prüfung der Spiel-Optionen (Hint.lua, Anforderung M) ----------------------
 
 C.HINT = {

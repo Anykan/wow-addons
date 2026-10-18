@@ -29,6 +29,8 @@ local function slash(msg)
   elseif cmd == 'clearlog' then
     db.log = {}
     ns.say(L.LOG_CLEARED, 'LOG_CLEARED')
+  elseif cmd == 'news' then
+    ns.showNews(false, ns.VERSION)
   elseif cmd == 'hint' then
     ns.checkGameOptions(true)
   elseif cmd == '' then

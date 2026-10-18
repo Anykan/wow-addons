@@ -285,6 +285,13 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## AF. Fenster „Was ist neu?“ (vom Nutzer beschlossen 2026-10-18, Version 0.5, wie bei CrittersBoard)
+- Erscheint **einmal nach einem Update** (Vergleich `db.newsSeen` mit der TOC-Version), **5 s nach dem Login**, **nie im Kampf** und nicht, solange das Hinweis-Popup (M) offen ist. **OK oder X** = gesehen bis zur nächsten Version. **`/twf news`** öffnet es jederzeit.
+- Inhalt: **Kurzfassung aller Versionen, neueste oben, scrollbar** (Nutzer: Liste darf länger werden); Versionen seit dem letzten Besuch mit „NEU“ markiert (Update von ≤ 0.4: nur die aktuelle).
+- **Erste Installation:** oben ein **Willkommenstext** (was TWF kann, Rolle im Fensterkopf, Zahnrad, /twf news), darunter die Versionsliste.
+- Texte in allen Sprachen (`NEWS_<Version>`, `NEWS_WELCOME` …), Werte in `C.NEWS`, Modul `News.lua` (neue Datei → Spielneustart). Kurzfassung 0.5 beim Abschluss von 0.5 mit den Patchnotes abgleichen.
+- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
+
 ## AE. Vorschau-Balken im Reiter Nameplates (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I8)
 - Oben in der Mitte (freie Spalte zwischen Optionen und Deckkraft) ein **Muster-Nameplate** mit Beispielwerten („Beispiel-Gegner“, Leben 72 % bzw. 8240, Aggro-% je Zustand).
 - Zeigt den **zuletzt geänderten oder mit der Maus berührten Zustand** (Spaltenkopf oder Zelle; bei drei Tabellen inkl. Rolle) und **bleibt dabei**, bis ein anderer Zustand dran ist (Nutzer 2026-10-18: nicht zurückspringen); solange **Farbwähler oder Deckkraft-Fenster offen** ist, wechselt sie nicht. Beim Öffnen: **„Sicher“**.
