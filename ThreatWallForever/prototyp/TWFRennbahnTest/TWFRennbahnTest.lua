@@ -26,6 +26,7 @@ local HALO_ALPHA = { 0.35, 0.55, 0.85 }
 local MARK_COLOR = { 1, 0.82, 0.2 }     -- eigenes Symbol: gold
 local ALARM_COLOR = { 1, 0.15, 0.1 }    -- eigenes Symbol bei Alarm (blinkend): rot
 
+local layout   -- weiter unten definiert; hier bekannt gemacht, damit Klick-Funktionen es aufrufen können
 local opt = { vert = true, flip = false, pct = false, classIcon = false, paused = false, meTank = false }
 
 local f = CreateFrame('Frame', 'TWFRennbahnTestFrame', UIParent, 'BackdropTemplate')
@@ -347,7 +348,7 @@ local function setup()
   addPlayer('Heilibert', 'PRIEST', 'heal', 13)
 end
 
-local function layout()
+function layout()
   buildWall()
   for _, p in ipairs(players) do setIcon(p) placeLabels(p) end
 end
