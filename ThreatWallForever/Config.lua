@@ -506,6 +506,7 @@ C.OPTIONS = {
     { type = 'column' },
     { type = 'section', label = 'SEC_DISPLAY' },
     { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
+    { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
     { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
     { type = 'section', label = 'SEC_VISIBILITY' },
     { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
@@ -519,14 +520,12 @@ C.OPTIONS = {
 
   -- Reiter "Nameplates": Schalter und Deckkraft (darunter die Farbtabelle)
   nameplates = {
-    { type = 'section', label = 'SEC_NAMEPLATES' },
-    { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
-
-    { type = 'column' },
-    { type = 'section', label = 'SEC_CONTENT' },
+    { type = 'section', label = 'SEC_OPTIONS' },
     { type = 'check', key = 'healthPct', label = 'OPT_HEALTH_PCT', tip = 'TIP_HEALTH_PCT' },
     { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
+    { type = 'check', key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' },
 
+    { type = 'column' },   -- Mitte bleibt frei, damit Deckkraft rechts steht
     { type = 'column' },
     { type = 'section', label = 'SEC_OPACITY' },
     { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },

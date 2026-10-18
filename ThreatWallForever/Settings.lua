@@ -515,15 +515,11 @@ local function buildOptions(page, list)
   return maxH
 end
 
--- Reiter "Nameplates": oben die Schalter aus Config.OPTIONS.nameplates, darunter "Farben für
--- alle Modi gleich" + "Farben zurücksetzen" und die gemeinsame Tabelle oder die drei Tabellen
--- Tank/DD/Heal. Gibt eine Funktion zurück, die die nötige Höhe liefert (eine bzw. drei Tabellen).
+-- Reiter "Nameplates": oben die Schalter aus Config.OPTIONS.nameplates (darin auch "Farben für
+-- alle Modi gleich"), darunter "Farben zurücksetzen" und die gemeinsame Tabelle oder die drei
+-- Tabellen Tank/DD/Heal. Gibt eine Funktion zurück, die die nötige Höhe liefert (eine bzw. drei Tabellen).
 local function buildNameplates(page)
   local optH = buildOptions(page, C.OPTIONS.nameplates) + PT.OPTIONS_GAP
-  local topLeft = CreateFrame('Frame', nil, page)
-  topLeft:SetPoint('TOPLEFT', 0, -optH)
-  topLeft:SetSize(S.WIDTH / 2, PT.TOP_H)
-  buildCheck(topLeft, { key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' }, 0)
 
   local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
   reset:SetPoint('TOPRIGHT', -D.PADDING, -optH)
