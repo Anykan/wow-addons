@@ -366,7 +366,7 @@ C.NEWS = {
   OFFSET_Y = 60,                  -- über der Bildschirmmitte
   -- Versionen mit Kurzfassung (Texte NEWS_<Version> in den Locales), neueste zuerst
   VERSIONS = { '0.5', '0.4', '0.3', '0.2', '0.1' },
-  DELAY = 5,                      -- Sekunden nach dem Login
+  DELAY = 2,                      -- Sekunden nach dem Login
   RETRY = 2,                      -- im Kampf / bei offenem Hinweis-Popup: erneut prüfen nach … s
   TOP_GAP = 10,                   -- Abstand unter der Kopfleiste
   BUTTON_GAP = 10,                -- Abstand Text → OK-Knopf
