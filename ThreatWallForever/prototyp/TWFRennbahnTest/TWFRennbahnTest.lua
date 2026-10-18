@@ -423,6 +423,64 @@ f:SetScript('OnUpdate', function(_, elapsed)
   positions(elapsed)
 end)
 
+-- ===========================================================================================
+-- Schlachtzugsymbol des Fokus-Mobs unten in der Mauer (Anforderung AC). Die Symbol-Nummer ist
+-- geheim (getestet 2026-10-18, auch außer Kampf). Trick: acht Symbole als Streifen hinter einem
+-- Guckloch; ein unsichtbarer Balken (von rechts gefüllt) bekommt die Nummer als Wert, der
+-- Streifen hängt an seiner Füllung → das Spiel schiebt das richtige Symbol ins Guckloch, ohne
+-- dass das Addon die Nummer liest. Funktioniert über focus und nameplateN, auch im Kampf und
+-- beim Symbolwechsel (getestet 2026-10-18). Alte Wege (Rechnung, SetRaidTargetIconTexture,
+-- Dateiname aus Nummer) scheitern an der geheimen Nummer.
+-- ===========================================================================================
+local MARK = 16                        -- Größe des Symbols / des Gucklochs
+local MARK_FILE = 'Interface\\TargetingFrame\\UI-RaidTargetingIcon_'
+local isSecretV = issecretvalue or function() return false end
+
+local markClip = CreateFrame('Frame', nil, wall)
+markClip:SetSize(MARK, MARK)
+markClip:SetClipsChildren(true)
+markClip:SetFrameLevel(wall:GetFrameLevel() + 3)
+local markBar = CreateFrame('StatusBar', nil, markClip)
+markBar:SetSize(8 * MARK, MARK)
+markBar:SetPoint('LEFT', markClip, 'LEFT', -7 * MARK, 0)
+markBar:SetMinMaxValues(0, 8)
+markBar:SetStatusBarTexture('Interface\\Buttons\\WHITE8x8')
+markBar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 0)
+if markBar.SetReverseFill then markBar:SetReverseFill(true) end
+local strip = CreateFrame('Frame', nil, markClip)
+strip:SetSize(8 * MARK, MARK)
+strip:SetPoint('LEFT', markBar:GetStatusBarTexture(), 'LEFT', 0, 0)
+for i = 1, 8 do
+  local tx = strip:CreateTexture(nil, 'ARTWORK')
+  tx:SetTexture(MARK_FILE .. i)
+  tx:SetSize(MARK, MARK)
+  tx:SetPoint('LEFT', strip, 'LEFT', (i - 1) * MARK, 0)
+end
+
+local function placeMark()
+  markClip:ClearAllPoints()
+  markClip:SetPoint('BOTTOM', wall, 'BOTTOM', 0, 4)   -- unten im Turm, mittig
+end
+
+local function updateMark()
+  if not UnitExists('focus') then markClip:Hide() return end
+  local ok, idx = pcall(GetRaidTargetIndex, 'focus')
+  -- ohne Symbol ist der Wert lesbar nil; mit Symbol geheim → nur weiterreichen
+  if not ok or (not isSecretV(idx) and idx == nil) then markClip:Hide() return end
+  markClip:SetShown(pcall(markBar.SetValue, markBar, idx))
+end
+
+local markTick = CreateFrame('Frame')
+local markAcc = 0
+markTick:SetScript('OnUpdate', function(_, el)
+  markAcc = markAcc + el
+  if markAcc >= 0.2 then
+    markAcc = 0
+    placeMark()
+    updateMark()
+  end
+end)
+
 local dock   -- unten definiert (braucht layout und barSize)
 SLASH_TWFRBT1 = '/rbt'
 SlashCmdList.TWFRBT = function(msg)
