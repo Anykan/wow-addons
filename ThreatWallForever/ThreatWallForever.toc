@@ -25,7 +25,6 @@ Nameplates.lua
 Symbols.lua
 Window.lua
 Leiste.lua
-Menu.lua
 Settings.lua
 Minimap.lua
 Hint.lua

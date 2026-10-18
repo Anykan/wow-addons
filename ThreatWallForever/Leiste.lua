@@ -20,8 +20,6 @@ local bars = {}            -- key -> Leiste
 local dims                 -- gemessene Maße (für beide Leisten gleich)
 local measured = false
 
-local function hex(c) return string.format('|cff%02x%02x%02x', c[1] * 255, c[2] * 255, c[3] * 255) end
-
 -- Maße der Seitenleiste --------------------------------------------------------------------
 
 -- Breite/Höhe aus Knopf 1 und 12 (die Leisten-Rahmen selbst sind oft anders groß). Rückgabe:

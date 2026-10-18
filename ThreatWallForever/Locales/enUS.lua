@@ -194,7 +194,7 @@ L["NEWS_W_S1"] = "Pick your role in the window header: %s Tank > %s DPS > %s Hea
 L["NEWS_W_S2"] = "Gear = settings, /twf test = sample rows to try things out."
 L["NEWS_W_S3"] = "Enemy nameplates must be on (key V) – TWF checks this for you."
 L["NEWS_W_S4"] = "Open this window again any time: /twf news"
-L["NEWS_0_5"] = "• Settings in three tabs: General, Nameplates, View\n• Preview bar: shows right away how a state looks\n• New table row “Health color”\n• Renamed: “List all enemies” and “Lock everything”\n• This window with what's new (/twf news)"
+L["NEWS_0_5"] = "• New: focus and target wall – who holds the mob, how close your group is to aggro, plus its raid marker\n• List in a new look: bars in the state color with health, raid marker, aggro % and aggro target\n• Raid markers now in the list and the walls – even in combat\n• Settings reorganized into three tabs: General, Nameplates, View\n• Preview bar in the Nameplates tab and new table row “Health color”\n• New options: target frame color, show list, walls only in combat or in a group, opacity\n• This window with what's new (/twf news)"
 L["NEWS_0_4"] = "• Tank: lead over 2nd place instead of aggro % (bar and list)\n• Health optionally as a number\n• Role can follow your group role\n• Minimap button: right-click opens the settings"
 L["NEWS_0_3"] = "• New languages: Español and Français\n• Color table: every state can be set on its own, optionally per tank/DPS/heal\n• Aggro % in the list too\n• Window height grows with the number of enemies"
 L["NEWS_0_2"] = "• Aggro in % on the left of the bar\n• Blinking frame on aggro problems\n• Brown: another tank holds the enemy\n• Dark grey: enemies of another group\n• Bar opacity adjustable"

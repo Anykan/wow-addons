@@ -245,22 +245,7 @@ C.TEST_ROWS = {
   { 'Adds Links', 'yellow', nil, nil, 64, 90 },
 }
 
--- Dropdown-Menü (Minimap-Rechtsklick) -----------------------------------------------------
-
-C.MENU = {
-  NAME = 'ThreatWallForeverMenu',
-  BACKDROP_ALPHA = 0.92,
-  LINE_H = 18,                 -- Zeilenhöhe
-  PADDING = 8,
-  CHECK_SIZE = 16,
-  TEXT_X = 20,                 -- Textbeginn hinter dem Haken
-  HIGHLIGHT_ALPHA = 0.12,
-  MIN_WIDTH = 140,
-  WIDTH_EXTRA = 44,            -- Platz für Haken und Rand neben dem Text
-  ANCHOR_Y = -2,               -- Abstand unter dem auslösenden Button
-}
-
--- Rahmen (Backdrop) für das Dropdown-Menü und den Rollen-Button
+-- Rahmen (Backdrop) für den Rollen-Button
 C.BACKDROP = {
   EDGE_SIZE = 12,
   INSET = 3,
@@ -341,7 +326,6 @@ C.SYMBOL_LAYOUT = {
   ICON_GAP = 3,                -- Abstand Symbol → Spielername
   LINE_Y = 1,                  -- Abstand der Zeile über dem Mobnamen
   LIST_SIZE = 18,              -- Symbol in der TWF-Liste (Zeilenhöhe ist 20)
-  LIST_GAP = 5,                -- Abstand Symbol → Mobname in der Liste
   LEVEL = 8,                   -- Frame-Ebene über der Nameplate (über dem TWF-Balken)
   RAID_INTERVAL = 1,           -- Sekunden zwischen Halter-Abfragen im Schlachtzug (gedrosselt)
   NAME_FALLBACK_COLOR = { 1, 1, 1 },  -- Spielername, falls die Klassenfarbe nicht lesbar ist
@@ -526,7 +510,7 @@ C.PLATE_ROWS = {
 C.PLATE_TABLE = {
   LABEL_W = 100,               -- Breite der linken Spalte mit den Zeilennamen
   COL_W = 78,                  -- Breite einer Zustands-Spalte
-  TOP_H = 28,                  -- Zeile mit Checkbox "Farben gleich" und Knopf "Farben zurücksetzen"
+  TOP_H = 28,                  -- Zeile mit dem Knopf "Farben zurücksetzen" über der Tabelle
   RESET_W = 150,               -- Breite des Knopfs "Farben zurücksetzen"
   TITLE_H = 20,                -- Überschrift einer Tabelle (Alle Modi / Tank / DD / Heal)
   HEAD_H = 30,                 -- Kopfzeile (Zustandsname, bis zwei Zeilen)
@@ -563,7 +547,7 @@ C.ALPHA_POPUP = {
 
 -- Optionen je Reiter (Reihenfolge = Anzeige-Reihenfolge). Reiter "Nameplates": diese Optionen
 -- stehen oben, darunter die Farbtabelle(n).
--- type:   'section' Überschrift · 'text' einfacher Text · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
+-- type:   'section' Überschrift · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
 --         'color' Farbfeld (öffnet den Farbwähler) ·
 --         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
 --         (Spalten teilen die Fensterbreite gleich auf)
