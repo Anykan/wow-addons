@@ -26,6 +26,14 @@ local HALO_ALPHA = { 0.35, 0.55, 0.85 }
 local MARK_COLOR = { 1, 0.82, 0.2 }     -- eigenes Symbol: gold
 local ALARM_COLOR = { 1, 0.15, 0.1 }    -- eigenes Symbol bei Alarm (blinkend): rot
 
+-- Tooltip am Symbol: Name in Klassenfarbe, darunter die % (Halter: Vorsprung); läuft live mit.
+-- Hinweis für TWF: echte Werte können geheim sein → dann die Tooltip-Zeile per SetFormattedText füllen.
+local function showTip(p)
+  GameTooltip:ClearLines()
+  GameTooltip:AddLine(p.name:GetText(), p.name:GetTextColor())
+  GameTooltip:AddLine(p.pct:GetText() or '', 1, 1, 1)
+  GameTooltip:Show()
+end
 local layout   -- weiter unten definiert; hier bekannt gemacht, damit Klick-Funktionen es aufrufen können
 local opt = { vert = true, flip = false, pct = false, classIcon = false, paused = false, meTank = false }
 
@@ -262,8 +270,7 @@ local function addPlayer(name, class, role, rate, me)
   p:EnableMouse(true)
   p:SetScript('OnEnter', function(self)
     GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-    GameTooltip:SetText(self.name:GetText(), self.name:GetTextColor())
-    GameTooltip:Show()
+    showTip(self)
   end)
   p:SetScript('OnLeave', function() GameTooltip:Hide() end)
   -- Klick auf den Halter oben: Symbole auf der Mauer zwischen Rolle und Klasse umschalten
@@ -379,6 +386,7 @@ local function positions(elapsed)
       p.pct:SetShown(opt.pct)
       p.pct:SetFormattedText('%d %%', math.floor(frac * 100 + 0.5))
     end
+    if GameTooltip:IsOwned(p) then showTip(p) end
     local alarm = p ~= tank and frac >= 0.85
     local blinkOn = (GetTime() % 0.5) < 0.25
     if p.me and p ~= tank then

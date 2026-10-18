@@ -291,7 +291,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
   - Größe wie eine **Seiten-Aktionsleiste** (Knopf-Breite, Höhe Knopf 1–12), Rahmen = **Knopf-Rand-Grafik**, kein eigener Hintergrund, Inhalt mittig (−3 px Versatz).
   - **Burgmauer-Turm** (symmetrischer Verband, Zinnen oben, rotes Glühen am Halter-Ende).
   - **Oben:** Rollensymbol des **Aggro-Halters** (egal welche Rolle), darunter nur **Vorsprung-%**.
-  - **Auf dem Turm:** Mitspieler nach skaliertem % (Halter-Ende = Ziehgrenze), **alle Symbole gleich groß**, **Checkbox Rolle/Klasse** (Klassenwappen ~75 %), Namen als **Tooltip**, keine % an den Symbolen (optional per Checkbox).
+  - **Auf dem Turm:** Mitspieler nach skaliertem % (Halter-Ende = Ziehgrenze), **alle Symbole gleich groß**, **Checkbox Rolle/Klasse** (Klassenwappen ~75 %), Namen als **Tooltip**, darunter im Tooltip die **% live** (Halter: Vorsprung; Nutzer 2026-10-18; bei geheimen Werten Tooltip-Zeile per `SetFormattedText`), keine % an den Symbolen (optional per Checkbox).
   - **Eigenes Symbol:** dünner **Goldring** (Rolle) bzw. eckiger Goldschein (Klasse), immer vorn; **Alarm ≥ 85 %: rot blinkend**. Warn-Blinken anderer nur bei Klassenwappen.
   - **Magnetisch andockbar** an die Seitenleiste (wandert mit, frei wegziehbar, bis 15 px einrasten, gespeichert, neu messen bei Leiste ein/aus, Bearbeitungsmodus, UI-Skalierung).
 - **Modul:** ein Code, mehrfach verwendet: **Fokus-Leiste** und **Ziel-Leiste** (zwei Leisten), jede einzeln an/aus; zweite Leiste dockt an die erste bzw. an die Seitenleiste.
