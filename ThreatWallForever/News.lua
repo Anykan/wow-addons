@@ -17,8 +17,8 @@ local W = C.WINDOW
 
 local win, content, lines = nil, nil, {}
 
--- Locale-Schlüssel der Kurzfassung einer Version ("0.5" → NEWS_0_5)
-local function newsKey(version) return 'NEWS_' .. version:gsub('%.', '_') end
+-- Locale-Schlüssel eines Abschnitts einer Version ("0.5", "NEW" → NEWS_0_5_NEW)
+local function newsKey(version, section) return 'NEWS_' .. version:gsub('%.', '_') .. '_' .. section end
 
 -- Index einer Version in der Liste (1 = neueste), nil = unbekannt
 local function indexOf(version)
@@ -27,10 +27,10 @@ end
 
 local function hex(c) return string.format('|cff%02x%02x%02x', c[1] * 255, c[2] * 255, c[3] * 255) end
 
-local function addLine(text, font, y, gap)
+local function addLine(text, font, y, gap, indent)
   local fs = content:CreateFontString(nil, 'OVERLAY', font)
-  fs:SetPoint('TOPLEFT', 0, y - (gap or 0))
-  fs:SetWidth(content:GetWidth())
+  fs:SetPoint('TOPLEFT', indent or 0, y - (gap or 0))
+  fs:SetWidth(content:GetWidth() - (indent or 0))
   fs:SetJustifyH('LEFT')
   fs:SetWordWrap(true)
   fs:SetSpacing(NW.LINE_SPACING)
@@ -61,15 +61,35 @@ local function fillContent(welcome, lastSeen)
     end
     y = y - NW.SECTION_GAP - NW.VERSION_GAP
   end
+  -- Changelog je Version: Kopf (Gold, ggf. "NEU"), Abschnitte Neu/Geändert/Behoben in ihren
+  -- Farben, Punkte "Stichwort – Erklärung" (Stichwort weiß, Erklärung grau), Trennlinie dazwischen
   local seenIdx = lastSeen and indexOf(lastSeen)
+  local kw, txt = hex(NW.KEYWORD_COLOR), hex(NW.TEXT_COLOR)
   for i, v in ipairs(NW.VERSIONS) do
-    local text = L[newsKey(v)]
-    if text then
-      local isNew = not welcome and (seenIdx and i < seenIdx or (not seenIdx and i == 1))
-      local head = hex(C.TITLE_COLOR) .. string.format(L.NEWS_VERSION, v) .. '|r'
-      if isNew then head = head .. '  ' .. hex(NW.NEW_COLOR) .. L.NEWS_NEW .. '|r' end
-      y = addLine(head, 'GameFontNormal', y, i > 1 and NW.VERSION_GAP or 0)
-      y = addLine(text, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
+    if i > 1 then
+      y = y - NW.VERSION_GAP / 2
+      local rule = content:CreateTexture(nil, 'ARTWORK')
+      rule:SetColorTexture(1, 1, 1, NW.RULE_ALPHA)
+      rule:SetHeight(1)
+      rule:SetPoint('TOPLEFT', 0, y)
+      rule:SetPoint('TOPRIGHT', 0, y)
+      lines[#lines + 1] = rule
+      y = y - NW.VERSION_GAP / 2
+    end
+    local isNew = not welcome and (seenIdx and i < seenIdx or (not seenIdx and i == 1))
+    local head = hex(C.TITLE_COLOR) .. string.format(L.NEWS_VERSION, v) .. '|r'
+    if isNew then head = head .. '  ' .. hex(NW.NEW_COLOR) .. L.NEWS_NEW .. '|r' end
+    y = addLine(head, 'GameFontNormal', y)
+    for _, sec in ipairs(NW.SECTIONS) do
+      local text = L[newsKey(v, sec.key)]
+      if text then
+        y = addLine(hex(sec.color) .. L['NEWS_SEC_' .. sec.key] .. '|r', 'GameFontNormalSmall', y, NW.HEAD_GAP, NW.SECTION_INDENT)
+        for item in (text .. '\n'):gmatch('(.-)\n') do
+          local a, b = item:match('^(.-)' .. NW.DASH .. '(.*)$')
+          local line = a and (kw .. a .. '|r' .. txt .. NW.DASH .. b .. '|r') or (txt .. item .. '|r')
+          y = addLine(NW.BULLET .. line, 'GameFontHighlightSmall', y, NW.HEAD_GAP / 2, NW.ITEM_INDENT)
+        end
+      end
     end
   end
   content:SetHeight(-y + D.PADDING)

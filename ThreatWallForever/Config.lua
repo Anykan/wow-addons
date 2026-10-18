@@ -401,6 +401,18 @@ C.NEWS = {
   HEAD_GAP = 4,                   -- Versions-Überschrift → Stichpunkte
   VERSION_GAP = 12,               -- Abstand zwischen zwei Versionen
   NEW_COLOR = { 0.37, 0.83, 0.37 },  -- Markierung "neu"
+  -- Changelog-Abschnitte je Version (Texte NEWS_<Version>_<Abschnitt>, Punkte "Stichwort – Erklärung")
+  SECTIONS = {
+    { key = 'NEW', color = { 0.37, 0.83, 0.37 } },       -- Neu: grün
+    { key = 'CHANGED', color = { 0.42, 0.71, 1 } },      -- Geändert: blau
+    { key = 'FIXED', color = { 1, 0.6, 0.25 } },         -- Behoben: orange
+  },
+  KEYWORD_COLOR = { 1, 1, 1 },          -- Stichwort eines Punkts
+  TEXT_COLOR = { 0.8, 0.8, 0.8 },       -- Erklärung eines Punkts
+  BULLET = '• ',
+  DASH = ' – ',                          -- Trenner Stichwort – Erklärung in den Texten
+  SECTION_INDENT = 0, ITEM_INDENT = 10,  -- Einrückung der Punkte
+  RULE_ALPHA = 0.15,                     -- Trennlinie zwischen Versionen
   -- Willkommen (erste Installation): Stichwort-Farben der fünf Punkte, wie die TWF-Ampel
   WELCOME_COLORS = { C.COLOR.green, C.COLOR.yellow, C.COLOR.red, C.COLOR.brown, C.COLOR.blue },
   ICON_SIZE = 18,                 -- Rollensymbole im Text
