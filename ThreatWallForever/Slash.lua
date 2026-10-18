@@ -30,7 +30,8 @@ local function slash(msg)
     db.log = {}
     ns.say(L.LOG_CLEARED, 'LOG_CLEARED')
   elseif cmd == 'news' then
-    ns.showNews(false, ns.VERSION)
+    -- 'news welcome' (Entwickler, nicht in der Hilfe): Ansicht wie bei der ersten Installation
+    if arg == 'welcome' then ns.showNews(true) else ns.showNews(false, ns.VERSION) end
   elseif cmd == 'hint' then
     ns.checkGameOptions(true)
   elseif cmd == '' then

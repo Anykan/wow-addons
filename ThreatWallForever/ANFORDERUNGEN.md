@@ -286,7 +286,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
 ## AF. Fenster „Was ist neu?“ (vom Nutzer beschlossen 2026-10-18, Version 0.5, wie bei CrittersBoard)
-- Erscheint **einmal nach einem Update** (Vergleich `db.newsSeen` mit der TOC-Version), **2 s nach dem Login** (Nutzer: 5 s zu lang), **nie im Kampf** und nicht, solange das Hinweis-Popup (M) offen ist. **OK oder X** = gesehen bis zur nächsten Version. **`/twf news`** öffnet es jederzeit.
+- Erscheint **einmal nach einem Update** (Vergleich `db.newsSeen` mit der TOC-Version), **2 s nach dem Login** (Nutzer: 5 s zu lang), **nie im Kampf** und nicht, solange das Hinweis-Popup (M) offen ist. **OK oder X** = gesehen bis zur nächsten Version. **`/twf news`** öffnet es jederzeit; `/twf news welcome` (Entwickler, nicht in der Hilfe) zeigt die Willkommensansicht.
 - Inhalt: **Kurzfassung aller Versionen, neueste oben, scrollbar** (Nutzer: Liste darf länger werden); Versionen seit dem letzten Besuch mit „NEU“ markiert (Update von ≤ 0.4: nur die aktuelle).
 - **Erste Installation:** oben ein **Willkommenstext** (was TWF kann, Rolle im Fensterkopf, Zahnrad, /twf news), darunter die Versionsliste.
 - Texte in allen Sprachen (`NEWS_<Version>`, `NEWS_WELCOME` …), Werte in `C.NEWS`, Modul `News.lua` (neue Datei → Spielneustart). Kurzfassung 0.5 beim Abschluss von 0.5 mit den Patchnotes abgleichen.
