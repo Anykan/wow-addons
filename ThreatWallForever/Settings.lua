@@ -251,8 +251,17 @@ local function buildButton(parent, opt, y)
   return y - S.ROW_H
 end
 
+-- Einfacher Text (z. B. Platzhalter "tbd" für kommende Bereiche)
+local function buildText(parent, opt, y)
+  local fs = parent:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
+  fs:SetPoint('TOPLEFT', D.PADDING + S.TEXT_GAP, y - S.TEXT_GAP)
+  fs:SetText(L[opt.label])
+  return y - S.ROW_H
+end
+
 local BUILDERS = {
   section = buildSection,
+  text = buildText,
   check = buildCheck,
   role = buildRole,
   slider = buildSlider,

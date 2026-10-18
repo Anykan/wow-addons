@@ -523,7 +523,7 @@ C.ALPHA_POPUP = {
 
 -- Optionen je Reiter (Reihenfolge = Anzeige-Reihenfolge). Reiter "Nameplates": diese Optionen
 -- stehen oben, darunter die Farbtabelle(n).
--- type:   'section' Überschrift · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
+-- type:   'section' Überschrift · 'text' einfacher Text · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
 --         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
 --         (Spalten teilen die Fensterbreite gleich auf)
 -- key:    gespeicherte Einstellung (db) · state: Laufzeit-Zustand (ns.state) statt db
@@ -571,24 +571,28 @@ C.OPTIONS = {
     { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
   },
 
-  -- Reiter "Ansicht": das TWF-Fenster mit der Liste
+  -- Reiter "Ansicht": Liste (das TWF-Fenster) | Ziel | Fokus (Leisten aus Anforderung AC, folgen)
   view = {
     { type = 'section', label = 'SEC_LIST' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
-
-    { type = 'column' },
     { type = 'section', label = 'SEC_WINDOW' },
     { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
       count = true, keepBelow = 'maxRows' },
     { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
       count = true, keepAbove = 'minRows' },
-
-    { type = 'column' },
     { type = 'section', label = 'SEC_LOOK' },
     { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
     { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
+
+    { type = 'column' },
+    { type = 'section', label = 'SEC_TARGET' },
+    { type = 'text', label = 'TXT_TBD' },
+
+    { type = 'column' },
+    { type = 'section', label = 'SEC_FOCUS' },
+    { type = 'text', label = 'TXT_TBD' },
   },
 }
 
