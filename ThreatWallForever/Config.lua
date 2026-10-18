@@ -50,6 +50,8 @@ C.DEFAULTS = {
   targetBar = true,          -- Ziel-Mauer (Leiste.lua, Anforderung AC)
   focusBarCombat = false,    -- Fokus-Mauer nur im Kampf sichtbar
   targetBarCombat = false,   -- Ziel-Mauer nur im Kampf sichtbar
+  focusBarAlpha = 1,         -- Deckkraft der Fokus-Mauer
+  targetBarAlpha = 1,        -- Deckkraft der Ziel-Mauer
   barClassIcons = false,     -- Leisten: Klassen- statt Rollensymbole auf dem Turm (Klick auf den Halter)
   scale = 1,
   minimized = false,
@@ -625,11 +627,13 @@ C.OPTIONS = {
     { type = 'section', label = 'SEC_TARGET' },
     { type = 'check', key = 'targetBar', label = 'OPT_TARGET_BAR', tip = 'TIP_TARGET_BAR' },
     { type = 'check', key = 'targetBarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
+    { type = 'slider', key = 'targetBarAlpha', label = 'OPT_BAR_ALPHA', tip = 'TIP_BAR_ALPHA', min = 0.1, max = 1, step = 0.1 },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_FOCUS' },
     { type = 'check', key = 'focusBar', label = 'OPT_FOCUS_BAR', tip = 'TIP_FOCUS_BAR' },
     { type = 'check', key = 'focusBarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
+    { type = 'slider', key = 'focusBarAlpha', label = 'OPT_BAR_ALPHA', tip = 'TIP_BAR_ALPHA', min = 0.1, max = 1, step = 0.1 },
   },
 }
 

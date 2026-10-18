@@ -428,6 +428,7 @@ end
 
 local SETTING = { focus = 'focusBar', target = 'targetBar' }
 local COMBAT_ONLY = { focus = 'focusBarCombat', target = 'targetBarCombat' }
+local ALPHA = { focus = 'focusBarAlpha', target = 'targetBarAlpha' }
 
 -- Soll die Leiste gerade zu sehen sein? (an, und bei "Nur im Kampf sichtbar" nur im Kampf)
 local function wanted(key)
@@ -443,6 +444,7 @@ local function refreshAll()
     local bar = bars[key]
     local on = wanted(key)
     bar.frame:SetShown(on)
+    bar.frame:SetAlpha(ns.db[ALPHA[key]] or 1)
     if on then layout(bar) end
   end
   -- erst alle zeigen, dann andocken (die zweite hängt evtl. an der ersten)
@@ -500,5 +502,8 @@ ns.RegisterModule('Leiste', {
   OnSettingChanged = function(key)
     if SETTING.focus == key or SETTING.target == key or COMBAT_ONLY.focus == key or COMBAT_ONLY.target == key
       or key == 'role' then refreshAll() end
+    for k, bar in pairs(bars) do
+      if ALPHA[k] == key then bar.frame:SetAlpha(ns.db[key] or 1) end
+    end
   end,
 })
