@@ -2,9 +2,9 @@
   Settings.lua — das Einstellungsfenster (Anforderung F) und die Seite unter
   Optionen → AddOns.
 
-  Das Fenster baut sich automatisch aus Config.OPTIONS auf. Eine neue Option ist
-  also nur eine neue Zeile dort (plus Texte in Locales.lua). Jede Änderung wirkt
-  sofort.
+  Das Fenster baut sich automatisch aus Config.OPTIONS auf (je Reiter eine Liste:
+  general, nameplates, view). Eine neue Option ist also nur eine neue Zeile dort
+  (plus Texte in Locales). Jede Änderung wirkt sofort.
 ]]
 
 local _, ns = ...
@@ -482,48 +482,11 @@ local function buildStateTable(page, set, top)
   return tbl
 end
 
--- Reiter "Nameplates": oben "Farben für alle Modi gleich" + "Farben zurücksetzen", darunter
--- die gemeinsame Tabelle oder die drei Tabellen Tank/DD/Heal. Gibt eine Funktion zurück, die
--- die nötige Höhe liefert (eine bzw. drei Tabellen).
-local function buildNameplates(page)
-  local topLeft = CreateFrame('Frame', nil, page)
-  topLeft:SetPoint('TOPLEFT')
-  topLeft:SetSize(S.WIDTH / 2, PT.TOP_H)
-  buildCheck(topLeft, { key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' }, 0)
-
-  local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
-  reset:SetPoint('TOPRIGHT', -D.PADDING, 0)
-  reset:SetScript('OnClick', function()
-    ns.resetPlates()
-    platesChanged('Farben zurückgesetzt')
-  end)
-  reset:SetScript('OnEnter', function(self) ns.showTooltip(self, L.BTN_RESET_COLORS, L.TIP_RESET_COLORS) end)
-  reset:SetScript('OnLeave', hideTip)
-
-  local top = -PT.TOP_H
-  local step = tableHeight() + PT.TABLE_GAP
-  local shared = buildStateTable(page, 'shared', top)
-  local perRole = {}
-  for i, role in ipairs(C.ROLES) do
-    perRole[#perRole + 1] = buildStateTable(page, role, top - (i - 1) * step)
-  end
-  updaters[#updaters + 1] = function()
-    local on = ns.db.plateShared
-    shared:SetShown(on)
-    for _, tbl in ipairs(perRole) do tbl:SetShown(not on) end
-  end
-  -- Höhe hängt von "Farben gleich" ab: eine Tabelle oder drei untereinander
-  return function()
-    if ns.db.plateShared then return PT.TOP_H + tableHeight() end
-    return PT.TOP_H + #C.ROLES * step - PT.TABLE_GAP
-  end
-end
-
--- Reiter "Allgemein": die Optionen aus Config.OPTIONS, in Spalten nebeneinander
--- ({ type = 'column' } beginnt eine neue). Gibt die Höhe der längsten Spalte zurück.
-local function buildGeneral(page)
+-- Optionen einer Liste aus Config.OPTIONS in Spalten nebeneinander ({ type = 'column' }
+-- beginnt eine neue). Gibt die Höhe der längsten Spalte zurück.
+local function buildOptions(page, list)
   local nCols = 1
-  for _, opt in ipairs(C.OPTIONS) do
+  for _, opt in ipairs(list) do
     if opt.type == 'column' then nCols = nCols + 1 end
   end
   local colW = S.WIDTH / nCols
@@ -536,7 +499,7 @@ local function buildGeneral(page)
     y = 0
   end
   newColumn()
-  for _, opt in ipairs(C.OPTIONS) do
+  for _, opt in ipairs(list) do
     if opt.type == 'column' then
       newColumn()
     else
@@ -552,7 +515,49 @@ local function buildGeneral(page)
   return maxH
 end
 
-local PAGE_BUILDERS = { general = buildGeneral, nameplates = buildNameplates }
+-- Reiter "Nameplates": oben die Schalter aus Config.OPTIONS.nameplates, darunter "Farben für
+-- alle Modi gleich" + "Farben zurücksetzen" und die gemeinsame Tabelle oder die drei Tabellen
+-- Tank/DD/Heal. Gibt eine Funktion zurück, die die nötige Höhe liefert (eine bzw. drei Tabellen).
+local function buildNameplates(page)
+  local optH = buildOptions(page, C.OPTIONS.nameplates) + PT.OPTIONS_GAP
+  local topLeft = CreateFrame('Frame', nil, page)
+  topLeft:SetPoint('TOPLEFT', 0, -optH)
+  topLeft:SetSize(S.WIDTH / 2, PT.TOP_H)
+  buildCheck(topLeft, { key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' }, 0)
+
+  local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
+  reset:SetPoint('TOPRIGHT', -D.PADDING, -optH)
+  reset:SetScript('OnClick', function()
+    ns.resetPlates()
+    platesChanged('Farben zurückgesetzt')
+  end)
+  reset:SetScript('OnEnter', function(self) ns.showTooltip(self, L.BTN_RESET_COLORS, L.TIP_RESET_COLORS) end)
+  reset:SetScript('OnLeave', hideTip)
+
+  local top = -optH - PT.TOP_H
+  local step = tableHeight() + PT.TABLE_GAP
+  local shared = buildStateTable(page, 'shared', top)
+  local perRole = {}
+  for i, role in ipairs(C.ROLES) do
+    perRole[#perRole + 1] = buildStateTable(page, role, top - (i - 1) * step)
+  end
+  updaters[#updaters + 1] = function()
+    local on = ns.db.plateShared
+    shared:SetShown(on)
+    for _, tbl in ipairs(perRole) do tbl:SetShown(not on) end
+  end
+  -- Höhe hängt von "Farben gleich" ab: eine Tabelle oder drei untereinander
+  return function()
+    if ns.db.plateShared then return optH + PT.TOP_H + tableHeight() end
+    return optH + PT.TOP_H + #C.ROLES * step - PT.TABLE_GAP
+  end
+end
+
+local PAGE_BUILDERS = {
+  general = function(page) return buildOptions(page, C.OPTIONS.general) end,
+  nameplates = buildNameplates,
+  view = function(page) return buildOptions(page, C.OPTIONS.view) end,
+}
 
 -- Fenster ----------------------------------------------------------------------------------
 
@@ -607,8 +612,8 @@ local function build()
     if popup then popup:Hide() end
     ns.checkGameOptions(false)
   end)
-  ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #C.OPTIONS .. ' Einträge, '
-    .. #S.TABS .. ' Reiter, ' .. #C.PLATE_STATES .. ' Zustände)')
+  ns.dbg('SETTING', 'Einstellungsfenster aufgebaut (' .. #S.TABS .. ' Reiter, '
+    .. #C.PLATE_STATES .. ' Zustände)')
 end
 
 -- Anzeige an aktuelle Werte anpassen, falls sich etwas außerhalb des Fensters ändert

@@ -23,6 +23,8 @@ if missing:
     sys.exit(f'FEHLER: in der TOC gelistet, aber nicht vorhanden: {missing}')
 # auch Unterordner (z. B. Locales/) prüfen
 found = [os.path.relpath(f, addon).replace(os.sep, '/') for f in glob.glob(f'{addon}/**/*.lua', recursive=True)]
+# prototyp/ = Design-Referenzen (eigene Test-Addons), gehören nie ins Paket
+found = [f for f in found if not f.startswith('prototyp/')]
 extra = [f for f in found if f not in lua]
 if extra:
     sys.exit(f'FEHLER: Lua-Dateien im Ordner, die nicht in der TOC stehen: {extra}')

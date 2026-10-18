@@ -413,6 +413,7 @@ C.SETTINGS = {
   TABS = {
     { key = 'general', label = 'TAB_GENERAL' },
     { key = 'nameplates', label = 'TAB_NAMEPLATES' },
+    { key = 'view', label = 'TAB_VIEW' },
   },
   TAB_W = 110,                 -- Breite eines Reiter-Knopfs
   TAB_GAP = 4,                 -- Abstand zwischen den Reitern
@@ -464,6 +465,7 @@ C.PLATE_TABLE = {
   HEAD_H = 30,                 -- Kopfzeile (Zustandsname, bis zwei Zeilen)
   ROW_H = 22,                  -- Höhe einer Tabellenzeile
   TABLE_GAP = 6,               -- Abstand zwischen zwei Tabellen
+  OPTIONS_GAP = 10,            -- Abstand zwischen den Schaltern oben und der Tabelle
   SWATCH = 16,                 -- Größe eines Farbfelds
   SWATCH_BORDER = 1,           -- Rahmen ums Farbfeld
   STRIPE_ALPHA = 0.05,         -- jede zweite Zeile leicht aufgehellt
@@ -480,7 +482,8 @@ C.ALPHA_POPUP = {
   OK_W = 50,
 }
 
--- Optionen im Reiter "Allgemein" (Reihenfolge = Anzeige-Reihenfolge).
+-- Optionen je Reiter (Reihenfolge = Anzeige-Reihenfolge). Reiter "Nameplates": diese Optionen
+-- stehen oben, darunter die Farbtabelle(n).
 -- type:   'section' Überschrift · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
 --         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
 --         (Spalten teilen die Fensterbreite gleich auf)
@@ -489,43 +492,63 @@ C.ALPHA_POPUP = {
 -- min/max/step: Schieberegler-Bereich (Anzeige ×100 als Prozent; count = true zeigt die Zahl selbst)
 -- keepBelow/keepAbove: anderer Schlüssel, der mitgezogen wird, damit min ≤ max bleibt
 C.OPTIONS = {
-  { type = 'section', label = 'SEC_GENERAL' },
-  { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
-  { type = 'check', key = 'roleSync', label = 'OPT_ROLE_SYNC', tip = 'TIP_ROLE_SYNC' },
-  { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
-  { type = 'check', key = 'minimap', label = 'MENU_MINIMAP', tip = 'TIP_MINIMAP' },
+  -- Reiter "Allgemein": was für ganz TWF gilt
+  general = {
+    { type = 'section', label = 'SEC_GENERAL' },
+    { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
+    { type = 'check', key = 'roleSync', label = 'OPT_ROLE_SYNC', tip = 'TIP_ROLE_SYNC' },
+    { type = 'check', key = 'minimap', label = 'MENU_MINIMAP', tip = 'TIP_MINIMAP' },
 
-  { type = 'section', label = 'SEC_DISPLAY' },
-  { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
-  { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
-  { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
-  { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
-  { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
-  { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
-  { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+    { type = 'column' },
+    { type = 'section', label = 'SEC_DISPLAY' },
+    { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
+    { type = 'section', label = 'SEC_ALERT' },
+    { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+  },
 
-  { type = 'column' },
-  { type = 'section', label = 'SEC_NAMEPLATES' },
-  { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
-  { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
-  { type = 'check', key = 'healthPct', label = 'OPT_HEALTH_PCT', tip = 'TIP_HEALTH_PCT' },
-  { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
-  { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
-  { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
+  -- Reiter "Nameplates": Schalter und Deckkraft (darunter die Farbtabelle)
+  nameplates = {
+    { type = 'section', label = 'SEC_NAMEPLATES' },
+    { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
+    { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
 
-  { type = 'column' },
-  { type = 'section', label = 'SEC_WINDOW' },
-  { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
-    count = true, keepBelow = 'maxRows' },
-  { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
-    count = true, keepAbove = 'minRows' },
-  { type = 'section', label = 'SEC_LOOK' },
-  { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
-  { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
+    { type = 'column' },
+    { type = 'section', label = 'SEC_CONTENT' },
+    { type = 'check', key = 'healthPct', label = 'OPT_HEALTH_PCT', tip = 'TIP_HEALTH_PCT' },
+    { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
 
-  { type = 'section', label = 'SEC_TOOLS' },
-  { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
-  { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
+    { type = 'column' },
+    { type = 'section', label = 'SEC_OPACITY' },
+    { type = 'slider', key = 'alphaTarget', label = 'OPT_ALPHA_TARGET', tip = 'TIP_ALPHA_TARGET', min = 0.1, max = 1, step = 0.1 },
+    { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
+  },
+
+  -- Reiter "Ansicht": das TWF-Fenster mit der Liste
+  view = {
+    { type = 'section', label = 'SEC_VISIBILITY' },
+    { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
+    { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
+    { type = 'section', label = 'SEC_LIST' },
+    { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
+    { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
+    { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
+
+    { type = 'column' },
+    { type = 'section', label = 'SEC_WINDOW' },
+    { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
+    { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
+      count = true, keepBelow = 'maxRows' },
+    { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
+      count = true, keepAbove = 'minRows' },
+
+    { type = 'column' },
+    { type = 'section', label = 'SEC_LOOK' },
+    { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
+    { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
+    { type = 'section', label = 'SEC_TOOLS' },
+    { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
+    { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
+  },
 }
 
 -- Seite unter Optionen → AddOns

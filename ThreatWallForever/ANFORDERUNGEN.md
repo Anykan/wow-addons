@@ -285,6 +285,11 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## AD. Einstellungen in drei Reitern (vom Nutzer beschlossen 2026-10-18, Version 0.5)
+- Reiter **Allgemein** (Rolle, Rollen-Sync, Minimap-Button | Anzeige: Alle Kämpfe zeigen | Warnung: Warnton), **Nameplates** (oben: TWF-Nameplates, Aggro-Ziel | Inhalt: Leben in %, Tank-Vorsprung | Deckkraft: Ziel, hinter Wänden; darunter Farbtabelle wie bisher), **Ansicht** (Sichtbarkeit: nur im Kampf, nur in Gruppe; Liste: Aggro-%, Tank-Vorsprung, Ziel hervorheben | Fenster: fixieren, Min/Max-Zeilen | Aussehen: Hintergrund, Skalierung; Werkzeuge: Testzeilen, Position zurücksetzen).
+- Nur Anordnung geändert, Verhalten und gespeicherte Werte unverändert. Technik: `C.OPTIONS` je Reiter (`general`, `nameplates`, `view`), ein Baustein `buildOptions`. Neue Texte TAB_VIEW, SEC_VISIBILITY, SEC_LIST, SEC_ALERT, SEC_CONTENT, SEC_OPACITY (4 Sprachen).
+- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
+
 ## AC. Bedrohungs-Leiste als Modul (Fokus / Ziel) (vom Nutzer beschlossen 2026-10-18, aus Idee I4; Version noch offen)
 - **DESIGN-FREEZE 2026-10-18** (Nutzer): Design eingefroren, Git-Tag `twf-design-leiste-freeze`. Änderungen am Design nur noch auf ausdrückliche Ansage.
 - **Design = Prototyp** `prototyp/TWFRennbahnTest/` (Stand 18.10.), Optik **genau wie dort**:
@@ -484,6 +489,10 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
+
+## Veröffentlichung 0.5 — vorbereitet 2026-10-18
+- Inhalt: **AD** (Einstellungen in drei Reitern Allgemein / Nameplates / Ansicht).
+- Paket `release/ThreatWallForever-0.5.zip`, Changelog `release/ThreatWallForever-0.5-patchnotes.html` (DE/EN/ES/FR), Gesamtprotokoll `PATCHNOTES.html`.
 
 ## Veröffentlichung 0.4 — 2026-10-18 bei CurseForge veröffentlicht
 - Inhalt: **Z** (Tank: Vorsprung statt Aggro-%, Balken + Liste getrennt), **AA** (Leben in % oder als Zahl), **AB** (Rollen-Sync Gruppe → TWF), breiteres Prozentfeld in der Liste.
