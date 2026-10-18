@@ -14,12 +14,11 @@ local ROW = C.ROW
 
 ns.rows = {}
 
--- Punkt in der Farbe, die der Zustand an der Nameplate hat (Tabelle im Reiter Nameplates,
--- Anforderung V); so passen Liste und Balken auch bei eigenen Farben zusammen.
-local function setDot(tex, colorName)
+-- Farben des Zustands aus der Tabelle im Reiter Nameplates (Anforderung V): Balken und
+-- Aggro-%-Text der Zeile sehen aus wie am Nameplate-Balken (Anforderung AG).
+local function stateColors(colorName)
   local st = ns.plateState(colorName)
-  local c = st and st.color or C.COLOR[colorName] or C.COLOR.yellow
-  tex:SetVertexColor(c[1], c[2], c[3])
+  return (st and st.color) or C.COLOR[colorName] or C.COLOR.yellow, (st and st.threatColor) or C.WHITE
 end
 
 local function rowTooltip(row)
@@ -50,6 +49,9 @@ local function rowTooltip(row)
   GameTooltip:Show()
 end
 
+-- Zeile = Balken wie an den Nameplates (Anforderung AG): Farbe des Zustands, Füllung = Leben
+-- des Gegners. Darauf von links: Schlachtzugsymbol, Aggro-% bzw. Vorsprung, Rollensymbol des
+-- Aggro-Halters, Name. Blinken übernimmt die Liste nicht (Nutzer 2026-10-18).
 local function buildRow(i)
   local frame = ns.frame
   local row = CreateFrame('Button', nil, frame.body)
@@ -57,41 +59,32 @@ local function buildRow(i)
   row:SetScript('OnEnter', function(self) rowTooltip(self) end)
   row:SetScript('OnLeave', function() GameTooltip:Hide() end)
 
-  row.bg = row:CreateTexture(nil, 'BACKGROUND')
-  row.bg:SetAllPoints()
-  row.bg:SetTexture(C.TEXTURE.FLAT)
-  row.bg:SetVertexColor(1, 1, 1, ROW.BG_ALPHA)
+  row.bar = ns.makeCastBar(row)
+  row.bar:SetPoint('TOPLEFT', ROW.BAR_INSET, -ROW.BAR_INSET)
+  row.bar:SetPoint('BOTTOMRIGHT', -ROW.BAR_INSET, ROW.BAR_INSET)
+  row.bar:SetMinMaxValues(0, 1)
+  row.bar:SetValue(1)
 
-  -- Live-Aggro-% ganz links (Anforderung X); der Ampelpunkt rückt dahinter (drawRow)
-  row.pct = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  row.pct:SetPoint('LEFT', ROW.PCT_X, 0)
+  -- Texte und Symbole über dem Balkenrahmen
+  local over = CreateFrame('Frame', nil, row.bar)
+  over:SetAllPoints(row.bar)
+  over:SetFrameLevel(row.bar:GetFrameLevel() + 2)
+  row.over = over
+
+  row.mark = ns.createRaidMark(over, ROW.MARK_SIZE)
+
+  row.pct = over:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  row.pct:SetDrawLayer('OVERLAY', ROW.TEXT_LAYER)
   row.pct:SetWidth(ROW.PCT_W)
   row.pct:SetJustifyH('RIGHT')
 
-  row.dot = row:CreateTexture(nil, 'ARTWORK')
-  row.dot:SetSize(ROW.DOT_SIZE, ROW.DOT_SIZE)
-  row.dot:SetPoint('LEFT', ROW.DOT_X, 0)
-  row.dot:SetTexture(C.TEXTURE.FLAT)
-  if row.CreateMaskTexture then
-    local mask = row:CreateMaskTexture()
-    mask:SetTexture(C.TEXTURE.ROUND_MASK, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
-    mask:SetAllPoints(row.dot)
-    row.dot:AddMaskTexture(mask)
-  end
-
-  row.mark = row:CreateTexture(nil, 'ARTWORK')
-  row.mark:SetSize(ROW.MARK_SIZE, ROW.MARK_SIZE)
-  row.mark:SetPoint('LEFT', row.dot, 'RIGHT', ROW.GAP, 0)
-
-  -- Aggro-Ziel (Anforderung L): Rollensymbol des Halters vor dem Mobnamen.
-  -- Die genaue Position setzt drawRow (abhängig von den eingeschalteten Feldern).
-  row.sym = row:CreateTexture(nil, 'ARTWORK')
+  -- Aggro-Ziel (Anforderung L): Rollensymbol des Halters vor dem Mobnamen
+  row.sym = over:CreateTexture(nil, 'OVERLAY')
   row.sym:SetSize(C.SYMBOL_LAYOUT.LIST_SIZE, C.SYMBOL_LAYOUT.LIST_SIZE)
-  row.sym:SetPoint('LEFT', row.mark, 'RIGHT', ROW.GAP, 0)
 
-  row.name = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-  row.name:SetPoint('LEFT', row.sym, 'RIGHT', C.SYMBOL_LAYOUT.LIST_GAP, 0)
-  row.name:SetPoint('RIGHT', ROW.NAME_RIGHT, 0)
+  row.name = over:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  row.name:SetDrawLayer('OVERLAY', ROW.TEXT_LAYER)
+  row.name:SetPoint('RIGHT', over, 'RIGHT', ROW.NAME_RIGHT, 0)
   row.name:SetJustifyH('LEFT')
   row.name:SetWordWrap(false)
 
@@ -102,10 +95,8 @@ local function buildRow(i)
   return row
 end
 
--- An: pulsierender Rahmen + etwas hellere Zeile. Aus: normale Zeile.
 local function setTargetHighlight(row, on)
   ns.setGlow(row.glow, on)
-  row.bg:SetVertexColor(1, 1, 1, on and ROW.BG_ALPHA_TARGET or ROW.BG_ALPHA)
 end
 
 function ns.layoutRow(row, i)
@@ -120,54 +111,79 @@ end
 
 -- Live-Aggro-% der Zeile (Anforderung X). Der Wert ist über nameplateN geheim, aber live:
 -- nur an den Text weiterreichen, nie vergleichen. Kein Wert → Feld leer, die Zeile bleibt.
--- Textfarbe = "Aggro-%-Farbe" des Zustands aus der Tabelle im Reiter Nameplates.
-local function fillPct(row, e)
-  row.dot:ClearAllPoints()
-  if not ns.db.listThreat then
-    row.pct:Hide()
-    row.dot:SetPoint('LEFT', ROW.DOT_X, 0)
-    return
-  end
-  row.dot:SetPoint('LEFT', row.pct, 'RIGHT', ROW.GAP, 0)
-  local st = ns.plateState(e.color)
-  local c = st and st.threatColor or C.WHITE
-  row.pct:SetTextColor(c[1], c[2], c[3])
-  local pct = e.testPct
+-- Hat der Gegner gerade keine Nameplate (e.fresh = false), zeigt der Token evtl. auf einen
+-- anderen Gegner: dann den zuletzt gemerkten Wert behalten.
+local function threatValue(e)
+  if e.testPct ~= nil then return e.testPct end
+  local tr = e.track
+  if tr and not e.fresh then return tr.lastPct end
+  local pct
   -- Tank-Modus mit "Vorsprung in der Liste": Vorsprung vor Platz 2 (Anforderung Z)
-  if pct == nil and ns.db.listLead then pct = ns.leadValue(e.unit) end
+  if ns.db.listLead then pct = ns.leadValue(e.unit) end
   if pct == nil and e.unit then
     local ok, _, _, value = pcall(UnitDetailedThreatSituation, 'player', e.unit)
     if ok then pct = value end
   end
-  -- erst auf "geheim" prüfen: einen geheimen Wert mit nil zu vergleichen ist verboten
-  local shown = (ns.IsSecret(pct) or pct ~= nil)
-    and pcall(row.pct.SetFormattedText, row.pct, C.NAMEPLATES.THREAT_PCT_FORMAT, pct)
-  if not shown then row.pct:SetText('') end
-  row.pct:Show()
+  if tr then tr.lastPct = pct end
+  return pct
 end
 
+-- Balken + Inhalt einer Zeile. Abgeschaltete bzw. leere Felder nehmen keinen Platz weg.
 local function drawRow(row, e)
   row.entry = e
-  setDot(row.dot, e.color)
-  fillPct(row, e)
-  -- Reihenfolge: Ampelpunkt → (Schlachtzugsymbol) → (Rollensymbol) → Name.
-  -- Felder, die abgeschaltet sind, nehmen keinen Platz weg.
-  local left = row.dot
-  if ROW.SHOW_RAID_MARK then
-    ns.setMark(row.mark, e.markIndex)
-    left = row.mark
-  else
-    row.mark:Hide()
+  local barColor, textColor = stateColors(e.color)
+  ns.tintCastBar(row.bar, barColor)
+
+  -- Füllung = Leben (geheim, nur weitergereicht); Testzeilen mit Beispielwert
+  if e.testHealth then
+    row.bar:SetMinMaxValues(0, 100)
+    row.bar:SetValue(e.testHealth)
+  elseif not pcall(function()
+      row.bar:SetMinMaxValues(0, e.hpMax)
+      row.bar:SetValue(e.hp)
+    end) then
+    row.bar:SetMinMaxValues(0, 1)
+    row.bar:SetValue(1)
   end
-  if ns.db.symbolMarks then
-    row.sym:SetPoint('LEFT', left, 'RIGHT', ROW.GAP, 0)
-    row.sym:SetShown(e.symbol and ns.setSymbolTexture(row.sym, e.symbol) or false)
-    row.name:SetPoint('LEFT', row.sym, 'RIGHT', C.SYMBOL_LAYOUT.LIST_GAP, 0)
+
+  local over, left, leftPoint = row.over, row.over, 'LEFT'
+  local x = ROW.TEXT_X
+  local function place(region)
+    region:ClearAllPoints()
+    region:SetPoint('LEFT', left, leftPoint, x, 0)
+    left, leftPoint, x = region, 'RIGHT', ROW.GAP
+  end
+
+  -- 1. Schlachtzugsymbol (Balken-Trick; ohne Symbol kein Platz)
+  if ns.setRaidMark(row.mark, e.markIndex) then place(row.mark) end
+
+  -- 2. Aggro-% bzw. Vorsprung in der Aggro-%-Farbe des Zustands
+  if ns.db.listThreat then
+    row.pct:SetTextColor(textColor[1], textColor[2], textColor[3])
+    local pct = threatValue(e)
+    -- erst auf "geheim" prüfen: einen geheimen Wert mit nil zu vergleichen ist verboten
+    local shown = (ns.IsSecret(pct) or pct ~= nil)
+      and pcall(row.pct.SetFormattedText, row.pct, C.NAMEPLATES.THREAT_PCT_FORMAT, pct)
+    if not shown then row.pct:SetText('') end
+    row.pct:Show()
+    place(row.pct)
+  else
+    row.pct:Hide()
+  end
+
+  -- 3. Rollensymbol des Aggro-Halters
+  if ns.db.symbolMarks and e.symbol and ns.setSymbolTexture(row.sym, e.symbol) then
+    row.sym:Show()
+    place(row.sym)
   else
     row.sym:Hide()
-    row.name:SetPoint('LEFT', left, 'RIGHT', ROW.GAP, 0)
   end
+
+  -- 4. Name
+  place(row.name)
+  row.name:SetPoint('RIGHT', over, 'RIGHT', ROW.NAME_RIGHT, 0)
   if not pcall(row.name.SetText, row.name, e.name or '?') then row.name:SetText('?') end
+
   -- Dein Ziel: über UnitIsUnit erkannt (der Schlüssel ist bei geheimer GUID der
   -- Nameplate-Token, nicht mehr `target`; Bug B2)
   setTargetHighlight(row, ns.db.highlightTarget and e.isTarget)
@@ -205,15 +221,15 @@ function ns.refresh()
       local name = i > n and (t[1] .. ' ' .. i) or t[1]
       -- Die erste Testzeile spielt "dein Ziel", damit man die Hervorhebung sieht
       list[#list + 1] = { name = name, color = t[2], markIndex = t[3], unit = (i == 1) and 'target' or nil,
-        isTarget = (i == 1), symbol = t[4], testPct = t[5] }
+        isTarget = (i == 1), symbol = t[4], testPct = t[5], testHealth = t[6] }
     end
   else
     for _, t in pairs(ns.tracked) do
       if t.shownColor then
         local okT, isTarget = pcall(UnitIsUnit, t.unit, 'target')
         list[#list + 1] = { name = t.name, color = t.shownColor, markIndex = t.markIndex, unit = t.unit,
-          isTarget = okT and ns.plain(isTarget) == true,
-          symbol = ns.symbolFor(t.unit) }
+          isTarget = t.fresh and okT and ns.plain(isTarget) == true,
+          symbol = ns.symbolFor(t.unit), hp = t.hp, hpMax = t.hpMax, fresh = t.fresh, track = t }
       end
     end
     table.sort(list, function(a, b)

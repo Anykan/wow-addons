@@ -289,7 +289,12 @@ function ns.collect()
           t.name = okN and name or nil
           local okM, idx = pcall(GetRaidTargetIndex, unit)
           t.markIndex = okM and idx or nil
+          -- Leben für den Listenbalken (geheim, nur weitergereicht); gemerkt, damit die Zeile
+          -- es behält, solange der Gegner keine Nameplate hat (Token ist dann ungültig)
+          local okH, hp, hpMax = pcall(function() return UnitHealth(unit), UnitHealthMax(unit) end)
+          if okH then t.hp, t.hpMax = hp, hpMax end
           seen[key] = true
+          t.fresh = true
           if not guid then seenUnits[#seenUnits + 1] = unit end
 
           if isNew then
@@ -322,6 +327,7 @@ function ns.collect()
 
   for key, t in pairs(tracked) do
     if not seen[key] then
+      t.fresh = false       -- Token zeigt evtl. auf einen anderen Gegner: Werte nicht auffrischen
       if t.shownColor then
         t.removeAt = t.removeAt or (now + C.GRACE)
       else

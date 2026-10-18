@@ -196,6 +196,85 @@ function ns.makeDialog(name, width, titleText)
   return win, header
 end
 
+-- Balken im Stil von Blizzards Zauberbalken (Nameplates und Listenzeilen): Hintergrund 1 px und
+-- Rahmen 2 px größer als der Balken. Füllung entsättigt und per ns.tintCastBar getönt.
+local castAtlasOK
+local function castAtlases()
+  local N = C.NAMEPLATES
+  if castAtlasOK == nil then
+    castAtlasOK = ns.hasAtlas(N.FILL) and ns.hasAtlas(N.BAR_BG) and ns.hasAtlas(N.BAR_BORDER)
+  end
+  return castAtlasOK
+end
+
+function ns.makeCastBar(parent)
+  local N = C.NAMEPLATES
+  local bar = CreateFrame('StatusBar', nil, parent)
+  bar.bg = bar:CreateTexture(nil, 'BACKGROUND', nil, -1)
+  bar.bg:SetPoint('TOPLEFT', -N.BG_INSET, N.BG_INSET)
+  bar.bg:SetPoint('BOTTOMRIGHT', N.BG_INSET, -N.BG_INSET)
+  bar.border = bar:CreateTexture(nil, 'OVERLAY', nil, 1)
+  bar.border:SetPoint('TOPLEFT', -N.BORDER_INSET, N.BORDER_INSET)
+  bar.border:SetPoint('BOTTOMRIGHT', N.BORDER_INSET, -N.BORDER_INSET)
+  if castAtlases() then
+    bar.bg:SetAtlas(N.BAR_BG)
+    bar.border:SetAtlas(N.BAR_BORDER)
+    bar:SetStatusBarTexture(N.FILL)
+    bar:GetStatusBarTexture():SetDesaturated(true)
+  else
+    bar.bg:SetColorTexture(unpack(C.WINDOW.BG_FALLBACK))
+    bar.border:Hide()
+    bar:SetStatusBarTexture(N.PLAIN_FILL)
+  end
+  return bar
+end
+
+function ns.tintCastBar(bar, color)
+  bar:SetStatusBarColor(color[1], color[2], color[3])
+end
+
+-- Schlachtzugsymbol trotz geheimer Nummer (getestet 2026-10-18): acht Symbole als Streifen
+-- hinter einem Guckloch; ein unsichtbarer Balken (von rechts gefüllt) bekommt die Nummer als
+-- Wert, der Streifen hängt an seiner Füllung → das Spiel schiebt das richtige Symbol ins
+-- Guckloch, ohne dass TWF die Nummer liest. Rechnen, SetRaidTargetIconTexture und Dateinamen
+-- aus der Nummer scheitern an der geheimen Nummer.
+function ns.createRaidMark(parent, size)
+  local clip = CreateFrame('Frame', nil, parent)
+  clip:SetSize(size, size)
+  clip:SetClipsChildren(true)
+  local bar = CreateFrame('StatusBar', nil, clip)
+  bar:SetSize(8 * size, size)
+  bar:SetPoint('LEFT', clip, 'LEFT', -7 * size, 0)
+  bar:SetMinMaxValues(0, 8)
+  bar:SetStatusBarTexture(C.TEXTURE.FLAT)
+  bar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 0)
+  if bar.SetReverseFill then bar:SetReverseFill(true) end
+  local strip = CreateFrame('Frame', nil, clip)
+  strip:SetSize(8 * size, size)
+  strip:SetPoint('LEFT', bar:GetStatusBarTexture(), 'LEFT', 0, 0)
+  for i = 1, 8 do
+    local tx = strip:CreateTexture(nil, 'ARTWORK')
+    tx:SetTexture(C.RAID_ICONS.FILE_PREFIX .. i)
+    tx:SetSize(size, size)
+    tx:SetPoint('LEFT', strip, 'LEFT', (i - 1) * size, 0)
+  end
+  clip.bar = bar
+  clip:Hide()
+  return clip
+end
+
+-- idx: ohne Symbol lesbar nil → ausblenden; mit Symbol (meist geheim) → nur weiterreichen.
+-- Gibt zurück, ob ein Symbol gezeigt wird.
+function ns.setRaidMark(clip, idx)
+  if not ns.IsSecret(idx) and idx == nil then
+    clip:Hide()
+    return false
+  end
+  local ok = pcall(clip.bar.SetValue, clip.bar, idx)
+  clip:SetShown(ok)
+  return ok
+end
+
 -- Tooltip mit Titel und Erklärtext (umgebrochen)
 function ns.showTooltip(owner, titleText, bodyText)
   local D = C.DIALOG

@@ -66,7 +66,6 @@ C.DEFAULTS = {
   minimap = true,
   minimapAngle = 200,        -- Position des Minimap-Buttons in Grad
   debug = false,
-  markMethod = 1,            -- Index in Marks.lua (1–3)
   twfNameplates = true,      -- an = TWF-Nameplates statt Blizzard (Anforderung J)
   symbolMarks = true,        -- Aggro-Ziel am Mob und in der Liste anzeigen (Anforderung L)
   alphaTarget = 1,           -- Deckkraft der TWF-Balken: dein Ziel (auch hinter Wänden) (Anforderung R)
@@ -174,10 +173,7 @@ C.ATLAS = {
 
 -- Raid-Symbole (Marks.lua)
 C.RAID_ICONS = {
-  SHEET = 'Interface\\TargetingFrame\\UI-RaidTargetingIcons',    -- alle 8 Symbole in einem Bild
-  COLUMNS = 4,                                                   -- Symbole pro Zeile im Bild
-  ROWS = 2,                                                      -- Zeilen im Bild
-  FILE_PREFIX = 'Interface\\TargetingFrame\\UI-RaidTargetingIcon_', -- Einzeldateien _1.._8
+  FILE_PREFIX = 'Interface\\TargetingFrame\\UI-RaidTargetingIcon_', -- Einzeldateien _1.._8 (Utils.createRaidMark)
 }
 
 -- Fenster ----------------------------------------------------------------------------
@@ -216,17 +212,14 @@ C.ROW = {
   PADDING = 4,                 -- Abstand der Zeilen zum Fensterrand
   SPACING = 2,                 -- Abstand zwischen zwei Zeilen
   LIST_VPAD = 8,               -- senkrechter Rand der Liste (oben + unten)
-  BG_ALPHA = 0.05,             -- Zeilenhintergrund normal
-  BG_ALPHA_TARGET = 0.18,      -- Zeilenhintergrund beim aktuellen Ziel
-  DOT_SIZE = 12,               -- Ampelpunkt
-  DOT_X = 6,
-  PCT_X = 2,                   -- Live-Aggro-% ganz links (Anforderung X): Abstand zum Zeilenrand
-  PCT_W = 48,                  -- Breite der Prozentanzeige (rechtsbündig, Platz für "1000%" – Vorsprung kann vierstellig sein)
-  MARK_SIZE = 14,              -- Raid-Symbol
-  SHOW_RAID_MARK = false,      -- Schlachtzugsymbol in der Liste zeigen. Aus, bis der Client-Bug behoben ist
-                               -- (forever-bugs#166: Symbol-Nummer im Kampf geheim). Code bleibt in Marks.lua.
-  GAP = 4,                     -- Abstand Punkt → Symbol → Name
-  NAME_RIGHT = -6,
+  -- Zeile = Balken wie an den Nameplates (Anforderung AG): Farbe des Zustands, Füllung = Leben
+  BAR_INSET = 3,               -- Balken liegt so weit innerhalb der Zeile (Platz für den Rahmen)
+  TEXT_X = 3,                  -- Abstand des ersten Elements zum Balkenanfang
+  PCT_W = 40,                  -- Breite der Prozentanzeige (rechtsbündig, Platz für "1000%")
+  MARK_SIZE = 14,              -- Schlachtzugsymbol (Balken-Trick, Utils.lua)
+  GAP = 4,                     -- Abstand Symbol → % → Rollensymbol → Name
+  NAME_RIGHT = -4,
+  TEXT_LAYER = 7,              -- Zeichen-Unterebene der Texte (über dem Balkenrahmen)
   -- Pulsierender Rahmen um die Zeile deines Ziels (ns.createGlow)
   GLOW = {
     COLOR = { 0.55, 0.85, 1 }, -- hell blau-weiß, hebt sich von der Ampel ab
@@ -238,11 +231,11 @@ C.ROW = {
   },
 }
 
--- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS), Aggro-%
+-- Testzeilen (/twf test): Name, Farbe, Raid-Symbol, Aggro-Symbol (Schlüssel in C.SYMBOLS), Aggro-%, Leben-%
 C.TEST_ROWS = {
-  { 'Grillmaster', 'red', 8, 'HEALER', 100 },
-  { 'Adds Rechts', 'yellow', 3, 'DAMAGER', 87 },
-  { 'Adds Links', 'yellow', nil, nil, 64 },
+  { 'Grillmaster', 'red', 8, 'HEALER', 100, 72 },
+  { 'Adds Rechts', 'yellow', 3, 'DAMAGER', 87, 45 },
+  { 'Adds Links', 'yellow', nil, nil, 64, 90 },
 }
 
 -- Dropdown-Menü (Minimap-Rechtsklick) -----------------------------------------------------
@@ -395,7 +388,6 @@ C.BAR = {
   CLASS_SHEET = 'Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES',
   MARK = 24,                         -- Schlachtzugsymbol über der Leiste
   MARK_GAP = 2,                      -- Abstand Symbol → Oberkante der Leiste
-  MARK_FILE = 'Interface\\TargetingFrame\\UI-RaidTargetingIcon_',
   PCT_FORMAT = '%.0f %%',
 }
 

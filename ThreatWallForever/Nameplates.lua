@@ -35,19 +35,9 @@ local threatSecretSeen = false -- Debug-Hinweis "Aggro-% geheim" nur einmal
 local threatFailWarned = false -- Debug-Hinweis "Aggro-% nicht anzeigbar" nur einmal
 local foreignSeen = false      -- Debug-Hinweis "fremder Mob" nur einmal
 local leadSeen = false         -- Debug-Hinweis "Vorsprung angezeigt" nur einmal
-local atlasOK                  -- nil = noch nicht geprüft
 
 local function active()
   return ns.db and ns.db.twfNameplates
-end
-
-local function atlasesAvailable()
-  if atlasOK == nil then
-    atlasOK = ns.hasAtlas(N.FILL)
-      and ns.hasAtlas(N.BAR_BG) and ns.hasAtlas(N.BAR_BORDER)
-    if not atlasOK then ns.dbg('NAMEPLATES', 'Zauberbalken-Atlanten fehlen, nutze schlichte Balken') end
-  end
-  return atlasOK
 end
 
 local function unitOf(nameplate)
@@ -132,23 +122,9 @@ end
 local function createPlate(parent)
   local p = CreateFrame('Frame', nil, parent)   -- nimmt keine Maus an → Klick geht an Blizzard
 
-  -- Balken im Stil von Blizzards Zauberbalken (übernommen aus SealTimersForever):
-  -- Hintergrund 1 px und Rahmen 2 px größer als der Balken
-  local bar = CreateFrame('StatusBar', nil, p)
+  -- Balken im Stil von Blizzards Zauberbalken (gemeinsam mit der Liste, Utils.lua)
+  local bar = ns.makeCastBar(p)
   bar:SetAllPoints()
-  bar.bg = bar:CreateTexture(nil, 'BACKGROUND', nil, -1)
-  bar.bg:SetPoint('TOPLEFT', -N.BG_INSET, N.BG_INSET)
-  bar.bg:SetPoint('BOTTOMRIGHT', N.BG_INSET, -N.BG_INSET)
-  bar.border = bar:CreateTexture(nil, 'OVERLAY', nil, 1)
-  bar.border:SetPoint('TOPLEFT', -N.BORDER_INSET, N.BORDER_INSET)
-  bar.border:SetPoint('BOTTOMRIGHT', N.BORDER_INSET, -N.BORDER_INSET)
-  if atlasesAvailable() then
-    bar.bg:SetAtlas(N.BAR_BG)
-    bar.border:SetAtlas(N.BAR_BORDER)
-  else
-    bar.bg:SetColorTexture(unpack(C.WINDOW.BG_FALLBACK))
-    bar.border:Hide()
-  end
   p.bar = bar
 
   -- Prozent im Balken, über dem Rahmen (eigene Unterebene, Lehre aus dem Threat-Balken)
@@ -196,19 +172,9 @@ local function place(p, nameplate, uf)
 end
 
 -- Balkenfarbe (Anforderung V): Zauberbalken-Füllung entsättigt und in der Farbe des
--- Zustands getönt, damit jede Farbe frei wählbar ist. Die Füllung wird nur einmal gesetzt.
+-- Zustands getönt, damit jede Farbe frei wählbar ist.
 local function setColor(p, color)
-  local bar = p.bar
-  if not p.fillSet then
-    p.fillSet = true
-    if atlasesAvailable() then
-      bar:SetStatusBarTexture(N.FILL)
-      bar:GetStatusBarTexture():SetDesaturated(true)
-    else
-      bar:SetStatusBarTexture(N.PLAIN_FILL)
-    end
-  end
-  bar:SetStatusBarColor(color[1], color[2], color[3])
+  ns.tintCastBar(p.bar, color)
 end
 
 -- Werte setzen. Leben und Name können geheim sein: nur weiterreichen, nie auswerten.

@@ -227,33 +227,6 @@ local function markSelf(sym, isMe, alarm)
   sym.glow:SetVertexColor(c[1], c[2], c[3])
 end
 
--- Schlachtzugsymbol: acht Symbole als Streifen hinter einem Guckloch, unsichtbarer Balken
--- (von rechts gefüllt) bekommt die geheime Nummer, der Streifen hängt an seiner Füllung.
--- Sitzt außerhalb über der Leiste (unten verdeckt sie der Spiel-Tooltip, Nutzer 2026-10-18).
-local function makeMarker(parent)
-  local clip = CreateFrame('Frame', nil, parent)
-  clip:SetSize(B.MARK, B.MARK)
-  clip:SetClipsChildren(true)
-  local mbar = CreateFrame('StatusBar', nil, clip)
-  mbar:SetSize(8 * B.MARK, B.MARK)
-  mbar:SetPoint('LEFT', clip, 'LEFT', -7 * B.MARK, 0)
-  mbar:SetMinMaxValues(0, 8)
-  mbar:SetStatusBarTexture(C.TEXTURE.FLAT)
-  mbar:GetStatusBarTexture():SetVertexColor(1, 1, 1, 0)
-  if mbar.SetReverseFill then mbar:SetReverseFill(true) end
-  local strip = CreateFrame('Frame', nil, clip)
-  strip:SetSize(8 * B.MARK, B.MARK)
-  strip:SetPoint('LEFT', mbar:GetStatusBarTexture(), 'LEFT', 0, 0)
-  for i = 1, 8 do
-    local tx = strip:CreateTexture(nil, 'ARTWORK')
-    tx:SetTexture(B.MARK_FILE .. i)
-    tx:SetSize(B.MARK, B.MARK)
-    tx:SetPoint('LEFT', strip, 'LEFT', (i - 1) * B.MARK, 0)
-  end
-  clip.bar = mbar
-  return clip
-end
-
 -- Andocken -------------------------------------------------------------------------------------
 
 local function state(key)
@@ -333,7 +306,8 @@ local function newBar(key, unit, titleKey, other)
   bar.title = f:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
   bar.title:SetText(L[titleKey])
   bar.wall = CreateFrame('Frame', nil, f)
-  bar.marker = makeMarker(f)
+  -- Schlachtzugsymbol außerhalb über der Leiste (unten verdeckt es der Spiel-Tooltip)
+  bar.marker = ns.createRaidMark(f, B.MARK)
 
   -- Halter oben (Rollensymbol) + Vorsprung; Klick schaltet Rolle/Klasse auf dem Turm
   bar.holder = makeSymbol(bar, f)
@@ -447,11 +421,7 @@ local function update(bar)
 
   -- Schlachtzugsymbol unten: ohne Symbol lesbar nil, mit Symbol geheim → nur weiterreichen
   local okM, idx = pcall(GetRaidTargetIndex, unit)
-  if okM and (ns.IsSecret(idx) or idx ~= nil) then
-    bar.marker:SetShown(pcall(bar.marker.bar.SetValue, bar.marker.bar, idx))
-  else
-    bar.marker:Hide()
-  end
+  if okM then ns.setRaidMark(bar.marker, idx) else bar.marker:Hide() end
 end
 
 -- Sichtbarkeit / Andocken neu ------------------------------------------------------------------
