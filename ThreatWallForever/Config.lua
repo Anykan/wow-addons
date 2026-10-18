@@ -38,6 +38,7 @@ C.CODES = {
   SYMBOLS = '021',       -- Debug: Aggro-Ziel am Mob (wer hält welchen Mob)
   PLATES = '022',        -- Debug: Aussehen pro Zustand (Tabelle im Reiter Nameplates)
   MERGED = '023',        -- Debug: doppelte Listenzeile zusammengeführt (Bug B2)
+  BAR = '024',           -- Debug: Fokus-/Ziel-Leiste (andocken, Symbole)
 }
 
 -- Gespeicherte Einstellungen (SavedVariables): Standardwerte -----------------------
@@ -45,6 +46,9 @@ C.CODES = {
 C.DEFAULTS = {
   shown = true,
   locked = false,
+  focusBar = true,           -- Fokus-Mauer (Leiste.lua, Anforderung AC)
+  targetBar = true,          -- Ziel-Mauer (Leiste.lua, Anforderung AC)
+  barClassIcons = false,     -- Leisten: Klassen- statt Rollensymbole auf dem Turm (Klick auf den Halter)
   scale = 1,
   minimized = false,
   width = 240,               -- Fensterbreite in px
@@ -358,6 +362,42 @@ C.DIALOG = {
   TOOLTIP_TEXT = { 1, 1, 1 },  -- Farbe des Erklärtexts im Tooltip
 }
 
+-- Bedrohungs-Leisten Fokus / Ziel (Leiste.lua, Anforderung AC; Design = prototyp/) ----------
+
+C.BAR = {
+  ORDER = { 'focus', 'target' },     -- Aufbau- und Andock-Reihenfolge
+  DEFAULT_DOCK = { focus = 'side', target = 'bar' },  -- Fokus an der Seitenleiste, Ziel daneben
+  FREE_X = { focus = 300, target = 240 },             -- ohne Seitenleiste: Startposition (x zur Mitte)
+  UNITS = { 'player', 'party1', 'party2', 'party3', 'party4', 'pet' },
+  FALLBACK_W = 42, FALLBACK_H = 480, -- ohne Seitenleiste
+  FALLBACK_BG = { 0.06, 0.07, 0.09, 0.85 },
+  FALLBACK_BORDER = { 0.5, 0.42, 0.33, 1 },
+  GAP = 6,                           -- Abstand zur Leiste, falls keiner messbar ist
+  SNAP_PX = 15,                      -- magnetisch: so nah rastet eine Leiste ein
+  MEASURE_DELAY = 1,                 -- s nach dem Login messen (Seitenleisten stehen dann)
+  REFRESH_DELAY = 0.3,               -- s warten nach Leiste ein/aus, Bearbeitungsmodus, UI-Skalierung
+  SKIN_SLICE = 14,                   -- Randbreite der Knopf-Grafik (Neun-Teile-Ränder)
+  NUDGE_X = -3,                      -- Inhalt mittig im Knopf-Rahmen (Grafik rechts dicker, getestet)
+  FRAME_PAD = 9,                     -- Knopf-Rand (~7 px) + 2 px Luft zum Turm
+  TITLE_H = 18, PCT_H = 14, MERLON_H = 11,
+  BRICK_H = 7,
+  STONE_A = { 0.42, 0.35, 0.28 }, STONE_B = { 0.47, 0.39, 0.31 },
+  MORTAR = { 0.14, 0.11, 0.09 }, CAP = { 0.58, 0.49, 0.39 },
+  GLOW = { 1, 0.27, 0.16 }, GLOW_ALPHA = 0.55, GLOW_REACH = 0.4, GLOW_STEPS = 14,
+  ROLE_ICON_VISIBLE = 0.74,          -- sichtbarer Kreis des Rollensymbols im Feld
+  HALO_PX = { 6, 4, 2 }, HALO_ALPHA = { 0.35, 0.55, 0.85 },   -- Goldring 3/2/1 px
+  HALO_TEX = 'Interface\\CharacterFrame\\TempPortraitAlphaMask',   -- weißer Kreis (ohne Maske: kein Nachhinken)
+  GLOW_TEX = 'Interface\\Buttons\\UI-ActionButton-Border',        -- eckiger Schein (Klassenwappen)
+  MARK_COLOR = { 1, 0.82, 0.2 }, ALARM_COLOR = { 1, 0.15, 0.1 },
+  ALARM_PCT = 85,                    -- eigene skalierte Aggro ab hier: Ring blinkt rot (nur wenn lesbar)
+  BLINK = 0.5,                       -- s pro Blink-Takt
+  CLASS_ICON_SCALE = 0.75,
+  CLASS_SHEET = 'Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES',
+  MARK = 16,                         -- Schlachtzugsymbol unten
+  MARK_FILE = 'Interface\\TargetingFrame\\UI-RaidTargetingIcon_',
+  PCT_FORMAT = '%.0f %%',
+}
+
 -- Fenster "Was ist neu?" (News.lua, Anforderung AF) ------------------------------------------
 
 C.NEWS = {
@@ -570,7 +610,7 @@ C.OPTIONS = {
     { type = 'slider', key = 'alphaOccluded', label = 'OPT_ALPHA_OCCLUDED', tip = 'TIP_ALPHA_OCCLUDED', min = 0, max = 1, step = 0.1 },
   },
 
-  -- Reiter "Ansicht": Liste (das TWF-Fenster) | Ziel | Fokus (Leisten aus Anforderung AC, folgen)
+  -- Reiter "Ansicht": Liste (das TWF-Fenster) | Ziel | Fokus (Leisten, Anforderung AC)
   view = {
     { type = 'section', label = 'SEC_LIST' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
@@ -588,11 +628,11 @@ C.OPTIONS = {
 
     { type = 'column' },
     { type = 'section', label = 'SEC_TARGET' },
-    { type = 'text', label = 'TXT_TBD' },
+    { type = 'check', key = 'targetBar', label = 'OPT_TARGET_BAR', tip = 'TIP_TARGET_BAR' },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_FOCUS' },
-    { type = 'text', label = 'TXT_TBD' },
+    { type = 'check', key = 'focusBar', label = 'OPT_FOCUS_BAR', tip = 'TIP_FOCUS_BAR' },
   },
 }
 

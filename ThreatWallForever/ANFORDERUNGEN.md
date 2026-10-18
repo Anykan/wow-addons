@@ -324,7 +324,10 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Halter immer oben** (Nutzer 2026-10-18: „nur Tank-oben-Version“); `flip` aus dem Prototyp entfällt.
 - **Ohne Fokus bzw. Ziel:** richtet sich nach der Einstellung Sichtbarkeit (Nutzer: „wie in den Einstellungen“) – „im Kampf“/„aus“ → nicht sichtbar, „immer“ → leere Leiste bleibt stehen (Auslegung Claude, beim Bau bestätigen lassen).
 - **Offen:** Bauzeitpunkt/Version („schauen wir mal“).
-- Stand: beschlossen 2026-10-18, **noch nicht gebaut**.
+- **Bau 2026-10-18 (Version 0.5, Nutzer):** Reiter Ansicht, Spalten Ziel/Fokus je Checkbox **„Ziel-Mauer aktivieren“ / „Fokus-Mauer aktivieren“** (Standard an). Zwei Leisten im Prototyp-Stil mit Überschrift „Fokus“ / „Ziel“, **Standard nebeneinander** (Fokus an der Seitenleiste, Ziel links daneben). Fokus-Leiste = Aggro des Fokus-Mobs, Ziel-Leiste = Aggro des aktuellen Ziels. Modul `Leiste.lua`, Werte `C.BAR`.
+  - Technik: Gruppe = player, party1–4, pet; Halter über `UnitThreatSituation` (≥ 2, lesbar); Vorsprung `UnitThreatPercentageOfLead(halter, mob)` (geheim → nur weitergereicht, 0/leer → nichts); Turm-Höhe = skalierte Aggro per Balken-Trick; Alarm-Blinken nur, wenn der eigene Wert lesbar ist; Tooltip-% live per `SetFormattedText`; Schlachtzugsymbol unten per Balken-Trick; Andocken an Seitenleiste oder an die andere Leiste, „Alles fixieren“ sperrt das Ziehen.
+  - Noch nicht drin (aus AC): Sichtbarkeit im Kampf/immer/aus, Checkbox % an den Symbolen, Checkbox Rolle/Klasse (bisher nur Klick auf den Halter), Schlachtzug (raid1–40).
+- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
 
 ## AB. Rolle mit Gruppenrolle synchronisieren (vom Nutzer beschlossen 2026-10-17, Version 0.4, war Idee I15)
 - Checkbox **„Rolle mit Gruppenrolle synchronisieren“** (Allgemein, Standard aus). An: Gruppenrolle im Spiel geändert (Porträt → Rolle, Gruppensuche) → TWF schaltet mit (Tank → Tank, Heiler → Heal, Schaden → DD); beim Einschalten sofort übernommen. Von Hand umschalten bleibt möglich; TWF folgt erst bei der nächsten Änderung der Gruppenrolle. Solo/ohne Rolle: keine Änderung.
