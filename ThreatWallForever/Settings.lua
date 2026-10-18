@@ -429,6 +429,9 @@ end
 
 local function previewSelect(set, key)
   if preview.set == set and preview.key == key then return end
+  -- Solange Farbwähler oder Deckkraft-Fenster offen ist, bleibt die Vorschau beim bearbeiteten
+  -- Zustand (sonst springt sie, wenn die Maus auf dem Weg dorthin über andere Zellen fährt)
+  if (ColorPickerFrame and ColorPickerFrame:IsShown()) or (popup and popup:IsShown()) then return end
   preview.set, preview.key = set, key
   paintPreview()
 end
