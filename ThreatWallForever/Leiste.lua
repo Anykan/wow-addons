@@ -5,7 +5,7 @@
   Größe einer Seiten-Aktionsleiste mit deren Knopf-Rahmen; darin ein Burgmauer-Turm:
     oben   Rollensymbol dessen, der den Mob hält, darunter sein Vorsprung in %
     Turm   die Gruppe als Rollen- bzw. Klassensymbole, Höhe = skalierte Aggro (oben = zieht)
-    unten  Schlachtzugsymbol des Mobs
+    darüber Schlachtzugsymbol des Mobs (außerhalb des Rahmens)
   Geheime Werte (Aggro über nameplate/focus, Symbol-Nummer) werden nie gelesen, sondern an
   unsichtbare Balken gegeben, an deren Füllung die Symbole hängen ("Balken-Trick", getestet
   2026-10-18). Magnetisch an die Seitenleiste bzw. an die andere Leiste andockbar.
@@ -229,11 +229,11 @@ end
 
 -- Schlachtzugsymbol: acht Symbole als Streifen hinter einem Guckloch, unsichtbarer Balken
 -- (von rechts gefüllt) bekommt die geheime Nummer, der Streifen hängt an seiner Füllung.
-local function makeMarker(wall)
-  local clip = CreateFrame('Frame', nil, wall)
+-- Sitzt außerhalb über der Leiste (unten verdeckt sie der Spiel-Tooltip, Nutzer 2026-10-18).
+local function makeMarker(parent)
+  local clip = CreateFrame('Frame', nil, parent)
   clip:SetSize(B.MARK, B.MARK)
   clip:SetClipsChildren(true)
-  clip:SetFrameLevel(wall:GetFrameLevel() + 3)
   local mbar = CreateFrame('StatusBar', nil, clip)
   mbar:SetSize(8 * B.MARK, B.MARK)
   mbar:SetPoint('LEFT', clip, 'LEFT', -7 * B.MARK, 0)
@@ -250,7 +250,6 @@ local function makeMarker(wall)
     tx:SetSize(B.MARK, B.MARK)
     tx:SetPoint('LEFT', strip, 'LEFT', (i - 1) * B.MARK, 0)
   end
-  clip:SetPoint('BOTTOM', wall, 'BOTTOM', 0, 4)
   clip.bar = mbar
   return clip
 end
@@ -334,7 +333,7 @@ local function newBar(key, unit, titleKey, other)
   bar.title = f:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
   bar.title:SetText(L[titleKey])
   bar.wall = CreateFrame('Frame', nil, f)
-  bar.marker = makeMarker(bar.wall)
+  bar.marker = makeMarker(f)
 
   -- Halter oben (Rollensymbol) + Vorsprung; Klick schaltet Rolle/Klasse auf dem Turm
   bar.holder = makeSymbol(bar, f)
@@ -374,6 +373,8 @@ local function layout(bar)
   if dims.anchor then applySkin(bar, dims.anchor) else applySkin(bar, nil) end
   bar.title:ClearAllPoints()
   bar.title:SetPoint('TOP', f, 'TOP', math.floor(bar.skinDX + B.NUDGE_X + 0.5), -3)
+  bar.marker:ClearAllPoints()
+  bar.marker:SetPoint('BOTTOM', f, 'TOP', math.floor(bar.skinDX + B.NUDGE_X + 0.5), B.MARK_GAP)
   buildWall(bar)
   bar.holder:SetSize(dims.size, dims.size)
   bar.holder:ClearAllPoints()
