@@ -105,7 +105,8 @@ driver:SetScript('OnEvent', function(self, event, arg1)
     -- PLAYER_ENTERING_WORLD ist der übliche sichere Zeitpunkt. Einmal pro Sitzung.
     if event == 'PLAYER_ENTERING_WORLD' and ns.db and not ns.state.nameplateChecked then
       ns.state.nameplateChecked = true
-      ns.checkGameOptions(false)
+      -- Kommt gleich das Neuigkeiten-Fenster, prüft News.lua erst nach dessen OK (Anforderung AF)
+      if not ns.newsPending then ns.checkGameOptions(false) end
     end
     ns.refresh()
     return

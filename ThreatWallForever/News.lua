@@ -2,7 +2,8 @@
   News.lua — Fenster "Was ist neu?" (Anforderung AF).
 
   Erscheint einmal nach einem Update (oder als "Willkommen" bei der ersten Installation),
-  ein paar Sekunden nach dem Login und nie im Kampf. Inhalt: Kurzfassung aller Versionen,
+  ein paar Sekunden nach dem Login und nie im Kampf. Das Hinweis-Popup zu den Spiel-Optionen
+  (Hint.lua) kommt erst nach OK. Inhalt: Kurzfassung aller Versionen,
   die neueste oben, scrollbar; Versionen seit dem letzten Besuch sind als "neu" markiert.
   OK oder X: gesehen, bis zur nächsten Version. /twf news öffnet es jederzeit.
 ]]
@@ -77,6 +78,11 @@ end
 local function markSeen()
   ns.db.newsSeen = ns.VERSION
   ns.dbg('SETTING', 'Neuigkeiten gesehen: ' .. tostring(ns.VERSION))
+  -- Hinweis zu den Spiel-Optionen erst jetzt (beim Login zurückgehalten, Core.lua)
+  if ns.newsPending then
+    ns.newsPending = false
+    ns.checkGameOptions(false)
+  end
 end
 
 local function build()
@@ -116,10 +122,9 @@ function ns.showNews(welcome, lastSeen)
   win:Show()
 end
 
--- Nach dem Login: warten, bis kein Kampf und kein Hinweis-Popup offen ist
+-- Nach dem Login: warten, bis kein Kampf ist (das Hinweis-Popup kommt erst nach OK)
 local function showWhenFree(welcome, lastSeen)
-  local hint = _G[C.HINT.NAME]
-  if InCombatLockdown() or UnitAffectingCombat('player') or (hint and hint:IsShown()) then
+  if InCombatLockdown() or UnitAffectingCombat('player') then
     C_Timer.After(NW.RETRY, function() showWhenFree(welcome, lastSeen) end)
     return
   end
@@ -135,6 +140,7 @@ ns.RegisterModule('News', {
     -- newsSeen fehlt → nur die aktuelle Version als neu markieren.
     local welcome = ns.freshInstall and true or false
     local lastSeen = db.newsSeen
+    ns.newsPending = true   -- Hinweis-Popup (Spiel-Optionen) bis nach OK zurückhalten
     C_Timer.After(NW.DELAY, function() showWhenFree(welcome, lastSeen) end)
   end,
 })
