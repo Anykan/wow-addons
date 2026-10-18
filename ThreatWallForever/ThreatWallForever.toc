@@ -1,5 +1,5 @@
 ## Interface: 16001
-## Title: ThreatWall Forever
+## Title: Threat Wall Forever
 ## Notes: Aggro watcher for tanks and DD/healers: a compact list of the enemies with an aggro problem, plus nameplates colored by threat that show who a mob is attacking.
 ## Notes-deDE: Aggro-Warner für Tanks und DD/Heiler: eine kompakte Liste der Gegner mit Aggro-Problem, dazu Nameplates in Ampelfarbe, die zeigen, wen ein Mob angreift.
 ## Notes-esES: Aviso de aggro para tanques y DPS/sanadores: una lista compacta de los enemigos con problemas de aggro, más placas de nombre en color semáforo con tu amenaza en vivo y a quién ataca cada enemigo.

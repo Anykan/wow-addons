@@ -13,7 +13,7 @@ ns.Config = C
 -- Chat ---------------------------------------------------------------------------
 
 -- Präfix vor jeder Chat-Zeile des Addons
-C.PREFIX = '|cff33ff99ThreatWall Forever:|r '
+C.PREFIX = '|cff33ff99Threat Wall Forever:|r '
 
 -- Jede Chat-Zeile bekommt einen festen Code, damit man "003" melden kann
 -- statt den ganzen Satz abzutippen.
