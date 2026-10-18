@@ -181,6 +181,7 @@ function ns.makeDialog(name, width, titleText)
   title:SetPoint('LEFT', W.TITLE_X, 0)
   title:SetText(titleText)
   title:SetTextColor(unpack(C.TITLE_COLOR))
+  win.titleText = title   -- damit der Aufrufer den Titel später ändern kann
 
   local okClose, close = pcall(CreateFrame, 'Button', nil, header, 'UIPanelCloseButton')
   if not okClose then

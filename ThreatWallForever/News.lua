@@ -59,7 +59,9 @@ local function fillContent(welcome, lastSeen)
     for i, s in ipairs({ s1, L.NEWS_W_S2, L.NEWS_W_S3, L.NEWS_W_S4 }) do
       y = addLine('• ' .. s, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
     end
-    y = y - NW.SECTION_GAP - NW.VERSION_GAP
+    -- Erste Installation: nur die Beschreibung, keine Versionsliste (Nutzer 2026-10-18)
+    content:SetHeight(-y + D.PADDING)
+    return
   end
   -- Changelog je Version: Kopf (Gold, ggf. "NEU"), Abschnitte Neu/Geändert/Behoben in ihren
   -- Farben, Punkte "Stichwort – Erklärung" (Stichwort weiß, Erklärung grau), Trennlinie dazwischen
@@ -137,6 +139,7 @@ end
 -- Fenster zeigen. welcome = erste Installation; lastSeen = zuletzt gesehene Version
 function ns.showNews(welcome, lastSeen)
   if not win then build() end
+  win.titleText:SetText(welcome and L.NEWS_TITLE_WELCOME or L.NEWS_TITLE)
   fillContent(welcome, lastSeen)
   win.scroll:SetVerticalScroll(0)
   win:Show()

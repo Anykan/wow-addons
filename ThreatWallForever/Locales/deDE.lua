@@ -173,6 +173,7 @@ L["PANEL_BUTTON"] = "TWF-Einstellungen öffnen"
 
 -- Fenster "Was ist neu?" (News.lua): Kurzfassung je Version, Zeilen mit \n getrennt
 L["NEWS_TITLE"] = "ThreatWall Forever – Was ist neu?"
+L["NEWS_TITLE_WELCOME"] = "Willkommen bei ThreatWall Forever"
 L["NEWS_VERSION"] = "Version %s"
 L["NEWS_NEW"] = "NEU"
 L["NEWS_OK"] = "OK"
