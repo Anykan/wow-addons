@@ -425,20 +425,21 @@ C.SETTINGS = {
 -- color = Balkenfarbe · alpha = Deckkraft (Ziel und hinter Wänden: Regler unter "Allgemein") ·
 -- blink = blinkender Rahmen · frame = Rahmenfarbe · show = Balken zeigen (aus = nur der Name) ·
 -- threat = eigene Aggro in % links im Balken (Anforderung P) · threatColor = Textfarbe der Aggro-% ·
+-- healthColor = Textfarbe des Lebens rechts im Balken (% oder Zahl) ·
 -- tankOnly = Zustand gibt es nur im Tank-Modus (in den Tabellen DD/Heal ausgegraut) ·
 -- noThreat = Zustand hat keine Bedrohung (außerhalb des Kampfs): Zeilen mit threatRow ausgegraut
 local ALARM_RED = { 1, 0.1, 0.1 }
 local ALARM_YELLOW = { 1, 0.85, 0.1 }
 local WHITE = { 1, 1, 1 }
 C.PLATE_STATES = {
-  { key = 'green', label = 'STATE_GREEN', tip = 'TIP_STATE_GREEN', color = C.COLOR.green, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
-  { key = 'yellow', label = 'STATE_YELLOW', tip = 'TIP_STATE_YELLOW', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
-  { key = 'red', label = 'STATE_RED', tip = 'TIP_STATE_RED', color = C.COLOR.red, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
-  { key = 'brown', label = 'STATE_BROWN', tip = 'TIP_STATE_BROWN', color = C.COLOR.brown, alpha = 0.6, frame = ALARM_RED, show = true, tankOnly = true, threat = true, threatColor = WHITE },
-  { key = 'pull', label = 'STATE_PULL', tip = 'TIP_STATE_PULL', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_YELLOW, show = true, tankOnly = true, threat = true, threatColor = WHITE },
-  { key = 'blue', label = 'STATE_BLUE', tip = 'TIP_STATE_BLUE', color = C.COLOR.blue, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
-  { key = 'grey', label = 'STATE_GREY', tip = 'TIP_STATE_GREY', color = C.COLOR.grey, alpha = 0.6, frame = ALARM_RED, show = false, threat = false, threatColor = WHITE, noThreat = true },
-  { key = 'foreign', label = 'STATE_FOREIGN', tip = 'TIP_STATE_FOREIGN', color = C.COLOR.foreign, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE },
+  { key = 'green', label = 'STATE_GREEN', tip = 'TIP_STATE_GREEN', color = C.COLOR.green, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'yellow', label = 'STATE_YELLOW', tip = 'TIP_STATE_YELLOW', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'red', label = 'STATE_RED', tip = 'TIP_STATE_RED', color = C.COLOR.red, alpha = 0.6, blink = true, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'brown', label = 'STATE_BROWN', tip = 'TIP_STATE_BROWN', color = C.COLOR.brown, alpha = 0.6, frame = ALARM_RED, show = true, tankOnly = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'pull', label = 'STATE_PULL', tip = 'TIP_STATE_PULL', color = C.COLOR.yellow, alpha = 0.6, blink = true, frame = ALARM_YELLOW, show = true, tankOnly = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'blue', label = 'STATE_BLUE', tip = 'TIP_STATE_BLUE', color = C.COLOR.blue, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE, healthColor = WHITE },
+  { key = 'grey', label = 'STATE_GREY', tip = 'TIP_STATE_GREY', color = C.COLOR.grey, alpha = 0.6, frame = ALARM_RED, show = false, threat = false, threatColor = WHITE, healthColor = WHITE, noThreat = true },
+  { key = 'foreign', label = 'STATE_FOREIGN', tip = 'TIP_STATE_FOREIGN', color = C.COLOR.foreign, alpha = 0.6, frame = ALARM_RED, show = true, threat = true, threatColor = WHITE, healthColor = WHITE },
 }
 -- Sätze: 'shared' = eine Tabelle für alle Modi, sonst je Rolle (C.ROLES)
 C.PLATE_SETS = { 'shared', 'tank', 'dps', 'heal' }
@@ -454,6 +455,7 @@ C.PLATE_ROWS = {
   { key = 'frame', kind = 'color', field = 'frame', needs = 'blink', label = 'ROW_FRAME', tip = 'TIP_ROW_FRAME' },
   { key = 'threat', kind = 'check', field = 'threat', threatRow = true, label = 'ROW_THREAT', tip = 'TIP_ROW_THREAT' },
   { key = 'threatColor', kind = 'color', field = 'threatColor', needs = 'threat', threatRow = true, label = 'ROW_THREAT_COLOR', tip = 'TIP_ROW_THREAT_COLOR' },
+  { key = 'healthColor', kind = 'color', field = 'healthColor', needs = 'show', label = 'ROW_HEALTH_COLOR', tip = 'TIP_ROW_HEALTH_COLOR' },
   { key = 'show', kind = 'check', field = 'show', label = 'ROW_SHOW', tip = 'TIP_ROW_SHOW' },
 }
 C.PLATE_TABLE = {

@@ -208,7 +208,7 @@ local function setColor(p, color)
 end
 
 -- Werte setzen. Leben und Name können geheim sein: nur weiterreichen, nie auswerten.
-local function fill(p, unit)
+local function fill(p, unit, cfg)
   pcall(function()
     p.bar:SetMinMaxValues(0, UnitHealthMax(unit))
     p.bar:SetValue(UnitHealth(unit))
@@ -223,6 +223,8 @@ local function fill(p, unit)
     -- Restleben als Zahl (Anforderung AA): geheim, aber anzeigbar (Test 2026-10-17)
     okP = pcall(function() p.pct:SetFormattedText(N.HEALTH_NUM_FORMAT, UnitHealth(unit)) end)
   end
+  local hc = cfg.healthColor or C.WHITE
+  p.pct:SetTextColor(hc[1], hc[2], hc[3])
   p.pct:SetShown(okP and true or false)
 end
 
@@ -362,7 +364,7 @@ local function update(nameplate, targetPlate)
   ns.setGlowColor(p.alarm, cfg.frame)
   ns.setGlow(p.alarm, cfg.blink)
   setColor(p, cfg.color)
-  fill(p, unit)
+  fill(p, unit, cfg)
   fillThreat(p, unit, cfg)
   placeName(p, false)
   fillName(p, unit, false)

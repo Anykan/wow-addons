@@ -1,7 +1,7 @@
 --[[
   PlateStates.lua — Aussehen der TWF-Nameplates pro Zustand (Anforderung V, 0.3).
 
-  Gespeichert in db.plates[satz][zustand] = { color, alpha, blink, frame, show, threat, threatColor }.
+  Gespeichert in db.plates[satz][zustand] = { color, alpha, blink, frame, show, threat, threatColor, healthColor }.
   Sätze (C.PLATE_SETS): 'shared' gilt, solange "Farben für alle Modi gleich" an ist
   (db.plateShared); sonst der Satz der gespielten Rolle ('tank', 'dps', 'heal').
   Standardwerte stehen in C.PLATE_STATES ("Farben zurücksetzen" stellt sie wieder her).
@@ -25,6 +25,7 @@ local function defaultState(st)
     show = st.show and true or false,
     threat = st.threat and true or false,
     threatColor = copyColor(st.threatColor),
+    healthColor = copyColor(st.healthColor),
   }
 end
 
