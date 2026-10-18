@@ -291,7 +291,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Blinken wird nicht übernommen**, nur Farbe und Textfarben (Nutzer). Dein Ziel behält den pulsierenden Rahmen.
 - Hat ein Gegner gerade keine Nameplate, behält die Zeile Leben, Symbol und % (sonst könnte der Token auf einen anderen Gegner zeigen; `t.fresh` in Detection.lua).
 - Technik: gemeinsame Bausteine in Utils.lua `ns.makeCastBar`/`ns.tintCastBar` (Nameplates + Liste) und `ns.createRaidMark`/`ns.setRaidMark` (Liste + Leisten). **Marks.lua und `/twf mark` entfernt** (alte, gescheiterte Symbol-Wege).
-- Stand: gebaut 2026-10-18, **Test im Spiel offen**.
+- Stand: gebaut 2026-10-18, im Spiel getestet (Testzeilen, echte Mobs mit Symbol, keine Fehler): bestanden (Nutzer, 2026-10-18).
 
 ## AF. Fenster „Was ist neu?“ (vom Nutzer beschlossen 2026-10-18, Version 0.5, wie bei CrittersBoard)
 - Erscheint **einmal nach einem Update** (Vergleich `db.newsSeen` mit der TOC-Version), **2 s nach dem Login** (Nutzer: 5 s zu lang), **nie im Kampf**; das Hinweis-Popup zu den Spiel-Optionen (M) kommt **erst nach OK** (Nutzer 2026-10-18). **OK oder X** = gesehen bis zur nächsten Version. **`/twf news`** öffnet es jederzeit; `/twf news welcome` (Entwickler, nicht in der Hilfe) zeigt die Willkommensansicht.
