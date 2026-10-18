@@ -44,8 +44,21 @@ local function fillContent(welcome, lastSeen)
   wipe(lines)
   local y = 0
   if welcome then
-    y = addLine(L.NEWS_WELCOME, 'GameFontHighlight', y)
-    y = y - NW.VERSION_GAP
+    -- Aufbau wie die CurseForge-Beschreibung: Aufhänger → Was TWF kann → So geht's los
+    local gold = hex(C.TITLE_COLOR)
+    y = addLine(gold .. L.NEWS_W_TITLE .. '|r', 'GameFontNormalLarge', y)
+    y = addLine(L.NEWS_W_INTRO, 'GameFontHighlight', y, NW.HEAD_GAP)
+    for i, c in ipairs(NW.WELCOME_COLORS) do
+      local text = hex(c) .. L['NEWS_W_P' .. i .. '_T'] .. '|r – ' .. L['NEWS_W_P' .. i]
+      y = addLine(text, 'GameFontHighlightSmall', y, i == 1 and NW.SECTION_GAP or NW.HEAD_GAP)
+    end
+    y = addLine(gold .. L.NEWS_W_START .. '|r', 'GameFontNormal', y, NW.SECTION_GAP)
+    local function icon(atlas) return string.format('|A:%s:%d:%d|a', atlas, NW.ICON_SIZE, NW.ICON_SIZE) end
+    local s1 = string.format(L.NEWS_W_S1, icon(C.SYMBOLS.TANK), icon(C.SYMBOLS.DAMAGER), icon(C.SYMBOLS.HEALER))
+    for i, s in ipairs({ s1, L.NEWS_W_S2, L.NEWS_W_S3, L.NEWS_W_S4 }) do
+      y = addLine('• ' .. s, 'GameFontHighlightSmall', y, NW.HEAD_GAP)
+    end
+    y = y - NW.SECTION_GAP - NW.VERSION_GAP
   end
   local seenIdx = lastSeen and indexOf(lastSeen)
   for i, v in ipairs(NW.VERSIONS) do
