@@ -610,6 +610,7 @@ C.OPTIONS = {
   -- Reiter "Ansicht": Liste (das TWF-Fenster) | Ziel | Fokus (Leisten, Anforderung AC)
   view = {
     { type = 'section', label = 'SEC_LIST' },
+    { type = 'check', key = 'shown', label = 'OPT_SHOW_LIST', tip = 'TIP_SHOW_LIST' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
