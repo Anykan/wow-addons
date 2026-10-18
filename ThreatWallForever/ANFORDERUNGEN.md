@@ -285,6 +285,21 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Debug: einmalige Meldung „Fremder Mob erkannt“. Tooltip „TWF-Nameplates“ erklärt den dunkelgrauen Balken (DE/EN).
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
+## AC. Bedrohungs-Leiste als Modul (Fokus / Ziel) (vom Nutzer beschlossen 2026-10-18, aus Idee I4; Version noch offen)
+- **Design = Prototyp** `prototyp/TWFRennbahnTest/` (Stand 18.10.), Optik **genau wie dort**:
+  - **Nur senkrecht** (Turm). Waagerechte Variante entfällt.
+  - Größe wie eine **Seiten-Aktionsleiste** (Knopf-Breite, Höhe Knopf 1–12), Rahmen = **Knopf-Rand-Grafik**, kein eigener Hintergrund, Inhalt mittig (−3 px Versatz).
+  - **Burgmauer-Turm** (symmetrischer Verband, Zinnen oben, rotes Glühen am Halter-Ende).
+  - **Oben:** Rollensymbol des **Aggro-Halters** (egal welche Rolle), darunter nur **Vorsprung-%**.
+  - **Auf dem Turm:** Mitspieler nach skaliertem % (Halter-Ende = Ziehgrenze), **alle Symbole gleich groß**, **Checkbox Rolle/Klasse** (Klassenwappen ~75 %), Namen als **Tooltip**, keine % an den Symbolen (optional per Checkbox).
+  - **Eigenes Symbol:** dünner **Goldring** (Rolle) bzw. eckiger Goldschein (Klasse), immer vorn; **Alarm ≥ 85 %: rot blinkend**. Warn-Blinken anderer nur bei Klassenwappen.
+  - **Magnetisch andockbar** an die Seitenleiste (wandert mit, frei wegziehbar, bis 15 px einrasten, gespeichert, neu messen bei Leiste ein/aus, Bearbeitungsmodus, UI-Skalierung).
+- **Modul:** ein Code, mehrfach verwendet: **Fokus-Leiste** und **Ziel-Leiste** (zwei Leisten), jede einzeln an/aus; zweite Leiste dockt an die erste bzw. an die Seitenleiste.
+- **Einstellungen:** eigener **Reiter** (Leiste/Fokus), Sichtbarkeit **im Kampf / immer / aus**, Checkbox Rolle/Klasse, Checkbox %. Alle Werte in Config.lua, Texte in allen Sprachen.
+- **Werte:** Fokus/Ziel für dich lesbar (getestet); Mitspieler-Werte + Instanz noch zu testen; bei geheimen Werten **Balken-Trick** (getestet). Ohne Gruppe: nur du am Halter-Ende.
+- **Offen:** Bauzeitpunkt/Version; Tank-Seite umschaltbar (im Prototyp `flip`) behalten?; Verhalten ohne Fokus/Ziel (ausblenden).
+- Stand: beschlossen 2026-10-18, **noch nicht gebaut**.
+
 ## AB. Rolle mit Gruppenrolle synchronisieren (vom Nutzer beschlossen 2026-10-17, Version 0.4, war Idee I15)
 - Checkbox **„Rolle mit Gruppenrolle synchronisieren“** (Allgemein, Standard aus). An: Gruppenrolle im Spiel geändert (Porträt → Rolle, Gruppensuche) → TWF schaltet mit (Tank → Tank, Heiler → Heal, Schaden → DD); beim Einschalten sofort übernommen. Von Hand umschalten bleibt möglich; TWF folgt erst bei der nächsten Änderung der Gruppenrolle. Solo/ohne Rolle: keine Änderung.
 - Gegenrichtung (TWF → Gruppenrolle, `UnitSetRole`) auf Forever für Addons gesperrt (getestet).
