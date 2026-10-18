@@ -453,7 +453,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
-## Veröffentlichung 0.4 — vorbereitet 2026-10-17
+## Veröffentlichung 0.4 — 2026-10-18 bei CurseForge veröffentlicht
 - Inhalt: **Z** (Tank: Vorsprung statt Aggro-%, Balken + Liste getrennt), **AA** (Leben in % oder als Zahl), **AB** (Rollen-Sync Gruppe → TWF), breiteres Prozentfeld in der Liste.
 - Tests 2026-10-17: Version/Einstellungen ✅, Leben als Zahl ✅, Liste dreistellig ✅, Rollen-Sync ✅, Tank-Vorsprung in der Gruppe ✅. Offen: Vorsprung allein (kein „0 %“), Instanz.
 - Paket `release/ThreatWallForever-0.4.zip`, Changelog `release/ThreatWallForever-0.4-patchnotes.html` (DE/EN/ES/FR), Gesamtprotokoll `PATCHNOTES.html`.
