@@ -20,6 +20,9 @@ Stand 2026-10-18: **0.4 bei CurseForge veröffentlicht, 0.5 in Arbeit** (Einzelt
 - Checkbox % an den Symbolen.
 - Schlachtzug (raid1–40 auf dem Turm).
 
+## Konkurrenzvergleich (neu bewertet 2026-10-18)
+- TWF 0.5 ist das breiteste „Problem-zuerst“-Addon: Aggro auf allen Gegnern, Problem-Liste, Gruppen-Mauern (auch mit geheimen Werten) und Schlachtzugsymbole im Kampf – letztere beiden hat derzeit kein anderes. ForeverThreat bleibt stärker bei klassischer Omen-Tabelle, Profilen (I17) und Begleiter-Bedrohung (I13); NKThreat hat den größten Umfang, blendet in Instanzen aber Nameplates aus. Lücken TWF: Gruppentests der Mauern, Profile, Pet in der Ampel, Schlachtzug auf den Mauern, Bekanntheit (Beschreibung soll Alleinstellungsmerkmale nach vorn stellen).
+
 ## Tests, die eine Gruppe brauchen
 - I12 Spott: Zauber-Nummer der Mitspieler lesbar? (Testzeile bei I12)
 - Balken-Trick mit Mitspieler-Werten über Nameplates (Grundlage Mauer-Ansicht, I4).
@@ -493,6 +496,13 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - Damit auch Ältere davon erfahren: ein neueres TWF antwortet einmal (gedrosselt, Zufallsverzögerung) auf eine ältere Version.
   - **Weg gewählt (Nutzer):** Gilde + Gruppe + Schlachtzug. Realm-weiter eigener Chat-Kanal **verworfen** (belegt einen der 10 Kanalplätze, in der Kanalliste sichtbar, jeder kann beitreten, Beitritt auf Forever evtl. gesperrt).
   - Vorher testen: kommen Addon-Nachrichten (`C_ChatInfo.SendAddonMessage`, Präfix registrieren) an Gilde/Gruppe auf Forever an? Braucht zwei Spieler mit TWF. Laut NKThreat in Instanzen im Kampf gesperrt – beim Einloggen/Gruppenbeitritt meist kein Kampf.
+
+- **I17 Einstellungsprofile** (aus der Konkurrenzanalyse 2026-10-18; Nutzer „noch unschlüssig, als Idee aufnehmen“; **keine Anforderung**):
+  - **Stufe 1:** benannte Profile für den Account, Auswahl pro Charakter (bisherige Einstellungen → Profil „Standard“); Anlegen, Kopieren von, Umbenennen, Löschen, Zurücksetzen; Schalter „Dieses Profil überall nutzen“ (aus = jeder Charakter wieder sein Profil). Eigener Reiter „Profile“.
+  - **Stufe 2:** Rolle wählt Profil (Tank/DD/Heal) – Nutzen klein, da Farben schon pro Rolle (Tabelle „Farben gleich“ aus) und vieles rollenabhängig ist; nur für Hybride, die übrige Schalter je Rolle anders wollen. Erst bei Spielerwunsch.
+  - **Stufe 3:** Export/Import als Text (nur Zahlen, Texte, Farben, Ja/Nein; unvollständige/fehlerhafte Texte ablehnen).
+  - Positionen von Fenster und Leisten bleiben pro Charakter, nicht im Export.
+  - Vorbild **ForeverThreat** (laut Beschreibung): Account-Profile mit Auswahl pro Charakter, anlegen/umbenennen/löschen, Export/Import mit Prüfung, „Profil überall nutzen“, Position pro Charakter, keine Rollen-Profile.
 
 # Teil 4 — Bugs
 
