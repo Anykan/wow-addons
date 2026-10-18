@@ -286,6 +286,7 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - Stand: ✅ gebaut 2026-10-16, draußen getestet („passt“). In Instanzen nicht relevant (keine fremden Gruppen).
 
 ## AC. Bedrohungs-Leiste als Modul (Fokus / Ziel) (vom Nutzer beschlossen 2026-10-18, aus Idee I4; Version noch offen)
+- **DESIGN-FREEZE 2026-10-18** (Nutzer): Design eingefroren, Git-Tag `twf-design-leiste-freeze`. Änderungen am Design nur noch auf ausdrückliche Ansage.
 - **Design = Prototyp** `prototyp/TWFRennbahnTest/` (Stand 18.10.), Optik **genau wie dort**:
   - **Nur senkrecht** (Turm). Waagerechte Variante entfällt.
   - Größe wie eine **Seiten-Aktionsleiste** (Knopf-Breite, Höhe Knopf 1–12), Rahmen = **Knopf-Rand-Grafik**, kein eigener Hintergrund, Inhalt mittig (−3 px Versatz).
