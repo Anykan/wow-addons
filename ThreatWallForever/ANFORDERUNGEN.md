@@ -373,6 +373,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 ## AH. Versionshinweis über Gilde/Gruppe/Schlachtzug (vom Nutzer beschlossen 2026-10-18, Version 0.5, war Idee I16)
 - Unsichtbare Addon-Nachricht (Präfix `TWF`, Inhalt `V:<Version>`): **einmal nach dem Einloggen an die Gilde** (falls in einer), **einmal beim Beitritt zu Gruppe/Schlachtzug**. Jedes TWF vergleicht; hört es eine **neuere** Version → **einmal pro Sitzung** Chat-Hinweis „Threat Wall Forever X ist verfügbar – du hast Y. Update über CurseForge.“ Hört ein neueres TWF eine **ältere** → antwortet einmal (Zufallsverzögerung 1–5 s, je Kanal höchstens 1 Nachricht pro 60 s).
 - Im Kampf wird nicht gesendet (in Instanzen gesperrt); nach dem Kampf in der Gruppe nachgeholt. Kein realm-weiter Kanal.
+- **Entwicklungsstand nie senden (Nutzer 2026-10-18):** Während der Entwicklung steht in der TOC `<Version>-dev` (z. B. `0.5-dev`, nach Release `0.6-dev`) → Versionscheck sendet nichts, hört aber zu (eigene Version ohne `-dev` verglichen). `paket-bauen.py` verweigert Pakete mit `-dev` → beim Abschluss Version auf die Release-Nummer setzen.
 - Modul `Versionscheck.lua`, Werte `C.VERSIONCHECK`, Text `VERSION_NEWER` (4 Sprachen), Debug-Code 025.
 - Stand: gebaut 2026-10-18, **Test offen (braucht zwei Spieler mit TWF; Nutzer hat noch keine Gilde, Gruppe geht)**.
 

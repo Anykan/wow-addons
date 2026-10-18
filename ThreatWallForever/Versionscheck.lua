@@ -34,7 +34,12 @@ local function compare(a, b)
   return 0
 end
 
+-- Entwicklungsstand ("0.6-dev") schickt nie etwas: sonst bekämen andere den Hinweis auf eine
+-- Version, die es noch nicht gibt (Nutzer 2026-10-18). Zuhören geht trotzdem.
+local function isRelease() return parse(ns.VERSION) ~= nil end
+
 local function send(channel)
+  if not isRelease() then return end
   local now = GetTime()
   if lastSent[channel] and now - lastSent[channel] < VC.THROTTLE then return end
   -- in Instanzen im Kampf sind Addon-Nachrichten gesperrt (laut NKThreat) → später
@@ -54,7 +59,8 @@ end
 local function onMessage(prefix, msg, channel, sender)
   if prefix ~= VC.PREFIX or type(msg) ~= 'string' then return end
   local other = msg:match('^' .. VC.TAG .. '(.+)$')
-  local theirs, mine = parse(other), parse(ns.VERSION)
+  -- eigene Version ohne "-dev" vergleichen (0.6-dev zählt wie 0.6)
+  local theirs, mine = parse(other), parse((ns.VERSION or ''):gsub('%-dev$', ''))
   if not (theirs and mine) then return end
   -- eigene Nachricht (Name mit oder ohne Realm)
   local me = UnitName('player')

@@ -16,6 +16,10 @@ addon = sys.argv[1] if len(sys.argv) > 1 else 'ThreatWallForever'
 toc_path = f'{addon}/{addon}.toc'
 toc = open(toc_path, encoding='utf-8').read()
 version = re.search(r'^## Version:\s*(\S+)', toc, re.M).group(1)
+# Entwicklungsstand ("0.6-dev") nie veröffentlichen: erst die Version in der TOC auf die
+# Release-Nummer setzen (der Versionscheck sendet bei -dev nichts, Anforderung AH)
+if '-dev' in version:
+    sys.exit(f'FEHLER: Version {version} ist ein Entwicklungsstand – vor dem Paket in der TOC auf die Release-Nummer setzen.')
 lua = [line.strip().replace(chr(92), '/') for line in toc.splitlines() if line.strip().endswith('.lua')]  # Unterordner: \ -> /
 
 missing = [f for f in lua if not os.path.exists(f'{addon}/{f}')]
