@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: TWF Rennbahn-Test
+## Notes: Nur Optik-Test der Fokus-Rennbahn (Demo), kein Teil von ThreatWall Forever.
+## Author: Anykan
+## Version: test
+## SavedVariables: TWFRennbahnTestDB
+
+TWFRennbahnTest.lua
