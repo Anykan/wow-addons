@@ -334,7 +334,8 @@ Erster Schritt zum Ausprobieren („anfangen und schauen, wie sich das macht“)
 - **Offen:** Bauzeitpunkt/Version („schauen wir mal“).
 - **Bau 2026-10-18 (Version 0.5, Nutzer):** Reiter Ansicht, Spalten Ziel/Fokus je Checkbox **„Ziel-Mauer aktivieren“ / „Fokus-Mauer aktivieren“** (Standard an). Zwei Leisten im Prototyp-Stil mit Überschrift „Fokus“ / „Ziel“, **Standard nebeneinander** (Fokus an der Seitenleiste, Ziel links daneben). Fokus-Leiste = Aggro des Fokus-Mobs, Ziel-Leiste = Aggro des aktuellen Ziels. Modul `Leiste.lua`, Werte `C.BAR`.
   - Technik: Gruppe = player, party1–4, pet; Halter über `UnitThreatSituation` (≥ 2, lesbar); Vorsprung `UnitThreatPercentageOfLead(halter, mob)` (geheim → nur weitergereicht, 0/leer → nichts); Turm-Höhe = skalierte Aggro per Balken-Trick; Alarm-Blinken nur, wenn der eigene Wert lesbar ist; Tooltip-% live per `SetFormattedText`; Schlachtzugsymbol unten per Balken-Trick; Andocken an Seitenleiste oder an die andere Leiste, „Alles fixieren“ sperrt das Ziehen.
-  - Noch nicht drin (aus AC): Sichtbarkeit im Kampf/immer/aus, Checkbox % an den Symbolen, Checkbox Rolle/Klasse (bisher nur Klick auf den Halter), Schlachtzug (raid1–40).
+  - **Checkbox „Nur im Kampf sichtbar“** je Leiste (Ziel/Fokus, Nutzer 2026-10-18, Standard aus); Wechsel im TWF-Takt erkannt, angedockte Leiste rückt solange an die Aktionsleiste.
+  - Noch nicht drin (aus AC): (Sichtbarkeit damit erledigt), Checkbox % an den Symbolen, Checkbox Rolle/Klasse (bisher nur Klick auf den Halter), Schlachtzug (raid1–40).
 - Stand: gebaut 2026-10-18, **Test im Spiel offen**.
 
 ## AB. Rolle mit Gruppenrolle synchronisieren (vom Nutzer beschlossen 2026-10-17, Version 0.4, war Idee I15)

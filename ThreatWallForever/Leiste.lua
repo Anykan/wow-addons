@@ -427,13 +427,21 @@ end
 -- Sichtbarkeit / Andocken neu ------------------------------------------------------------------
 
 local SETTING = { focus = 'focusBar', target = 'targetBar' }
+local COMBAT_ONLY = { focus = 'focusBarCombat', target = 'targetBarCombat' }
+
+-- Soll die Leiste gerade zu sehen sein? (an, und bei "Nur im Kampf sichtbar" nur im Kampf)
+local function wanted(key)
+  local db = ns.db
+  if not db[SETTING[key]] then return false end
+  return not db[COMBAT_ONLY[key]] or UnitAffectingCombat('player') and true or false
+end
 
 local function refreshAll()
   if not measured then return end
   dims = computeDims()
   for _, key in ipairs(B.ORDER) do
     local bar = bars[key]
-    local on = ns.db[SETTING[key]] and true or false
+    local on = wanted(key)
     bar.frame:SetShown(on)
     if on then layout(bar) end
   end
@@ -478,11 +486,19 @@ ns.RegisterModule('Leiste', {
   end,
   OnTick = function()
     if not measured then return end
+    -- Kampf beginnt/endet: Leisten mit "Nur im Kampf sichtbar" ein-/ausblenden und neu andocken
+    for key, bar in pairs(bars) do
+      if wanted(key) ~= bar.frame:IsShown() then
+        refreshAll()
+        break
+      end
+    end
     for _, bar in pairs(bars) do
       if bar.frame:IsShown() then update(bar) end
     end
   end,
   OnSettingChanged = function(key)
-    if key == 'focusBar' or key == 'targetBar' or key == 'role' then refreshAll() end
+    if SETTING.focus == key or SETTING.target == key or COMBAT_ONLY.focus == key or COMBAT_ONLY.target == key
+      or key == 'role' then refreshAll() end
   end,
 })
