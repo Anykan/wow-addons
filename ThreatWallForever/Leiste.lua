@@ -429,12 +429,16 @@ end
 local SETTING = { focus = 'focusBar', target = 'targetBar' }
 local COMBAT_ONLY = { focus = 'focusBarCombat', target = 'targetBarCombat' }
 local ALPHA = { focus = 'focusBarAlpha', target = 'targetBarAlpha' }
+local GROUP_ONLY = { focus = 'focusBarGroup', target = 'targetBarGroup' }
 
--- Soll die Leiste gerade zu sehen sein? (an, und bei "Nur im Kampf sichtbar" nur im Kampf)
+-- Soll die Leiste gerade zu sehen sein? An, dazu bei "Nur im Kampf sichtbar" nur im Kampf und
+-- bei "Nur in einer Gruppe sichtbar" nur in Gruppe oder Schlachtzug.
 local function wanted(key)
   local db = ns.db
   if not db[SETTING[key]] then return false end
-  return not db[COMBAT_ONLY[key]] or UnitAffectingCombat('player') and true or false
+  if db[COMBAT_ONLY[key]] and not UnitAffectingCombat('player') then return false end
+  if db[GROUP_ONLY[key]] and not (IsInGroup() or IsInRaid()) then return false end
+  return true
 end
 
 local function refreshAll()
@@ -500,8 +504,10 @@ ns.RegisterModule('Leiste', {
     end
   end,
   OnSettingChanged = function(key)
-    if SETTING.focus == key or SETTING.target == key or COMBAT_ONLY.focus == key or COMBAT_ONLY.target == key
-      or key == 'role' then refreshAll() end
+    for _, t in ipairs({ SETTING, COMBAT_ONLY, GROUP_ONLY }) do
+      if t.focus == key or t.target == key then refreshAll() end
+    end
+    if key == 'role' then refreshAll() end
     for k, bar in pairs(bars) do
       if ALPHA[k] == key then bar.frame:SetAlpha(ns.db[key] or 1) end
     end
