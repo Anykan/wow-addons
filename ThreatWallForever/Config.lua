@@ -498,13 +498,23 @@ C.OPTIONS = {
     { type = 'role', label = 'OPT_ROLE', tip = 'TIP_ROLE' },
     { type = 'check', key = 'roleSync', label = 'OPT_ROLE_SYNC', tip = 'TIP_ROLE_SYNC' },
     { type = 'check', key = 'minimap', label = 'MENU_MINIMAP', tip = 'TIP_MINIMAP' },
+    -- "Alles fixieren": sperrt das TWF-Fenster (später auch Fokus-/Ziel-Leiste, Anforderung AC)
+    { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
+    { type = 'section', label = 'SEC_ALERT' },
+    { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_DISPLAY' },
     { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
     { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
-    { type = 'section', label = 'SEC_ALERT' },
-    { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+    { type = 'section', label = 'SEC_VISIBILITY' },
+    { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
+    { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
+
+    { type = 'column' },
+    { type = 'section', label = 'SEC_TOOLS' },
+    { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
+    { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
   },
 
   -- Reiter "Nameplates": Schalter und Deckkraft (darunter die Farbtabelle)
@@ -525,9 +535,6 @@ C.OPTIONS = {
 
   -- Reiter "Ansicht": das TWF-Fenster mit der Liste
   view = {
-    { type = 'section', label = 'SEC_VISIBILITY' },
-    { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
-    { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
     { type = 'section', label = 'SEC_LIST' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
@@ -535,7 +542,6 @@ C.OPTIONS = {
 
     { type = 'column' },
     { type = 'section', label = 'SEC_WINDOW' },
-    { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
     { type = 'slider', key = 'minRows', label = 'OPT_MIN_ROWS', tip = 'TIP_MIN_ROWS', min = 1, max = 15, step = 1,
       count = true, keepBelow = 'maxRows' },
     { type = 'slider', key = 'maxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_MAX_ROWS', min = 1, max = 30, step = 1,
@@ -545,9 +551,6 @@ C.OPTIONS = {
     { type = 'section', label = 'SEC_LOOK' },
     { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
     { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
-    { type = 'section', label = 'SEC_TOOLS' },
-    { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
-    { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
   },
 }
 
