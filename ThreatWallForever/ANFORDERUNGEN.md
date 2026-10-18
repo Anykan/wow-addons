@@ -504,6 +504,11 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - Positionen von Fenster und Leisten bleiben pro Charakter, nicht im Export.
   - Vorbild **ForeverThreat** (laut Beschreibung): Account-Profile mit Auswahl pro Charakter, anlegen/umbenennen/löschen, Export/Import mit Prüfung, „Profil überall nutzen“, Position pro Charakter, keine Rollen-Profile.
 
+- **I18 Konflikt mit anderen Nameplate-Addons erkennen** (Nutzer 2026-10-18: „als Idee, wir beobachten das“; **keine Anforderung**):
+  - **Weg 1:** beim Einloggen bekannte Nameplate-Addons prüfen (Plater, Threat Plates, KuiNameplates, Platynator, NeatPlates, Sexy Nameplates; Liste in Config). Aktiv + TWF-Nameplates an → einmal Hinweis „X verändert ebenfalls die Nameplates – TWF-Nameplates ausschalten oder X deaktivieren“, Knopf „Nicht mehr anzeigen“. Liste, Mauern, Schlachtzugsymbole sind nicht betroffen.
+  - **Weg 2:** Konflikt im Spiel bemerken (Blizzard-Optik wird immer wieder sichtbar gesetzt bzw. fremde Rahmen an der Nameplate) – unsicherer, braucht Test mit echtem zweitem Addon.
+  - Nicht automatisch abschalten (Spieler wundern sich sonst), nur Hinweis. Anlass: Spieler-Meldungen auf CurseForge beobachten.
+
 # Teil 4 — Bugs
 
 ## Bugs (alle behoben)
