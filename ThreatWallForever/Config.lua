@@ -584,9 +584,6 @@ C.OPTIONS = {
     { type = 'check', key = 'twfNameplates', label = 'OPT_TWF_NAMEPLATES', tip = 'TIP_TWF_NAMEPLATES' },
     { type = 'check', key = 'symbolMarks', label = 'OPT_SYMBOL_MARKS', tip = 'TIP_SYMBOL_MARKS' },
     { type = 'check', key = 'showAll', label = 'MENU_SHOW_ALL', tip = 'TIP_SHOW_ALL' },
-    { type = 'section', label = 'SEC_VISIBILITY' },
-    { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
-    { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_TOOLS' },
@@ -611,6 +608,9 @@ C.OPTIONS = {
   view = {
     { type = 'section', label = 'SEC_LIST' },
     { type = 'check', key = 'shown', label = 'OPT_SHOW_LIST', tip = 'TIP_SHOW_LIST' },
+    -- blenden nur die Liste aus (List.lua), nicht Nameplates oder Leisten
+    { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
+    { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
