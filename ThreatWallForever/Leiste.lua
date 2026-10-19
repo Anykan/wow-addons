@@ -47,20 +47,36 @@ local function sideBar()
   local leftOK = Lb and ((rightOK and math.abs(R.left - Lb.right) <= B.SIDE_PAIR_PX)
     or (not rightOK and Lb.right >= screenRight - B.SIDE_EDGE_PX))
   local use = (leftOK and Lb) or (rightOK and R)
-  if not use then return B.FALLBACK_W, B.FALLBACK_H, nil, B.GAP end
+  if not use then
+    -- Keine passende Seitenleiste: trotzdem gleiches Aussehen – Knopfgröße und Rahmen von einer
+    -- beliebigen Aktionsleiste, Höhe so, als stünde sie senkrecht (12 Knöpfe samt Abständen).
+    for _, prefix in ipairs(B.SKIN_SOURCES) do
+      local b1, b2 = _G[prefix .. '1'], _G[prefix .. '2']
+      if b1 and b2 and b1:GetWidth() > 0 and b1:GetLeft() and b2:GetLeft() then
+        local es = b1:GetEffectiveScale() * s
+        local bw = b1:GetWidth() * es
+        local dx = math.abs(b2:GetLeft() - b1:GetLeft()) * es
+        local dy = math.abs((b2:GetTop() or 0) - (b1:GetTop() or 0)) * es
+        local step = math.max(dx, dy)
+        if step < bw then step = bw end
+        return bw, 11 * step + bw, nil, B.GAP, b1
+      end
+    end
+    return B.FALLBACK_W, B.FALLBACK_H, nil, B.GAP
+  end
   local gap = B.GAP
   if rightOK and leftOK then gap = math.max(0, R.left - Lb.right) end
-  return use.w, use.h, use.b1, gap
+  return use.w, use.h, use.b1, gap, use.b1
 end
 
 -- Turm-Maße: symmetrischer Verband (Ziegelbreite ungerade, Turm = 2 Ziegel + Fuge), Symbole
 -- passen in den Turm, Turm endet auf einer ganzen Ziegelreihe.
 local function computeDims()
-  local w, h, anchor, gap = sideBar()
+  local w, h, anchor, gap, skin = sideBar()
   w, h = math.floor(w + 0.5), math.floor(h + 0.5)
   local bw = math.floor((w - 2 * B.FRAME_PAD - 1) / 2)
   if bw % 2 == 0 then bw = bw - 1 end
-  local d = { w = w, h = h, anchor = anchor, gap = gap, brickW = bw, towerW = 2 * bw + 1 }
+  local d = { w = w, h = h, anchor = anchor, gap = gap, skin = skin, brickW = bw, towerW = 2 * bw + 1 }
   d.size = math.floor((d.towerW - 2 - B.HALO_PX[1]) / B.ROLE_ICON_VISIBLE)
   local wallTop = B.TITLE_H + d.size + 2 + B.PCT_H + B.MERLON_H + 2
   d.side = math.floor((w - d.towerW) / 2)
@@ -357,7 +373,7 @@ local function layout(bar)
   local f = bar.frame
   f:SetScale(1)
   f:SetSize(dims.w, dims.h)
-  if dims.anchor then applySkin(bar, dims.anchor) else applySkin(bar, nil) end
+  applySkin(bar, dims.skin)   -- Knopf-Rahmen auch ohne Andock-Leiste (Fix 0.5.1)
   bar.title:ClearAllPoints()
   bar.title:SetPoint('TOP', f, 'TOP', math.floor(bar.skinDX + B.NUDGE_X + 0.5), -3)
   bar.marker:ClearAllPoints()

@@ -362,6 +362,8 @@ C.BAR = {
   SIDE_PAIR_PX = 30,                 -- linke Seitenleiste zählt, wenn sie so nah neben der rechten steht
   SIDE_COLUMN_PX = 4,                -- Knopf 1 und 12 in derselben Spalte (= senkrechte Leiste)
   EDGE_X = 4,                        -- ohne Seitenleiste: Abstand der Mauer zum rechten Rand
+  -- ohne passende Seitenleiste: Knopfgröße und Rahmen von hier (erste vorhandene Aktionsleiste)
+  SKIN_SOURCES = { 'MultiBarRightButton', 'MultiBarLeftButton', 'MultiBarBottomLeftButton', 'MultiBarBottomRightButton', 'ActionButton' },
   SNAP_PX = 15,                      -- magnetisch: so nah rastet eine Leiste ein
   MEASURE_DELAY = 1,                 -- s nach dem Login messen (Seitenleisten stehen dann)
   REMEASURE = { 3, 8 },              -- s nach dem Login nachmessen (echter Spielstart ist langsamer als /reload)
