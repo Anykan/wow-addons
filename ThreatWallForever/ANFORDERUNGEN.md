@@ -385,7 +385,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 - Im Kampf wird nicht gesendet (in Instanzen gesperrt); nach dem Kampf in der Gruppe nachgeholt. Kein realm-weiter Kanal.
 - **Entwicklungsstand nie senden (Nutzer 2026-10-18):** Während der Entwicklung steht in der TOC `<Version>-dev` (z. B. `0.5-dev`, nach Release `0.6-dev`) → Versionscheck sendet nichts, hört aber zu (eigene Version ohne `-dev` verglichen). `paket-bauen.py` verweigert Pakete mit `-dev` → beim Abschluss Version auf die Release-Nummer setzen.
 - Modul `Versionscheck.lua`, Werte `C.VERSIONCHECK`, Text `VERSION_NEWER` (4 Sprachen), Debug-Code 025.
-- Stand: gebaut 2026-10-18, **Test offen (braucht zwei Spieler mit TWF; Nutzer hat noch keine Gilde, Gruppe geht)**.
+- Stand: gebaut 2026-10-18, **getestet 2026-10-19:** Nutzer (0.5.1) lädt Spieler mit 0.5 in die Gruppe ein → Spieler bekommt den Hinweis. Wichtig: die Version liest das Spiel nur beim **kompletten Start** aus der TOC (nach TOC-Änderung reicht /reload nicht, sonst gilt noch die alte, z. B. -dev → sendet nichts).
 
 # Teil 3 — Ideen (keine Anforderungen)
 
