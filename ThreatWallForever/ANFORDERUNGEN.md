@@ -9,8 +9,8 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 # Teil 1 — Offene Punkte
 
 ## ToDo nächste Sitzung
-- **Versionsnummer der nächsten Version festlegen** (0.5.2 oder 0.6) und TOC auf `<Version>-dev` setzen. **Bis dahin bewusst so gelassen (Nutzer 2026-10-19):** Entwicklungsstand läuft mit TOC „0.5.1“ (inoffizielle 0.5.1 inkl. Rahmen-Fix) – sendet beim Versionscheck „0.5.1“, das ist ok, weil 0.5.1 veröffentlicht ist.
-- Rahmen-Fix testen (echter Spielstart, ~15 s) und in Neuigkeiten/Patchnotes/Changelog der nächsten Version eintragen (Texte siehe „Nächste Version“).
+- ✅ **Nächste Version = 0.5.2**, TOC steht auf `0.5.2-dev` (Nutzer 2026-10-19). Rahmen-Fix eingetragen als `NEWS_0_5_2_FIXED` (Neuigkeiten), Version `0.5.2` in `C.NEWS.VERSIONS`.
+- Rahmen-Fix beobachten (mehrere echte Spielstarts, ~15 s warten); beim Abschluss Patchnotes 0.5.2 + `DATES` in `changelog-bauen.py` + Changelog neu bauen.
 - Push auf GitHub (auf „push“).
 
 ## Leisten (AC) – noch nicht umgesetzt
@@ -32,7 +32,7 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 - Balken-Trick mit Mitspieler-Werten über Nameplates (Grundlage Mauer-Ansicht, I4).
 
 
-## Nächste Version (nach 0.5.1) – schon im Code, noch nicht veröffentlicht
+## Nächste Version 0.5.2 (in Arbeit, TOC 0.5.2-dev)
 - **Fix Rahmen der Mauern:** nach dem Spielstart manchmal verzerrt (Knopf-Rahmen beim ersten Messen noch nicht fertig, Maße gleich → kein Neuaufbau). Jetzt Neuaufbau nach 3/8/15 s immer komplett (Commit 0670859f3). Für die Patchnotes/Neuigkeiten der nächsten Version: „Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt“ (DE/EN/ES/FR-Texte siehe Commit ef790a582). **Test:** echter Spielstart, ~15 s warten.
 - 0.5.1 wurde am 2026-10-19 vom Nutzer **ohne** diesen Fix veröffentlicht; Tag `twf-v0.5.1` = b71a45aba, Paket daraus neu gebaut.
 

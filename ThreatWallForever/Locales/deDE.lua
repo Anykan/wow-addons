@@ -195,6 +195,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Wünsche, Ideen oder Fehler? Schreib einen Kommentar a
 L["NEWS_SEC_NEW"] = "Neu"
 L["NEWS_SEC_CHANGED"] = "Geändert"
 L["NEWS_SEC_FIXED"] = "Behoben"
+L["NEWS_0_5_2_FIXED"] = "Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt"
 L["NEWS_0_5_1_FIXED"] = "Fokus- und Ziel-Mauer – stehen jetzt am rechten Bildschirmrand, wenn deine Seitenleisten woanders sind oder ausgeblendet; vorher konnten sie unsichtbar werden"
 L["NEWS_0_5_NEW"] = "Fokus- und Ziel-Mauer – wer den Mob hält, wie nah deine Gruppe an der Aggro ist, dazu sein Schlachtzugsymbol\nSchlachtzugsymbole – in Liste und Mauern, auch im Kampf\nVorschau-Balken – zeigt im Reiter Nameplates sofort, wie ein Zustand aussieht\nLebensfarbe – neue Tabellenzeile für die Lebensanzeige\nNeue Optionen – Rahmenfarbe Ziel, Liste anzeigen, Mauern nur im Kampf bzw. in Gruppe, Deckkraft\nVersionshinweis – meldet im Chat, wenn jemand in Gruppe oder Gilde eine neuere Version hat\nWas ist neu? – dieses Fenster (/twf news)"
 L["NEWS_0_5_CHANGED"] = "Liste – Balken in der Farbe des Zustands mit Leben, Symbol, Aggro-% und Aggro-Ziel\nEinstellungen – drei Reiter: Allgemein, Nameplates, Ansicht\nUmbenannt – „Alle Gegner auflisten“, „Alles fixieren“, „Deckkraft“\nName – im Spiel jetzt „Threat Wall Forever“"
