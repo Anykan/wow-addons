@@ -275,8 +275,18 @@ local function attach(bar)
   elseif (s.dock == 'side' or s.dock == 'bar') and dims.anchor then
     f:SetPoint('TOPRIGHT', dims.anchor, 'TOPLEFT', -dims.gap, 0)
   elseif s.dock == 'side' or s.dock == 'bar' then
-    -- keine Seitenleiste am rechten Rand: selbst an den rechten Rand, senkrecht mittig
-    f:SetPoint('RIGHT', UIParent, 'RIGHT', -B.EDGE_X, 0)
+    -- keine Seitenleiste am rechten Rand: selbst an den rechten Rand, senkrecht mittig, aber
+    -- unterhalb der Minikarte (Nutzer 2026-10-19: oben überdeckten sie die Koordinaten) und
+    -- unten nicht aus dem Bild
+    local uiH, h = UIParent:GetHeight(), f:GetHeight()
+    local top = (uiH - h) / 2
+    local mm = _G.MinimapCluster or _G.Minimap
+    if mm and mm:IsShown() and mm:GetBottom() then
+      local mmBottom = mm:GetBottom() * mm:GetEffectiveScale() / UIParent:GetEffectiveScale()
+      top = math.max(top, uiH - mmBottom + B.MINIMAP_GAP)
+    end
+    top = math.min(top, uiH - h - B.EDGE_X)
+    f:SetPoint('TOPRIGHT', UIParent, 'TOPRIGHT', -B.EDGE_X, -math.max(0, top))
   elseif s.x then
     f:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', s.x, s.y)
   else
