@@ -27,6 +27,17 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 - 2026-10-19: **#16 bestanden** (Versionscheck sendet bei „0.5-dev“ beim Gruppenbeitritt nichts).
 - 2026-10-19: **#14 bestanden** („Nur in einer Gruppe sichtbar/zeigen“: in der Gruppe erscheinen Mauern und Liste).
 
+## Konkurrenzabgleich 2026-10-19 (CurseForge-Seiten gelesen, nichts selbst getestet)
+- **ForeverThreat** (Hauptprojekt, ~29.900 DL, v1.6.10 vom 18.10.): jetzt **Ziel oder Fokus** als Quelle, Raid-Top-X, Modi Auto/Tank/DD/Heal, Warnungen, Profile Export/Import, Testmodus, DE/EN/**ES neu**, LibDBIcon. Keine Nameplates, keine Schlachtzugsymbole.
+- **ForeverThreat** (zweites Projekt, 334 DL, 0.2.6): Pet-Bedrohung, Rollen-/Klassensymbole, Party/Raid-Sync, benannte Profile mit Prüfung.
+- **Forever: Threat (Plates & Bar)** (1.731 DL, 1.2.0 vom 16.10.): Balken unter der Mana-Leiste, Tank-Vorsprung, Nameplate-Ränder, Multi-Target, **automatische Tank-Erkennung** (Gruppenrolle, Raid-Maintank, Fähigkeiten), Nah-/Fernkampf-Schwellen.
+- **ThreatLedger** (15 DL, 05.10.): sehr viele Funktionen – **Zeit bis zum Ziehen** (Bedrohung/s), **roter Bildschirmrand**, Multi-Mob-Fenster, Nameplate-Ränder, Kampf-Zusammenfassung, Nano-Balken, Gruppenchat-Ansagen, Pet, Fokus.
+- **Sexy Nameplates** (221 DL, 17.10.): Bedrohung + **wer den Mob hält** an jeder Nameplate (auch in Dungeons), Auto-Modus, EN/RU.
+- **NKThreat**: kein Forever-Port gefunden (Classic Era/TBC/MoP).
+- **TWF 0.5.1** (91 DL): weiter allein mit **Schlachtzugsymbolen im Kampf** und der **Gruppen-Mauer** (Positionen trotz geheimer Werte), Problem-Liste, Optik pro Zustand mit Vorschau, Neuigkeiten + Versionshinweis, 4 Sprachen. Nicht mehr allein: Bedrohung auf allen Nameplates (Sexy Nameplates, ThreatLedger), Fokus als Quelle (ForeverThreat).
+- **Lücken TWF** (Ideen, nicht beschlossen): Zeit bis zum Ziehen, Bildschirmrand-Warnung (I10), Schlachtzug auf den Mauern (AC), Profile (I17), Pet in der Ampel (I13), automatische Tank-Erkennung (Raid-Maintank), Kampf-Zusammenfassung.
+- **Auffällig:** Die **Kurzbeschreibung (Summary) auf CurseForge ist noch die alte** – neue Fassung steht bereit.
+
 ## Tests, die eine Gruppe brauchen
 - I12 Spott: Zauber-Nummer der Mitspieler lesbar? (Testzeile bei I12)
 - Balken-Trick mit Mitspieler-Werten über Nameplates (Grundlage Mauer-Ansicht, I4).
