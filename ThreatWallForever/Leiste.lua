@@ -534,13 +534,12 @@ ns.RegisterModule('Leiste', {
       measured = true
       refreshAll()
     end)
+    -- Immer komplett neu aufbauen (auch den Knopf-Rahmen): beim Spielstart stimmte teils nur der
+    -- Rahmen nicht, Größe und Position schon (Nutzer 2026-10-19) – ein Vergleich der Maße reicht nicht.
     for _, s in ipairs(B.REMEASURE) do
       C_Timer.After(s, function()
-        local d = computeDims()
-        if not dims or d.w ~= dims.w or d.h ~= dims.h or d.gap ~= dims.gap or d.anchor ~= dims.anchor then
-          ns.dbg('BAR', ('Leisten neu gemessen nach %d s: %d x %d'):format(s, d.w, d.h))
-          refreshAll()
-        end
+        refreshAll()
+        if dims then ns.dbg('BAR', ('Leisten neu aufgebaut nach %d s: %d x %d'):format(s, dims.w, dims.h)) end
       end)
     end
   end,
