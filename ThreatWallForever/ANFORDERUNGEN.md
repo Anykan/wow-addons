@@ -8,12 +8,10 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 
 # Teil 1 — Offene Punkte
 
-## 0.5 abschließen
-- **Gruppentests:** Mitspieler auf dem Turm (Fokus/Ziel), Vorsprung oben, Aggro-Wechsel, Alarm ≥ 85 % (als DD), Tooltip-% live, Rollensymbol des Halters in der Liste, „Nur in einer Gruppe“ (Liste + Leisten).
-- **Instanztest:** Leisten, Listenbalken, Schlachtzugsymbole.
-- **Patchnotes** (HTML, DE/EN/ES/FR) per Abgleich `twf-v0.4` → 0.5, Name „Threat Wall Forever“.
-- **CurseForge-Beschreibung** aktualisieren (Mauern, Listenbalken, Schlachtzugsymbole, Reiter, Name getrennt, „über den Gegnern oder in einer Liste“).
-- **Paket** erst auf Ansage („bauen“), **Push** erst auf „push“.
+## ToDo nächste Sitzung
+- **Versionsnummer der nächsten Version festlegen** (0.5.2 oder 0.6) und TOC auf `<Version>-dev` setzen. **Bis dahin bewusst so gelassen (Nutzer 2026-10-19):** Entwicklungsstand läuft mit TOC „0.5.1“ (inoffizielle 0.5.1 inkl. Rahmen-Fix) – sendet beim Versionscheck „0.5.1“, das ist ok, weil 0.5.1 veröffentlicht ist.
+- Rahmen-Fix testen (echter Spielstart, ~15 s) und in Neuigkeiten/Patchnotes/Changelog der nächsten Version eintragen (Texte siehe „Nächste Version“).
+- Push auf GitHub (auf „push“).
 
 ## Leisten (AC) – noch nicht umgesetzt
 - Checkbox Rolle/Klasse in den Einstellungen (bisher nur Klick auf den Halter).
