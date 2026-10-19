@@ -510,6 +510,8 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - **Weg 2:** Konflikt im Spiel bemerken (Blizzard-Optik wird immer wieder sichtbar gesetzt bzw. fremde Rahmen an der Nameplate) – unsicherer, braucht Test mit echtem zweitem Addon.
   - Nicht automatisch abschalten (Spieler wundern sich sonst), nur Hinweis. Anlass: Spieler-Meldungen auf CurseForge beobachten.
 
+- ~~**I19 Leisten im Blizzard-Bearbeitungsmodus**~~ — ❌ **vom Nutzer abgelehnt 2026-10-19 („lassen wir, wie es ist“)**: blaue Fläche + Ziehen der Leisten während Blizzards Bearbeitungsmodus (Addons können sich dort nicht offiziell anmelden; LibEditMode als Fremd-Bibliothek nicht gewollt). Verschieben weiter direkt an der Leiste.
+
 # Teil 4 — Bugs
 
 ## Bugs (alle behoben)
