@@ -6,7 +6,7 @@
 ## Notes-esMX: Aviso de aggro para tanques y DPS/sanadores: una lista compacta de los enemigos con problemas de aggro, más placas de nombre en color semáforo con tu amenaza en vivo y a quién ataca cada enemigo.
 ## Notes-frFR: Alerte d'aggro pour tanks et DPS/soigneurs : une liste compacte des ennemis avec un problème d'aggro, plus des barres de nom aux couleurs d'un feu tricolore avec ta menace en direct et la cible de chaque ennemi.
 ## Author: Anykan
-## Version: 0.5-dev
+## Version: 0.5
 ## SavedVariables: ThreatWallForeverDB
 
 # Lade-Reihenfolge: Config zuerst (alle Werte), dann Texte, Kern, Module

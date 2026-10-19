@@ -1,6 +1,6 @@
 # Threat Wall Forever — Anforderungen, Ideen & Stand
 
-Stand 2026-10-19: **0.4 bei CurseForge veröffentlicht, 0.5-dev fertig getestet** (Einzel-, Gruppen- und Instanztests inkl. Boss bestanden); Abschluss (Patchnotes, Beschreibung, Paket) auf Ansage. Im Spiel heißt das Addon „Threat Wall Forever“, intern (Ordner, Code) „ThreatWallForever“.
+Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnotes + Beschreibung fertig), Upload bei CurseForge durch den Nutzer; danach TOC → 0.6-dev. Im Spiel heißt das Addon „Threat Wall Forever“, intern (Ordner, Code) „ThreatWallForever“.
 
 **Regel:** Nur was der Nutzer **klar als Anforderung angibt**, steht in Teil 2. Details, die Claude innerhalb einer Anforderung ergänzt hat, sind mit *(Vorschlag Claude, offen)* markiert, bis der Nutzer sie bestätigt. Alles, worüber wir nur reden oder was Claude vorschlägt, steht in Teil 3 als Idee. Aus einer Idee wird erst dann eine Anforderung, wenn der Nutzer das ausdrücklich sagt.
 
@@ -527,7 +527,8 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 
 # Teil 5 — Veröffentlichungen
 
-## Veröffentlichung 0.5 — IN ARBEIT (Nutzer 2026-10-18: „wir machen noch mehr in der 0.5“; Paket erst auf Ansage bauen)
+## Veröffentlichung 0.5 — fertig gebaut 2026-10-19 (Upload bei CurseForge durch den Nutzer)
+- Paket `release/ThreatWallForever-0.5.zip` (23 Dateien, identisch mit Spielordner), Changelog `release/ThreatWallForever-0.5-patchnotes.html` (DE/EN/ES/FR, mit Neustart-Hinweis), Gesamtprotokoll `PATCHNOTES.html`, CurseForge-Beschreibung aktualisiert (`CURSEFORGE-BESCHREIBUNG.html`), Kurzfassung im Neuigkeiten-Fenster abgeglichen. TOC `0.5`, Tag `twf-v0.5`. **Nächster Schritt (auf Ansage): TOC → `0.6-dev`.**
 - **Name in sichtbaren Texten „Threat Wall Forever“** (getrennt geschrieben, Nutzer 2026-10-18): Addon-Liste (TOC-Titel), Chat-Präfix, alle Locale-Texte. Intern (Ordner, Variablen, Kommentare) bleibt „ThreatWallForever“. CurseForge-Beschreibung/Patchnotes beim Abschluss ebenso.
 - **Aufgeräumt vor 0.5 (2026-10-18):** Menu.lua samt `C.MENU` entfernt (Minimap-Menü seit 0.4 ungenutzt), Marks.lua + `/twf mark` entfernt (AG), Baustein „text“ in Settings entfernt, `SYMBOL_LAYOUT.LIST_GAP` und `hex()` in Leiste.lua entfernt; Prüfung auf ungenutzte Funktionen, Konstanten, Standardwerte und Texte: sonst nichts gefunden.
 - **Tests 2026-10-18 (allein, Nutzer: „scheint alles i. O., ohne Lua-Fehler“):** Farben gleich aus/an + Fensterhöhe, Lebensfarbe am Mob, „Alles fixieren“ (Fenster + Leisten), Leisten an/aus, Andocken + nach /reload, Fokus-Leiste, Tooltip Rollen-Sync ohne Viereck. **Weitere Einzeltests 2026-10-18 bestanden:** Leisten „Nur im Kampf sichtbar“, Deckkraft der Leisten, „Liste anzeigen“, Rahmenfarbe Ziel, Liste „Nur in einer Gruppe zeigen“ (Fenster verschwindet), Leisten „Nur in einer Gruppe sichtbar“, Aufteilung der Reiter. **Offen vor Upload:** Gruppe (Mitspieler auf dem Turm, Vorsprung, Aggro-Wechsel, Alarm ≥ 85 %, Tooltip live, Rollensymbol in der Liste) und Instanz.
