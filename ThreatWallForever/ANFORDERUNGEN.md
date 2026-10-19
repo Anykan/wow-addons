@@ -1,6 +1,6 @@
 # Threat Wall Forever — Anforderungen, Ideen & Stand
 
-Stand 2026-10-18: **0.4 bei CurseForge veröffentlicht, 0.5 in Arbeit** (Einzeltests bestanden, Gruppe/Instanz offen). Im Spiel heißt das Addon „Threat Wall Forever“, intern (Ordner, Code) „ThreatWallForever“.
+Stand 2026-10-19: **0.4 bei CurseForge veröffentlicht, 0.5-dev fertig getestet** (Einzel-, Gruppen- und Instanztests inkl. Boss bestanden); Abschluss (Patchnotes, Beschreibung, Paket) auf Ansage. Im Spiel heißt das Addon „Threat Wall Forever“, intern (Ordner, Code) „ThreatWallForever“.
 
 **Regel:** Nur was der Nutzer **klar als Anforderung angibt**, steht in Teil 2. Details, die Claude innerhalb einer Anforderung ergänzt hat, sind mit *(Vorschlag Claude, offen)* markiert, bis der Nutzer sie bestätigt. Alles, worüber wir nur reden oder was Claude vorschlägt, steht in Teil 3 als Idee. Aus einer Idee wird erst dann eine Anforderung, wenn der Nutzer das ausdrücklich sagt.
 
@@ -24,7 +24,7 @@ Stand 2026-10-18: **0.4 bei CurseForge veröffentlicht, 0.5 in Arbeit** (Einzelt
 - TWF 0.5 ist das breiteste „Problem-zuerst“-Addon: Aggro auf allen Gegnern, Problem-Liste, Gruppen-Mauern (auch mit geheimen Werten) und Schlachtzugsymbole im Kampf – letztere beiden hat derzeit kein anderes. ForeverThreat bleibt stärker bei klassischer Omen-Tabelle, Profilen (I17) und Begleiter-Bedrohung (I13); NKThreat hat den größten Umfang, blendet in Instanzen aber Nameplates aus. Lücken TWF: Gruppentests der Mauern, Profile, Pet in der Ampel, Schlachtzug auf den Mauern, Bekanntheit (Beschreibung soll Alleinstellungsmerkmale nach vorn stellen).
 
 ## Testergebnisse Gruppe/Instanz 0.5
-- 2026-10-19: **#15 Instanz (Trash) bestanden** („läuft alles, wie es soll“); Boss wird gerade getestet.
+- 2026-10-19: **#15 Instanz bestanden** – Trash und **Boss** („läuft alles, wie es soll“, „Boss ist auch i. O.“). **Damit alle Pflichttests für 0.5 bestanden**; nur #17 (Leisten nach echtem Spielstart) wird beobachtet.
 - 2026-10-19: **#8–#13 bestanden** (Gruppe): Mitspieler auf dem Turm und wandern mit, Vorsprung oben, Aggro-Wechsel rückt nach oben, Goldring blinkt ab 85 % rot, Tooltip live, Rollensymbol des Halters in der Liste.
 - 2026-10-19: **#16 bestanden** (Versionscheck sendet bei „0.5-dev“ beim Gruppenbeitritt nichts).
 - 2026-10-19: **#14 bestanden** („Nur in einer Gruppe sichtbar/zeigen“: in der Gruppe erscheinen Mauern und Liste).
