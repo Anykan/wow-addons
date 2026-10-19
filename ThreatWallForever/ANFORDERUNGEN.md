@@ -24,6 +24,7 @@ Stand 2026-10-18: **0.4 bei CurseForge veröffentlicht, 0.5 in Arbeit** (Einzelt
 - TWF 0.5 ist das breiteste „Problem-zuerst“-Addon: Aggro auf allen Gegnern, Problem-Liste, Gruppen-Mauern (auch mit geheimen Werten) und Schlachtzugsymbole im Kampf – letztere beiden hat derzeit kein anderes. ForeverThreat bleibt stärker bei klassischer Omen-Tabelle, Profilen (I17) und Begleiter-Bedrohung (I13); NKThreat hat den größten Umfang, blendet in Instanzen aber Nameplates aus. Lücken TWF: Gruppentests der Mauern, Profile, Pet in der Ampel, Schlachtzug auf den Mauern, Bekanntheit (Beschreibung soll Alleinstellungsmerkmale nach vorn stellen).
 
 ## Testergebnisse Gruppe/Instanz 0.5
+- 2026-10-19: **#15 Instanz (Trash) bestanden** („läuft alles, wie es soll“); Boss wird gerade getestet.
 - 2026-10-19: **#8–#13 bestanden** (Gruppe): Mitspieler auf dem Turm und wandern mit, Vorsprung oben, Aggro-Wechsel rückt nach oben, Goldring blinkt ab 85 % rot, Tooltip live, Rollensymbol des Halters in der Liste.
 - 2026-10-19: **#16 bestanden** (Versionscheck sendet bei „0.5-dev“ beim Gruppenbeitritt nichts).
 - 2026-10-19: **#14 bestanden** („Nur in einer Gruppe sichtbar/zeigen“: in der Gruppe erscheinen Mauern und Liste).
