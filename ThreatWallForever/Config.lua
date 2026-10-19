@@ -358,6 +358,10 @@ C.BAR = {
   FALLBACK_BG = { 0.06, 0.07, 0.09, 0.85 },
   FALLBACK_BORDER = { 0.5, 0.42, 0.33, 1 },
   GAP = 6,                           -- Abstand zur Leiste, falls keiner messbar ist
+  SIDE_EDGE_PX = 150,                -- Seitenleiste zählt nur, wenn ihre rechte Kante so nah am rechten Rand ist (Fix 0.5.1)
+  SIDE_PAIR_PX = 30,                 -- linke Seitenleiste zählt, wenn sie so nah neben der rechten steht
+  SIDE_COLUMN_PX = 4,                -- Knopf 1 und 12 in derselben Spalte (= senkrechte Leiste)
+  EDGE_X = 4,                        -- ohne Seitenleiste: Abstand der Mauer zum rechten Rand
   SNAP_PX = 15,                      -- magnetisch: so nah rastet eine Leiste ein
   MEASURE_DELAY = 1,                 -- s nach dem Login messen (Seitenleisten stehen dann)
   REMEASURE = { 3, 8 },              -- s nach dem Login nachmessen (echter Spielstart ist langsamer als /reload)
@@ -401,7 +405,7 @@ C.NEWS = {
   WIDTH = 440, HEIGHT = 380,
   OFFSET_Y = 60,                  -- über der Bildschirmmitte
   -- Versionen mit Kurzfassung (Texte NEWS_<Version> in den Locales), neueste zuerst
-  VERSIONS = { '0.5', '0.4', '0.3', '0.2', '0.1' },
+  VERSIONS = { '0.5.1', '0.5', '0.4', '0.3', '0.2', '0.1' },
   DELAY = 2,                      -- Sekunden nach dem Login
   RETRY = 2,                      -- im Kampf / bei offenem Hinweis-Popup: erneut prüfen nach … s
   TOP_GAP = 10,                   -- Abstand unter der Kopfleiste

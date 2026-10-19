@@ -521,11 +521,16 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 # Teil 4 — Bugs
 
 ## Bugs (alle behoben)
+- **B3 Mauern unsichtbar/verschoben, wenn die Seitenleisten woanders stehen (gemeldet 2026-10-19 von einem Spieler mit 0.5) — ✅ BEHOBEN in 0.5.1:** TWF nahm Seitenleisten als Maß/Anker, sobald sichtbar – auch waagerecht oder mitten im Bild (Höhe Knopf 1→12 dann winzig/negativ, Anker irgendwo). Jetzt nur Seitenleisten, die **senkrecht am rechten Rand** stehen (`C.BAR.SIDE_EDGE_PX`, `SIDE_PAIR_PX`, `SIDE_COLUMN_PX`); sonst Ersatzmaße und die Mauern selbst **am rechten Bildschirmrand** (`EDGE_X`). Frei hingezogene Mauern bleiben, wo sie sind.
+
 - **B2 Gegner doppelt in der Liste (gemeldet 2026-10-17, Instanz) — ✅ BEHOBEN 2026-10-17, in der Instanz getestet (Nutzer: kein Doppeleintrag mehr):** In Instanzen ist die GUID geheim; der Token war dann der Schlüssel, derselbe Mob stand als `target` und als `nameplateN` doppelt in der Liste. `UnitIsUnit` ist dort lesbar (getestet: Nameplate vs. target = true). Fix in `Detection.lua`: Schlüssel = Nameplate-Token desselben Mobs (`tokenKey`), weitere Token desselben Mobs (auch `partyNtarget` ohne Nameplate) werden per `UnitIsUnit` übersprungen; Ziel-Hervorhebung in der Liste über `UnitIsUnit(…, 'target')`. Debug-Code `MERGED` (023).
 
 - **B1 Schlachtzugsymbole fehlen bei TWF-Nameplates (gemeldet 2026-10-04) — ✅ BEHOBEN 2026-10-13:** Blizzards Symbol wird zusätzlich umgesetzt (über dem Namen bzw. links vor dem Balken, `placeRaidIcon`). Blizzards `UnitFrame.RaidTargetFrame` bleibt per `SetIgnoreParentAlpha(true)` sichtbar (Symbol erscheint laut Nutzer wieder; Optik/Position noch zu beurteilen). Ursprüngliche Beschreibung: Sind die TWF-Nameplates an, sieht man Blizzards Schlachtzugsymbole (Totenkopf, Stern …) nicht mehr, sobald man nah dran ist. Ursache (vermutet): Nah dran zeigt Blizzard das Symbol an der Nameplate, deren Optik TWF ausblendet (aus der Ferne zeichnet das Spiel es selbst über dem Kopf). Lösungsidee: Blizzards Symbol-Element der Nameplate (vermutlich `UnitFrame.RaidTargetFrame`) per `SetIgnoreParentAlpha(true)` sichtbar lassen, wie bei der Zauberleiste (T5i), Position am TWF-Balken. Vorher testen: Feldname + ob es im Kampf und in Instanzen sichtbar bleibt.
 
 # Teil 5 — Veröffentlichungen
+
+## Veröffentlichung 0.5.1 — fertig gebaut 2026-10-19 (Fix B3)
+- Paket `release/ThreatWallForever-0.5.1.zip`, Changelog `release/ThreatWallForever-0.5.1-patchnotes.html` (4 Sprachen), Eintrag im Neuigkeiten-Fenster. Tag `twf-v0.5.1`. Danach (auf Ansage) TOC → `0.6-dev`.
 
 ## Veröffentlichung 0.5 — fertig gebaut 2026-10-19 (Upload bei CurseForge durch den Nutzer)
 - Paket `release/ThreatWallForever-0.5.zip` (23 Dateien, identisch mit Spielordner), Changelog `release/ThreatWallForever-0.5-patchnotes.html` (DE/EN/ES/FR, mit Neustart-Hinweis), Gesamtprotokoll `PATCHNOTES.html`, CurseForge-Beschreibung aktualisiert (`CURSEFORGE-BESCHREIBUNG.html`), Kurzfassung im Neuigkeiten-Fenster abgeglichen. TOC `0.5`, Tag `twf-v0.5`. **Nächster Schritt (auf Ansage): TOC → `0.6-dev`.**

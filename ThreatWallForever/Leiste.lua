@@ -24,21 +24,33 @@ local measured = false
 
 -- Breite/Höhe aus Knopf 1 und 12 (die Leisten-Rahmen selbst sind oft anders groß). Rückgabe:
 -- Breite, Höhe (UIParent-Einheiten), Knopf 1 der linken sichtbaren Leiste, Abstand der Leisten
+-- Nur Seitenleisten zählen, die wirklich SENKRECHT am RECHTEN RAND stehen. Hat ein Spieler sie
+-- verschoben (z. B. waagerecht nach unten), nutzt TWF Ersatzmaße und steht selbst am rechten
+-- Rand (Fix 0.5.1: sonst waren die Mauern winzig bzw. irgendwo im Bild).
 local function sideBar()
   local s = 1 / UIParent:GetEffectiveScale()
+  local screenRight = UIParent:GetRight() or 0
   local function measure(prefix)
     local b1, b12 = _G[prefix .. 'Button1'], _G[prefix .. 'Button12']
-    if not (b1 and b12 and b1:IsVisible() and b1:GetTop() and b12:GetBottom()) then return nil end
+    if not (b1 and b12 and b1:IsVisible() and b1:GetTop() and b12:GetTop() and b12:GetBottom()) then return nil end
     local es = b1:GetEffectiveScale() * s
-    return b1:GetWidth() * es, (b1:GetTop() - b12:GetBottom()) * es, b1, b1:GetLeft() * es
+    local m = { b1 = b1, w = b1:GetWidth() * es, h = (b1:GetTop() - b12:GetBottom()) * es,
+      left = b1:GetLeft() * es, right = b1:GetRight() * es }
+    -- senkrecht: Knopf 12 unter Knopf 1 und (fast) in derselben Spalte
+    local vertical = b12:GetTop() < b1:GetTop() and math.abs((b12:GetLeft() - b1:GetLeft()) * es) <= B.SIDE_COLUMN_PX
+    if not vertical or m.h <= m.w then return nil end
+    return m
   end
-  local wR, hR, bR, lR = measure('MultiBarRight')
-  local wL, hL, bL, lL = measure('MultiBarLeft')
-  local w, h, anchor = wR or wL, hR or hL, bL or bR
-  if not w then return B.FALLBACK_W, B.FALLBACK_H, nil, B.GAP end
+  local R, Lb = measure('MultiBarRight'), measure('MultiBarLeft')
+  local rightOK = R and R.right >= screenRight - B.SIDE_EDGE_PX
+  -- linke Seitenleiste: direkt neben der rechten oder (ohne rechte) selbst am Rand
+  local leftOK = Lb and ((rightOK and math.abs(R.left - Lb.right) <= B.SIDE_PAIR_PX)
+    or (not rightOK and Lb.right >= screenRight - B.SIDE_EDGE_PX))
+  local use = (leftOK and Lb) or (rightOK and R)
+  if not use then return B.FALLBACK_W, B.FALLBACK_H, nil, B.GAP end
   local gap = B.GAP
-  if lR and lL and wL then gap = math.max(0, lR - lL - wL) end
-  return w, h, anchor, gap
+  if rightOK and leftOK then gap = math.max(0, R.left - Lb.right) end
+  return use.w, use.h, use.b1, gap
 end
 
 -- Turm-Maße: symmetrischer Verband (Ziegelbreite ungerade, Turm = 2 Ziegel + Fuge), Symbole
@@ -246,6 +258,9 @@ local function attach(bar)
     f:SetPoint('TOPRIGHT', other.frame, 'TOPLEFT', -dims.gap, 0)
   elseif (s.dock == 'side' or s.dock == 'bar') and dims.anchor then
     f:SetPoint('TOPRIGHT', dims.anchor, 'TOPLEFT', -dims.gap, 0)
+  elseif s.dock == 'side' or s.dock == 'bar' then
+    -- keine Seitenleiste am rechten Rand: selbst an den rechten Rand, senkrecht mittig
+    f:SetPoint('RIGHT', UIParent, 'RIGHT', -B.EDGE_X, 0)
   elseif s.x then
     f:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', s.x, s.y)
   else
