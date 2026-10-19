@@ -481,12 +481,27 @@ ns.RegisterModule('Leiste', {
         sb:HookScript('OnShow', refreshSoon)
         sb:HookScript('OnHide', refreshSoon)
       end
+      -- Knopfgröße ändert sich, wenn das Spiel Skalierung/Layout spät anwendet → neu messen
+      local b1 = _G[name .. 'Button1']
+      if b1 then b1:HookScript('OnSizeChanged', refreshSoon) end
     end
-    -- Seitenleisten stehen beim Einloggen evtl. noch nicht fertig → kurz warten, dann messen
+    -- Seitenleisten stehen beim Einloggen evtl. noch nicht fertig → kurz warten, dann messen.
+    -- Nach einem echten Spielstart (langsamer als /reload) waren die Maße beim ersten Messen
+    -- teils noch falsch (Leisten zu groß, Nutzer 2026-10-19) → später noch einmal prüfen und
+    -- nur neu aufbauen, wenn sich etwas geändert hat.
     C_Timer.After(B.MEASURE_DELAY, function()
       measured = true
       refreshAll()
     end)
+    for _, s in ipairs(B.REMEASURE) do
+      C_Timer.After(s, function()
+        local d = computeDims()
+        if not dims or d.w ~= dims.w or d.h ~= dims.h or d.gap ~= dims.gap or d.anchor ~= dims.anchor then
+          ns.dbg('BAR', ('Leisten neu gemessen nach %d s: %d x %d'):format(s, d.w, d.h))
+          refreshAll()
+        end
+      end)
+    end
   end,
   OnTick = function()
     if not measured then return end

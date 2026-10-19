@@ -360,6 +360,7 @@ C.BAR = {
   GAP = 6,                           -- Abstand zur Leiste, falls keiner messbar ist
   SNAP_PX = 15,                      -- magnetisch: so nah rastet eine Leiste ein
   MEASURE_DELAY = 1,                 -- s nach dem Login messen (Seitenleisten stehen dann)
+  REMEASURE = { 3, 8 },              -- s nach dem Login nachmessen (echter Spielstart ist langsamer als /reload)
   REFRESH_DELAY = 0.3,               -- s warten nach Leiste ein/aus, Bearbeitungsmodus, UI-Skalierung
   SKIN_SLICE = 14,                   -- Randbreite der Knopf-Grafik (Neun-Teile-Ränder)
   NUDGE_X = -3,                      -- Inhalt mittig im Knopf-Rahmen (Grafik rechts dicker, getestet)
