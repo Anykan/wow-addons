@@ -38,6 +38,11 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 - **Lücken TWF** (Ideen, nicht beschlossen): Zeit bis zum Ziehen, Bildschirmrand-Warnung (I10), Schlachtzug auf den Mauern (AC), Profile (I17), Pet in der Ampel (I13), automatische Tank-Erkennung (Raid-Maintank), Kampf-Zusammenfassung.
 - **Auffällig:** Die **Kurzbeschreibung (Summary) auf CurseForge ist noch die alte** – neue Fassung steht bereit.
 
+## Tests für die Klassik-Liste (AI, Konzeptphase)
+- **Solo, normaler Mob im Ziel (draußen und im Kampf):** `/run print("Werte geheim:",C_Secrets.ShouldUnitThreatValuesBeSecret("player","target"),"Fokus:",UnitExists("focus") and C_Secrets.ShouldUnitThreatValuesBeSecret("player","focus"),"Lead:",UnitThreatLeadSituation and "JA" or "nein")` → `false` = lesbar.
+- **Gruppe:** dasselbe mit `"party1"` statt `"player"`, einmal an einem **Boss**. Alternativ `/threat debug` (Forever Threat) – zeigt pro Einheit SECRET oder Wert.
+- **Gruppe, Dungeon, mitten im Kampf:** `/run print(C_ChatInfo.SendAddonMessage("TWF","T:1","PARTY"))` → 0/true = Sync möglich, sonst gesperrt.
+
 ## Tests, die eine Gruppe brauchen
 - I12 Spott: Zauber-Nummer der Mitspieler lesbar? (Testzeile bei I12)
 - Balken-Trick mit Mitspieler-Werten über Nameplates (Grundlage Mauer-Ansicht, I4).
@@ -417,6 +422,11 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 - **Fenster im alten Stil:** ein Gegner (Ziel bzw. Fokus), darunter pro Gruppenmitglied eine Zeile: Rolle/Klasse, Name in Klassenfarbe, Balken mit Aggro, Aggro-%; Aggro-Halter oben und markiert. Kopf: Name des Gegners, Schlachtzugsymbol. Optik wie das TWF-Fenster. Einzeln verschiebbar/fixierbar, Position gespeichert. Unabhängig von der Mauer.
 - **Sortierung:** Mitspieler-Werte sind vermutlich geheim (Mauer nutzt den Balken-Trick) → vorher in der Gruppe testen, ob sie über `target`/`focus` lesbar sind (siehe I14, Test 1). Lesbar = echte Sortierung; sonst grob nach lesbarem Status (hält Aggro > drüber > hoch > niedrig), innerhalb fest (Tank, Heiler, DDs).
 - Offen: Was bedeutet Anzahl **0** (nur Kopf/Halter? oder Mindestwert 1)?
+- **Konzeptphase (Nutzer 2026-10-20).** Erkenntnisse aus fremdem Code (nur gelesen, nichts übernommen):
+  - **Forever Threat 1.23:** Halter oben (`UnitIsUnit(einheit, mob.."target")`, lesbar), dann lesbare Zeilen nach Bedrohung, gesperrte Zeilen am Ende alphabetisch nach Einheit. Kein Sync.
+  - **NKThreat 2.17.1:** sortiert nur, wenn **alle** Zeilen lesbar sind, sonst Gruppenreihenfolge. Kein Sync (Addon-Nachrichten nur für Versionsprüfung). Nutzt **`C_Secrets.ShouldUnitThreatValuesBeSecret(unit, mob)`** / **`ShouldUnitThreatStateBeSecret`** (vorab fragen, ob gesperrt) und **`UnitThreatLeadSituation(unit, mob)`** (Tank-Vorsprung als Stufe 0–3). Laut Kommentar: Status von Spieler/Pet/Mitspielern meist lesbar; **Zahlen lesbar gegen normales Ziel (kein Boss)**; Nameplate, die nicht Ziel ist → nur Status; `targettarget` gesperrt.
+  - Folge, falls bestätigt: für das Ziel **echte Sortierung**, nur bei Bossen grob nach Status (Weg C), `C_Secrets` als Weiche.
+  - **Gruppen-Sync** (I14 Stufe 2) wäre im Instanzkampf vermutlich gesperrt → Test unten.
 
 # Teil 3 — Ideen (keine Anforderungen)
 
