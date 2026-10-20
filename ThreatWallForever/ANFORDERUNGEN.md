@@ -50,6 +50,9 @@ Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesper
 - Am Rande: Blizzard hat eine eigene einfache „Aggro-Anzeige“ (Optionen, Suche „Threat“) – evtl. Werbeargument „mehr als Blizzards Aggro-Anzeige“.
 
 
+## Version 0.6 (geplant)
+- **AI Klassik-Liste** für Ziel und Fokus (Teil 2). Vorher Gruppentest: Mitspieler-Werte über `target` lesbar?
+
 ## Nächste Version 0.5.2 (in Arbeit, TOC 0.5.2-dev)
 - **Fix Rahmen der Mauern:** nach dem Spielstart manchmal verzerrt (Knopf-Rahmen beim ersten Messen noch nicht fertig, Maße gleich → kein Neuaufbau). Jetzt Neuaufbau nach 3/8/15 s immer komplett (Commit 0670859f3). Für die Patchnotes/Neuigkeiten der nächsten Version: „Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt“ (DE/EN/ES/FR-Texte siehe Commit ef790a582). **Test:** echter Spielstart, ~15 s warten.
 - 0.5.1 wurde am 2026-10-19 vom Nutzer **ohne** diesen Fix veröffentlicht; Tag `twf-v0.5.1` = b71a45aba, Paket daraus neu gebaut.
@@ -407,6 +410,14 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 - Modul `Versionscheck.lua`, Werte `C.VERSIONCHECK`, Text `VERSION_NEWER` (4 Sprachen), Debug-Code 025.
 - Stand: gebaut 2026-10-18, **getestet 2026-10-19:** Nutzer (0.5.1) lädt Spieler mit 0.5 in die Gruppe ein → Spieler bekommt den Hinweis. Wichtig: die Version liest das Spiel nur beim **kompletten Start** aus der TOC (nach TOC-Änderung reicht /reload nicht, sonst gilt noch die alte, z. B. -dev → sendet nichts).
 
+## AI. Klassik-Liste für Ziel und Fokus (vom Nutzer beschlossen 2026-10-20, Version 0.6, war Idee I4)
+- **Einstellungen, Reiter Ansicht:** in den Spalten **Ziel** und **Fokus** je eine Checkbox **„Klassik-Liste“** direkt unter der Mauer-Checkbox, Standard **aus**.
+- **Ist die Checkbox gesetzt, tauchen darunter auf:** ein **Schieberegler Anzahl Zeilen 0–15** und eine Checkbox **„Begleiter auflisten“** (Pet als eigene Zeile). Ohne Haken sind beide ausgeblendet (Einstellungs-Baukasten braucht dafür abhängige Zeilen).
+- **„Nur im Kampf“, „Nur in Gruppe“ und „Deckkraft“** der Spalte gelten **gemeinsam** für Mauer und Klassik-Liste.
+- **Fenster im alten Stil:** ein Gegner (Ziel bzw. Fokus), darunter pro Gruppenmitglied eine Zeile: Rolle/Klasse, Name in Klassenfarbe, Balken mit Aggro, Aggro-%; Aggro-Halter oben und markiert. Kopf: Name des Gegners, Schlachtzugsymbol. Optik wie das TWF-Fenster. Einzeln verschiebbar/fixierbar, Position gespeichert. Unabhängig von der Mauer.
+- **Sortierung:** Mitspieler-Werte sind vermutlich geheim (Mauer nutzt den Balken-Trick) → vorher in der Gruppe testen, ob sie über `target`/`focus` lesbar sind (siehe I14, Test 1). Lesbar = echte Sortierung; sonst grob nach lesbarem Status (hält Aggro > drüber > hoch > niedrig), innerhalb fest (Tank, Heiler, DDs).
+- Offen: Was bedeutet Anzahl **0** (nur Kopf/Halter? oder Mindestwert 1)?
+
 # Teil 3 — Ideen (keine Anforderungen)
 
 ## Ideen I1 – I15 und weitere
@@ -425,7 +436,7 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
 
 - ~~**I3 Weitere Sprachen**~~ — ❌ **geschlossen (Nutzer, 2026-10-17): vier Sprachen reichen fürs Erste; weitere Sprachen können Spieler selbst über GitHub beitragen (Anforderung Y).** (Idee des Nutzers, 2026-10-13; **keine Anforderung**, Details werden erst geklärt, wenn es umgesetzt wird): Spielertexte zusätzlich auf **Spanisch, Französisch, Russisch und Chinesisch**. Umschaltung wie bisher über die Spielsprache, Englisch bleibt der Rückfall, Debug-Texte bleiben Deutsch. — **Spanisch und Französisch umgesetzt in 0.3 (2026-10-17)**; Russisch und Chinesisch weiter Idee.
 
-- **I4 Drei Fenster: Problem-Liste, Fokus-Liste, Ziel-Liste** (Idee des Nutzers, 2026-10-13; **keine Anforderung**):
+- **I4 Drei Fenster: Problem-Liste, Fokus-Liste, Ziel-Liste** — ✅ **zur Anforderung AI geworden (2026-10-20, Klassik-Liste, Version 0.6)**. (Idee des Nutzers, 2026-10-13):
   - **Fenster 1, wie heute:** das TWF-Fenster mit den Problem-Gegnern. Bleibt unverändert.
   - **Fenster 2, Fokus (neu, per Option einschaltbar):** klassische Bedrohungsliste für das **Fokus-Ziel**. Das Fokus-Ziel wird dafür als Quelle aufgenommen.
   - **Fenster 3, Ziel (neu, per Option einschaltbar):** klassische Bedrohungsliste für das **aktuelle Ziel**, ein Single-Target-Fenster analog Omen.
