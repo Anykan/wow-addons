@@ -49,7 +49,7 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 
 ## Prüfen zum Spielstart WoW Forever (5.11.2026, 0:00 MEZ)
 Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesperrte Werte bleiben (Blizzard-UI-Team bestätigt), keine Änderungen an Addon-API, Schlachtzugsymbolen, Fokus oder Addon-Nachrichten angekündigt. TWF nutzt weder Kampflog noch Secure Snippets noch `WOW_PROJECT_ID`.
-- **Interface-Nummer:** TOC hat `16001`. Ändert der Start-Client die Nummer, steht TWF als „veraltet“ → Nummer anpassen, neu hochladen.
+- **Interface-Nummer:** TOC hat seit 2026-10-20 `16001, 16002` (ForeverThreat 1.6.10 trägt 16002 schon ein). Ändert der Start-Client die Nummer, steht TWF als „veraltet“ → Nummer anpassen, neu hochladen.
 - **Nameplate-Sichtweite:** seit 16.10. sind Nameplates von Gegnern deutlich über/unter dir erst aus kürzerer Entfernung sichtbar → Liste/Mauer sehen solche Mobs später. Prüfen, ob das stört.
 - **Aktionsleisten:** neue Option „Kompakte Aktionsleiste“, Einstellungen jetzt im Bearbeitungsmodus, eigene Gamepad-Leisten → prüfen, ob die Mauern richtig andocken bzw. der Ersatz-Platz am rechten Rand greift.
 - Am Rande: Blizzard hat eine eigene einfache „Aggro-Anzeige“ (Optionen, Suche „Threat“) – evtl. Werbeargument „mehr als Blizzards Aggro-Anzeige“.
