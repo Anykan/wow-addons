@@ -38,6 +38,22 @@ Stand 2026-10-19: **0.5 fertig gebaut** (alle Tests bestanden, Paket + Patchnote
 - **Lücken TWF** (Ideen, nicht beschlossen): Zeit bis zum Ziehen, Bildschirmrand-Warnung (I10), Schlachtzug auf den Mauern (AC), Profile (I17), Pet in der Ampel (I13), automatische Tank-Erkennung (Raid-Maintank), Kampf-Zusammenfassung.
 - **Auffällig:** Die **Kurzbeschreibung (Summary) auf CurseForge ist noch die alte** – neue Fassung steht bereit.
 
+## Code-Analyse fremder Threat-Addons 2026-10-20 (Stand gemerkt, später weiter)
+Kopien in `X:\Claude Workspace\addon-analyse\2026-10-20\` (nur gelesen, nichts übernommen, nicht im Repo, nichts im Spiel getestet): ForeverThreat 1.6.10, NKThreat 2.17.1, ThreatClassic2 2.75, ThreatDisplay 2.2.1, ThreatMeter 0.7.4, TidyPlates_ThreatPlates 13.3.1.
+- **Neue Spielfunktionen:**
+  - `C_Secrets.ShouldUnitThreatValuesBeSecret(einheit, mob)` / `ShouldUnitThreatStateBeSecret` (NKThreat, ThreatDisplay): vorab fragen, ob gesperrt. Laut beiden: Zahlen gegen normale Mobs lesbar, nur bei manchen Bossen gesperrt. ThreatClassic2 rechnet ohne Prüfung mit allen Gruppenwerten am Ziel → starker Hinweis, dass lesbar.
+  - `UnitThreatLeadSituation(einheit, mob)` (NKThreat): Tank-Vorsprung als Stufe 0–3 (0 bequem … 3 gleich weg), **lesbar auch bei gesperrten Zahlen** → Tank-Alarm/Farbe an Mauer-Kopf, Nameplates, Liste.
+  - `C_CurveUtil.EvaluateColorValueFromBoolean` (NKThreat, ThreatPlates): Farbe aus gesperrtem Ja/Nein. Zahlen-Kurven nehmen laut NKThreat keine gesperrten Werte von Addons → I1 endgültig tot.
+- **Algorithmen:**
+  - Sortierung in Stufen (ThreatMeter, ForeverThreat): Ziel des Mobs > hält Aggro > Status ≥ 2 > Status 1 > Rohwert > % > Status; ThreatMeter nimmt den besten Wert, der bei allen Zeilen lesbar ist (= unser Weg C).
+  - Zeit bis zum Ziehen (ThreatClassic2, NKThreat): BpS über die ersten 4 s gemittelt, danach gleitender Mittelwert, läuft bei Stillstand aus; `Sekunden = fehlende Bedrohung / (meine BpS − Tank-BpS × 1,1 bzw. 1,3)`, ab 100 s ausblenden. Nur Ziel/Fokus.
+  - Spott (ForeverThreat): `UNIT_SPELLCAST_SUCCEEDED` + Spott-ID-Liste (Retail-IDs, Forever-IDs selbst prüfen), nur wenn Ziel-GUID des Zaubernden = beobachteter Mob, Tank-Wechsel-Fenster 2,5 s (bestätigt I12 Weg A).
+  - Bildschirm-Blitz (ThreatDisplay): Vollbild-Fläche rot 30 %, blendet in 0,5 s aus (Vorlage I10). Zähler „Pulling: 2 Mobs“ über alle Nameplates, Status 1 als Ersatz.
+  - Raid-Tempo (ForeverThreat): Abfrage 10er 0,2 s … 40er 0,35 s; `UNIT_THREAT_*`-Ereignisse zu einem Durchlauf zusammengefasst (vor Raid-Öffnung 9.12. wichtig).
+- **Kleinere Funktionen:** Heiler-Modus mit früheren Warnstufen 60/75/90 % (ForeverThreat); Chat-Hinweis „Aggro → Name“ (ForeverThreat); Tank-Warnung, wenn jemand nahe kommt (ThreatClassic2); Profile mit Export überall (bestätigt I17); `## AllowLoadGameType: camelot` bzw. `_Camelot.toc` (ForeverThreat, ThreatMeter; „camelot“ = interner Name von Forever).
+- **TWF vorne:** Schlachtzugsymbole im Kampf (ThreatPlates hat es auskommentiert); „anderer Tank“ auf Forever (ThreatPlates schaltet es ab); Gruppen-Rangfolge mit gesperrten Werten (Balken-Trick der Mauer, sonst niemand).
+- **Offener Vorschlag (Nutzer noch nicht entschieden):** (1) `C_Secrets`/`UnitThreatLeadSituation` in den Solo-Test bei AI; (2) I20 Zeit bis zum Ziehen; (3) I21 Übersetzen über CurseForge; (4) I10 um Blitz + Zähler ergänzen; (5) I12 um ForeverThreat-Ablauf ergänzen; (6) Prüfpunkt Spielstart: `AllowLoadGameType: camelot` und Raid-Tempo vor 9.12.
+
 ## Tests für die Klassik-Liste (AI, Konzeptphase)
 - **Solo, normaler Mob im Ziel (draußen und im Kampf):** `/run print("Werte geheim:",C_Secrets.ShouldUnitThreatValuesBeSecret("player","target"),"Fokus:",UnitExists("focus") and C_Secrets.ShouldUnitThreatValuesBeSecret("player","focus"),"Lead:",UnitThreatLeadSituation and "JA" or "nein")` → `false` = lesbar.
 - **Gruppe:** dasselbe mit `"party1"` statt `"player"`, einmal an einem **Boss**. Alternativ `/threat debug` (Forever Threat) – zeigt pro Einheit SECRET oder Wert.
