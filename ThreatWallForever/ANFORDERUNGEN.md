@@ -574,6 +574,15 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - Nicht automatisch abschalten (Spieler wundern sich sonst), nur Hinweis. Anlass: Spieler-Meldungen auf CurseForge beobachten.
 
 - ~~**I19 Leisten im Blizzard-Bearbeitungsmodus**~~ — ❌ **vom Nutzer abgelehnt 2026-10-19 („lassen wir, wie es ist“)**: blaue Fläche + Ziehen der Leisten während Blizzards Bearbeitungsmodus (Addons können sich dort nicht offiziell anmelden; LibEditMode als Fremd-Bibliothek nicht gewollt). Verschieben weiter direkt an der Leiste.
+- **I22 Kompatibilität mit anderen WoW-Versionen (Classic Era/Anniversary/SoD, evtl. MoP Classic, Retail)** (Nutzer 2026-10-24: „als Idee“; **keine Anforderung**; I20/I21 sind für „Zeit bis zum Ziehen“ und „Übersetzen über CurseForge“ vorgesehen, noch nicht eingetragen):
+  - **Weiche „welches Spiel?“** an einer Stelle (Config/Utils), z. B. über `WOW_PROJECT_ID` (Forever = `WOW_PROJECT_CAMELOT`); eigene TOC je Version (`_Vanilla.toc` usw.) bzw. mehrere Interface-Nummern; CurseForge-Spielversionen ergänzen; Name „…Forever“ für Classic überdenken.
+  - **Fokus fehlt in Classic Era** → Fokus-Mauer/Fokus-Quelle dort ausblenden.
+  - **Grafiken (Atlas) fehlen** in Classic: Rollen-Symbole (`groupfinder-icon-role-…`, `ui-lfg-roleicon-…`), Knopf-Rahmen der Mauern (`UI-HUD-ActionBar-…`), Zauberbalken (`ui-castingbar-…`), `ui-damagemeters-header-bar` → Ersatzgrafiken (größter Brocken, Design hängt daran).
+  - **Funktionen prüfen:** `UnitThreatPercentageOfLead` (vermutlich nicht in Era → Vorsprung selbst rechnen, Werte dort lesbar), `SetTextureSliceMargins`, `UnitGroupRolesAssigned` (Rollen kaum → Erkennung über Haltung/Gestalt/Zorn der Gerechtigkeit wie ThreatClassic2), kein Bearbeitungsmodus (Seitenleisten fest).
+  - **Keine gesperrten Werte in Classic** → echte Sortierung, Rechnen, Alarm überall möglich; Tricks (Balken, Schlachtzugsymbol) laufen weiter; `ns.IsSecret` muss fehlendes `issecretvalue` abfangen.
+  - **Erst testen (Machbarkeit, ca. 1 Abend):** liefert Classic Bedrohung für Gegner, die **niemand im Ziel** hat (nur Nameplate)? Davon hängt die Problem-Liste ab. Laut NKThreat schickt der Classic-Server Werte unregelmäßig (bis ~1 s).
+  - Nameplate-Aufbau etwas anders, Sichtweite kürzer.
+  - Grobe Einschätzung volle Version: 2–4 Sitzungen.
 
 # Teil 4 — Bugs
 
