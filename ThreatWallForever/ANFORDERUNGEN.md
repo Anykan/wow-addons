@@ -75,6 +75,7 @@ Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesper
 - **AI Klassik-Liste** für Ziel und Fokus (Teil 2). Vorher Gruppentest: Mitspieler-Werte über `target` lesbar?
 
 ## Nächste Version 0.5.2 (in Arbeit, TOC 0.5.2-dev)
+- **Vorschlag (wartet auf Ja des Nutzers, 2026-10-25):** Standard `groupOnly` (Liste nur in Gruppe) von `true` auf **`false`**, damit man nach Neuinstallation solo etwas sieht (Nutzer: „muss Liste an sein und nur in Gruppe deaktiv“). Gilt nur für Neuinstallationen; Patchnotes „Geändert“ in 4 Sprachen.
 - **Fix Rahmen der Mauern:** nach dem Spielstart manchmal verzerrt (Knopf-Rahmen beim ersten Messen noch nicht fertig, Maße gleich → kein Neuaufbau). Jetzt Neuaufbau nach 3/8/15 s immer komplett (Commit 0670859f3). Für die Patchnotes/Neuigkeiten der nächsten Version: „Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt“ (DE/EN/ES/FR-Texte siehe Commit ef790a582). **Test:** echter Spielstart, ~15 s warten.
 - 0.5.1 wurde am 2026-10-19 vom Nutzer **ohne** diesen Fix veröffentlicht; Tag `twf-v0.5.1` = b71a45aba, Paket daraus neu gebaut.
 
@@ -583,6 +584,17 @@ Die Markierung hängt nur noch am **Mob**, nicht mehr am Spieler. Keine freundli
   - **Erst testen (Machbarkeit, ca. 1 Abend):** liefert Classic Bedrohung für Gegner, die **niemand im Ziel** hat (nur Nameplate)? Davon hängt die Problem-Liste ab. Laut NKThreat schickt der Classic-Server Werte unregelmäßig (bis ~1 s).
   - Nameplate-Aufbau etwas anders, Sichtweite kürzer.
   - Grobe Einschätzung volle Version: 2–4 Sitzungen.
+  - **Machbarkeitstest Classic Era 1.15.9 (Interface 11509) am 2026-10-25, Charakter Nays (Lakeshire), solo, nur TWF 0.5.2-dev aktiv (Kopie mit `## Interface: 11509`, Repo unverändert):**
+    - Keine Lua-Fehler beim Laden.
+    - Funktionen: `UnitDetailedThreatSituation`, **`UnitThreatPercentageOfLead`**, `UnitGroupRolesAssigned`, **`issecretvalue`** alle vorhanden (Annahme „Lead fehlt in Era“ war falsch).
+    - Grafiken: Rollen-Symbole, Mauer-Rahmen `UI-HUD-ActionBar-IconFrame-AddRow`, `ui-castingbar-frame` vorhanden; **`ui-damagemeters-header-bar` fehlt** (Ersatzfläche greift). Nicht geprüft: `damagemeters-background`, `damagemeters-scalehandle`, `common-dropdown-a-button-settings-shadowless`, `ui-questtrackerbutton-red-highlight`, `ui-castingbar-filling-standard`.
+    - **Kerntest bestanden:** Nameplate-Mob **nicht im Ziel** liefert lesbare Werte (`true 3 100 255 59121`), Ziel ebenso. Keine gesperrten Werte; Rohwert ×100 skaliert.
+    - **Fokus:** `UnitExists("focus")` = false nach `/focus` → kein Fokus in Era.
+    - **Im Addon (Screenshot):** Liste mit Schlachtzugsymbol/%/Balken ok; TWF-Nameplate (Symbol, Aggro %, Leben %) ok; Mauern docken an Seitenleisten an.
+    - **Design-Punkte für Classic:** (1) beide Mauern oben ca. ein Drittel lachsrot gefüllt, darunter dunkle Ziegel – auch die Fokus-Mauer ohne Fokus → Grafik/Füllung prüfen (Nutzer fragen, ob in Forever anders); (2) Mauer-Kopf zeigt statt Rollen-Symbol nur winzigen Punkt; (3) Fokus-Mauer ausblenden; (4) Kopfleisten-Grafik der Liste ersetzen.
+    - **Noch offen:** Grafik-Prüfung der restlichen Atlas-Namen, flüssige Aggro-% (unregelmäßige Server-Updates?), Gruppentests in Era (Mitspieler auf Mauer, Halter, anderer Tank, Heiler-Fall, Rollen-Symbole ohne Rollen).
+    - Nebenbei: Addon „ThreatWall“ (Nays–Lakeshire, Feb 2026, Classic Era, Nameplate-Bedrohung) liegt im Era-Ordner – vermutlich früher Versuch des Nutzers.
+    - Era-Addons des Nutzers danach zurückgesetzt (Sicherung `X:\Claude Workspace\addon-analyse\addons-backup-classic-era-2026-10-25\`); **TWF in Era deaktiviert** (Ordner bleibt liegen).
 
 # Teil 4 — Bugs
 
