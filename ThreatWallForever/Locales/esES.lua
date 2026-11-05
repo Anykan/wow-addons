@@ -196,6 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "¿Deseos, ideas o errores? Deja un comentario en Curse
 L["NEWS_SEC_NEW"] = "Nuevo"
 L["NEWS_SEC_CHANGED"] = "Cambiado"
 L["NEWS_SEC_FIXED"] = "Corregido"
+L["NEWS_0_5_2_CHANGED"] = "Valores iniciales en una instalación nueva – la lista se ve al instante, también en solitario; muro de objetivo activado, muro de foco desactivado; como tanque, la lista muestra tu ventaja"
 L["NEWS_0_5_2_FIXED"] = "Marco de los muros – a veces aparecía deformado tras iniciar el juego"
 L["NEWS_0_5_1_FIXED"] = "Muro de foco y de objetivo – ahora se colocan en el borde derecho de la pantalla si tus barras laterales están en otro sitio u ocultas; antes podían desaparecer"
 L["NEWS_0_5_NEW"] = "Muro de foco y de objetivo – quién tiene al enemigo, lo cerca que está tu grupo del aggro y su marca de banda\nMarcas de banda – en la lista y en los muros, incluso en combate\nBarra de vista previa – muestra al instante en la pestaña Placas de nombre cómo se ve un estado\nColor de la vida – nueva fila de la tabla para el texto de la vida\nNuevas opciones – color del marco del objetivo, mostrar lista, muros solo en combate o en grupo, opacidad\nAviso de versión – avisa en el chat si alguien de tu grupo o hermandad tiene una versión más reciente\n¿Qué hay de nuevo? – esta ventana (/twf news)"

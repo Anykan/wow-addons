@@ -196,6 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Envies, idées ou bugs ? Laisse un commentaire sur Cur
 L["NEWS_SEC_NEW"] = "Nouveau"
 L["NEWS_SEC_CHANGED"] = "Modifié"
 L["NEWS_SEC_FIXED"] = "Corrigé"
+L["NEWS_0_5_2_CHANGED"] = "Valeurs par défaut à la nouvelle installation – la liste s'affiche tout de suite, même en solo ; mur de cible activé, mur de focus désactivé ; en tank, la liste montre ton avance"
 L["NEWS_0_5_2_FIXED"] = "Cadre des murs – était parfois déformé après le lancement du jeu"
 L["NEWS_0_5_1_FIXED"] = "Mur de focus et de cible – se placent maintenant au bord droit de l'écran si tes barres latérales sont ailleurs ou masquées ; avant, ils pouvaient disparaître"
 L["NEWS_0_5_NEW"] = "Mur de focus et de cible – qui tient l'ennemi, à quel point ton groupe est proche de l'aggro, et son marqueur de raid\nMarqueurs de raid – dans la liste et les murs, même en combat\nBarre d'aperçu – montre tout de suite dans l'onglet Barres de nom l'apparence d'un état\nCouleur de la vie – nouvelle ligne du tableau pour le texte de la vie\nNouvelles options – couleur du cadre de la cible, afficher la liste, murs seulement en combat ou en groupe, opacité\nAvis de version – te prévient dans le chat si quelqu’un de ton groupe ou de ta guilde a une version plus récente\nQuoi de neuf ? – cette fenêtre (/twf news)"

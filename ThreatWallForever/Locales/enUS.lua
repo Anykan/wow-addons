@@ -196,6 +196,7 @@ L["NEWS_W_IDEAS_TEXT"] = "Wishes, ideas or bugs? Leave a comment on CurseForge �
 L["NEWS_SEC_NEW"] = "New"
 L["NEWS_SEC_CHANGED"] = "Changed"
 L["NEWS_SEC_FIXED"] = "Fixed"
+L["NEWS_0_5_2_CHANGED"] = "Defaults for new installs – the list shows right away, even solo; target wall on, focus wall off; as a tank the list shows your lead"
 L["NEWS_0_5_2_FIXED"] = "Wall frame – was sometimes distorted after starting the game"
 L["NEWS_0_5_1_FIXED"] = "Focus and target wall – now sit at the right screen edge if your side bars are elsewhere or hidden; before, they could disappear"
 L["NEWS_0_5_NEW"] = "Focus and target wall – who holds the mob, how close your group is to aggro, plus its raid marker\nRaid markers – in the list and the walls, even in combat\nPreview bar – shows right away in the Nameplates tab how a state looks\nHealth color – new table row for the health text\nNew options – target frame color, show list, walls only in combat or in a group, opacity\nVersion notice – tells you in chat when someone in your group or guild has a newer version\nWhat's new? – this window (/twf news)"

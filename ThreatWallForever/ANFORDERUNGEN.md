@@ -65,7 +65,7 @@ Kopien in `X:\Claude Workspace\addon-analyse\2026-10-20\` (nur gelesen, nichts �
 
 ## Prüfen zum Spielstart WoW Forever (5.11.2026, 0:00 MEZ)
 Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesperrte Werte bleiben (Blizzard-UI-Team bestätigt), keine Änderungen an Addon-API, Schlachtzugsymbolen, Fokus oder Addon-Nachrichten angekündigt. TWF nutzt weder Kampflog noch Secure Snippets noch `WOW_PROJECT_ID`.
-- **Interface-Nummer:** TOC hat seit 2026-10-20 `16001, 16002` (ForeverThreat 1.6.10 trägt 16002 schon ein). ✅ **Geprüft 2026-11-05:** Start-Client 1.60.1.70790 meldet Interface **16001** → passt. Ändert der Start-Client die Nummer, steht TWF als „veraltet“ → Nummer anpassen, neu hochladen.
+- **Interface-Nummer:** TOC hat seit 2026-10-20 `16001, 16002` (ForeverThreat 1.6.10 trägt 16002 schon ein). ✅ **Geprüft 2026-11-05:** Start-Client 1.60.1.70790 meldet Interface **16001** → passt. 16002 auf Wunsch des Nutzers für 0.5.2 wieder entfernt (TOC nur `16001`). Ändert der Start-Client die Nummer, steht TWF als „veraltet“ → Nummer anpassen, neu hochladen.
 - **Nameplate-Sichtweite:** seit 16.10. sind Nameplates von Gegnern deutlich über/unter dir erst aus kürzerer Entfernung sichtbar → Liste/Mauer sehen solche Mobs später. Prüfen, ob das stört.
 - **Aktionsleisten:** neue Option „Kompakte Aktionsleiste“, Einstellungen jetzt im Bearbeitungsmodus, eigene Gamepad-Leisten → prüfen, ob die Mauern richtig andocken bzw. der Ersatz-Platz am rechten Rand greift.
 - Am Rande: Blizzard hat eine eigene einfache „Aggro-Anzeige“ (Optionen, Suche „Threat“) – evtl. Werbeargument „mehr als Blizzards Aggro-Anzeige“.
@@ -74,7 +74,7 @@ Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesper
 ## Version 0.6 (geplant)
 - **AI Klassik-Liste** für Ziel und Fokus (Teil 2). Vorher Gruppentest: Mitspieler-Werte über `target` lesbar?
 
-## Nächste Version 0.5.2 (in Arbeit, TOC 0.5.2-dev)
+## Version 0.5.2 — veröffentlicht 2026-11-05 (Bugfix)
 - **Neue Standardwerte (Nutzer 2026-11-05, nach seiner Konfiguration, umgesetzt):** Fokus-Mauer `focusBar` = **aus**, Ziel-Mauer bleibt **an**, Tank-Liste `listLead` (Vorsprung statt Aggro-%) = **an**. Nur für Neuinstallationen. Für Patchnotes „Geändert“ (4 Sprachen).
 - **Beschlossen 2026-11-05, umgesetzt (noch im Spiel testen: Neuinstallation solo → Liste sichtbar):** Standard `groupOnly` (Liste nur in Gruppe) von `true` auf **`false`**, damit man nach Neuinstallation solo etwas sieht (Nutzer: „muss Liste an sein und nur in Gruppe deaktiv“). Gilt nur für Neuinstallationen; Patchnotes „Geändert“ in 4 Sprachen.
 - **Fix Rahmen der Mauern:** nach dem Spielstart manchmal verzerrt (Knopf-Rahmen beim ersten Messen noch nicht fertig, Maße gleich → kein Neuaufbau). Jetzt Neuaufbau nach 3/8/15 s immer komplett (Commit 0670859f3). Für die Patchnotes/Neuigkeiten der nächsten Version: „Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt“ (DE/EN/ES/FR-Texte siehe Commit ef790a582). **Test:** echter Spielstart, ~15 s warten.
