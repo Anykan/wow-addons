@@ -47,7 +47,7 @@ C.CODES = {
 C.DEFAULTS = {
   shown = true,
   locked = false,
-  focusBar = true,           -- Fokus-Mauer (Leiste.lua, Anforderung AC)
+  focusBar = false,          -- Fokus-Mauer (Leiste.lua, Anforderung AC); Standard aus seit 0.5.2
   targetBar = true,          -- Ziel-Mauer (Leiste.lua, Anforderung AC)
   focusBarCombat = false,    -- Fokus-Mauer nur im Kampf sichtbar
   targetBarCombat = false,   -- Ziel-Mauer nur im Kampf sichtbar
@@ -82,7 +82,7 @@ C.DEFAULTS = {
   roleSync = false,          -- an = TWF-Rolle folgt der Gruppenrolle (Anforderung AB)
   healthPct = true,          -- an = Leben in % rechts im Balken, aus = Restleben als Zahl (Anforderung AA)
   plateLead = false,         -- Tank-Modus: Vorsprung vor Platz 2 statt Aggro-% im Balken (Anforderung Z)
-  listLead = false,          -- Tank-Modus: Vorsprung statt Aggro-% in der Liste (Anforderung Z)
+  listLead = true,           -- Tank-Modus: Vorsprung statt Aggro-% in der Liste (Anforderung Z); Standard an seit 0.5.2
   plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
   -- plates (Aussehen pro Zustand) legt PlateStates.lua an, Standardwerte aus C.PLATE_STATES
 }
