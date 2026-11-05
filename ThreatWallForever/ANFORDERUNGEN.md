@@ -75,7 +75,7 @@ Recherche 2026-10-19 (Entwicklernotizen bis 16.10., Foren, Addon-Seiten): Gesper
 - **AI Klassik-Liste** für Ziel und Fokus (Teil 2). Vorher Gruppentest: Mitspieler-Werte über `target` lesbar?
 
 ## Nächste Version 0.5.2 (in Arbeit, TOC 0.5.2-dev)
-- **Vorschlag (wartet auf Ja des Nutzers, 2026-10-25):** Standard `groupOnly` (Liste nur in Gruppe) von `true` auf **`false`**, damit man nach Neuinstallation solo etwas sieht (Nutzer: „muss Liste an sein und nur in Gruppe deaktiv“). Gilt nur für Neuinstallationen; Patchnotes „Geändert“ in 4 Sprachen.
+- **Beschlossen 2026-11-05, umgesetzt (noch im Spiel testen: Neuinstallation solo → Liste sichtbar):** Standard `groupOnly` (Liste nur in Gruppe) von `true` auf **`false`**, damit man nach Neuinstallation solo etwas sieht (Nutzer: „muss Liste an sein und nur in Gruppe deaktiv“). Gilt nur für Neuinstallationen; Patchnotes „Geändert“ in 4 Sprachen.
 - **Fix Rahmen der Mauern:** nach dem Spielstart manchmal verzerrt (Knopf-Rahmen beim ersten Messen noch nicht fertig, Maße gleich → kein Neuaufbau). Jetzt Neuaufbau nach 3/8/15 s immer komplett (Commit 0670859f3). Für die Patchnotes/Neuigkeiten der nächsten Version: „Rahmen der Mauern – war nach dem Spielstart manchmal verzerrt“ (DE/EN/ES/FR-Texte siehe Commit ef790a582). **Test:** echter Spielstart, ~15 s warten.
 - 0.5.1 wurde am 2026-10-19 vom Nutzer **ohne** diesen Fix veröffentlicht; Tag `twf-v0.5.1` = b71a45aba, Paket daraus neu gebaut.
 
