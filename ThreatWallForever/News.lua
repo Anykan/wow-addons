@@ -86,6 +86,9 @@ local function fillContent(welcome, lastSeen)
     local head = hex(C.TITLE_COLOR) .. string.format(L.NEWS_VERSION, v) .. '|r'
     if isNew then head = head .. '  ' .. hex(NW.NEW_COLOR) .. L.NEWS_NEW .. '|r' end
     y = addLine(head, 'GameFontNormal', y)
+    -- Hinweis direkt unter dem Kopf, auffällig (z. B. "Spiel komplett neu starten" bei 0.6)
+    local note = L[newsKey(v, 'NOTE')]
+    if note then y = addLine(hex(NW.NOTE_COLOR) .. note .. '|r', 'GameFontHighlightSmall', y, NW.HEAD_GAP) end
     for _, sec in ipairs(NW.SECTIONS) do
       local text = L[newsKey(v, sec.key)]
       if text then

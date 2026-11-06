@@ -89,8 +89,16 @@ local function makeCheckBox(parent)
   border:SetTexture(T.FLAT)
   border:SetVertexColor(unpack(C.BACKDROP.BORDER_COLOR))
   local inner = box:CreateTexture(nil, 'ARTWORK', nil, 2)
-  inner:SetPoint('TOPLEFT', S.CHECK_BORDER, -S.CHECK_BORDER)
-  inner:SetPoint('BOTTOMRIGHT', -S.CHECK_BORDER, S.CHECK_BORDER)
+  -- Rand mindestens 1 echter Bildpunkt: bei UI-Skalierung < 1 ist 1 Einheit weniger als ein
+  -- Bildpunkt, und je nach Position verschluckte das Runden sonst eine Kante (Nutzer 2026-11-06)
+  local B = S.CHECK_BORDER
+  if PixelUtil and PixelUtil.SetPoint then
+    PixelUtil.SetPoint(inner, 'TOPLEFT', box, 'TOPLEFT', B, -B, 1, 1)
+    PixelUtil.SetPoint(inner, 'BOTTOMRIGHT', box, 'BOTTOMRIGHT', -B, B, 1, 1)
+  else
+    inner:SetPoint('TOPLEFT', B, -B)
+    inner:SetPoint('BOTTOMRIGHT', -B, B)
+  end
   inner:SetTexture(T.FLAT)
   inner:SetVertexColor(unpack(S.CHECK_BG))
   local check = box:CreateTexture(nil, 'OVERLAY')
@@ -205,6 +213,51 @@ local function buildRole(parent, opt, y)
   return y - S.ROW_H
 end
 
+-- Auswahl im Stil der Rollen-Knöpfe (opt.choices, Texte aus opt.choiceLabels), rechtsbündig;
+-- Knopfbreite nach Text, weil die Texte je Sprache verschieden lang sind
+local function buildChoice(parent, opt, y)
+  local row = newRow(parent, y, S.ROW_H)
+  local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  label:SetPoint('LEFT')
+  label:SetText(L[opt.label])
+
+  local buttons, prev = {}, nil
+  for i = #opt.choices, 1, -1 do
+    local value = opt.choices[i]
+    local btn = ns.makeFlatButton(row, L[opt.choiceLabels[value]])
+    if prev then
+      btn:SetPoint('RIGHT', prev, 'LEFT', -D.BUTTON_GAP, 0)
+    else
+      btn:SetPoint('RIGHT', row, 'RIGHT', S.CHOICE_SHIFT, 0)
+    end
+    prev = btn
+    buttons[value] = btn
+  end
+
+  local function update()
+    for value, btn in pairs(buttons) do
+      btn.bg:SetVertexColor(unpack(getValue(opt) == value and D.BUTTON_BG_ACTIVE or D.BUTTON_BG))
+    end
+  end
+  for value, btn in pairs(buttons) do
+    btn:SetScript('OnClick', function()
+      if getValue(opt) ~= value then
+        setValue(opt, value)
+        afterChange(opt, value)
+      end
+      update()
+    end)
+  end
+  row:SetScript('OnEnter', function(self) showTip(self, opt) end)
+  row:SetScript('OnLeave', hideTip)
+  for _, btn in pairs(buttons) do
+    btn:SetScript('OnEnter', function(self) showTip(self, opt) end)
+    btn:SetScript('OnLeave', hideTip)
+  end
+  updaters[#updaters + 1] = update
+  return y - S.ROW_H
+end
+
 local function buildSlider(parent, opt, y)
   local row = newRow(parent, y, S.SLIDER_ROW_H)
   local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
@@ -251,10 +304,17 @@ local function buildButton(parent, opt, y)
   return y - S.ROW_H
 end
 
+-- Leerer Platz, damit gleiche Optionen in mehreren Spalten auf einer Höhe stehen
+local function buildSpacer(_, _, y)
+  return y - S.ROW_H
+end
+
 local BUILDERS = {
   section = buildSection,
+  spacer = buildSpacer,
   check = buildCheck,
   role = buildRole,
+  choice = buildChoice,
   slider = buildSlider,
   button = buildButton,
 }
@@ -567,21 +627,28 @@ local function buildStateTable(page, set, top)
   return tbl
 end
 
+-- Wird die Option gerade gezeigt? opt.showIf = { key = …, value = … }: nur, solange die
+-- Einstellung key den Wert value hat (z. B. Fenster-Einstellungen nur bei "Klassisch", AI)
+local function optionVisible(opt)
+  local s = opt.showIf
+  return not s or ns.db[s.key] == s.value
+end
+
 -- Optionen einer Liste aus Config.OPTIONS in Spalten nebeneinander ({ type = 'column' }
--- beginnt eine neue). Gibt die Höhe der längsten Spalte zurück.
+-- beginnt eine neue). Jede Option sitzt in einem eigenen Platz, damit ausgeblendete Optionen
+-- (showIf) keine Lücke lassen. Gibt eine Funktion zurück, die die Höhe der längsten Spalte liefert.
 local function buildOptions(page, list)
   local nCols = 1
   for _, opt in ipairs(list) do
     if opt.type == 'column' then nCols = nCols + 1 end
   end
   local colW = S.WIDTH / nCols
-  local col, y, maxH, index = nil, 0, 0, 0
+  local columns, col = {}, nil
   local function newColumn()
-    index = index + 1
-    col = CreateFrame('Frame', nil, page)
-    col:SetPoint('TOPLEFT', (index - 1) * colW, 0)
-    col:SetSize(colW, 1)
-    y = 0
+    col = { frame = CreateFrame('Frame', nil, page), slots = {} }
+    col.frame:SetPoint('TOPLEFT', #columns * colW, 0)
+    col.frame:SetSize(colW, 1)
+    columns[#columns + 1] = col
   end
   newColumn()
   for _, opt in ipairs(list) do
@@ -590,21 +657,43 @@ local function buildOptions(page, list)
     else
       local builder = BUILDERS[opt.type]
       if builder then
-        y = builder(col, opt, y)
-        maxH = math.max(maxH, -y)
+        local slot = CreateFrame('Frame', nil, col.frame)
+        slot:SetPoint('RIGHT', col.frame, 'RIGHT')
+        slot:SetHeight(-builder(slot, opt, 0))
+        col.slots[#col.slots + 1] = { frame = slot, opt = opt }
       else
         ns.dbg('SETTING', 'Unbekannter Optionstyp in Config.OPTIONS: ' .. tostring(opt.type))
       end
     end
   end
-  return maxH
+
+  -- sichtbare Plätze untereinander stapeln; läuft nach jeder Änderung (Updater)
+  local maxH = 0
+  local function relayout()
+    maxH = 0
+    for _, c in ipairs(columns) do
+      local y = 0
+      for _, s in ipairs(c.slots) do
+        local on = optionVisible(s.opt)
+        s.frame:SetShown(on)
+        if on then
+          s.frame:SetPoint('TOPLEFT', c.frame, 'TOPLEFT', 0, y)
+          y = y - s.frame:GetHeight()
+        end
+      end
+      maxH = math.max(maxH, -y)
+    end
+  end
+  relayout()
+  updaters[#updaters + 1] = relayout
+  return function() return maxH end
 end
 
 -- Reiter "Nameplates": oben die Schalter aus Config.OPTIONS.nameplates (darin auch "Farben für
 -- alle Modi gleich"), darunter "Farben zurücksetzen" und die gemeinsame Tabelle oder die drei
 -- Tabellen Tank/DD/Heal. Gibt eine Funktion zurück, die die nötige Höhe liefert (eine bzw. drei Tabellen).
 local function buildNameplates(page)
-  local optH = buildOptions(page, C.OPTIONS.nameplates) + PT.OPTIONS_GAP
+  local optH = buildOptions(page, C.OPTIONS.nameplates)() + PT.OPTIONS_GAP
   -- Vorschau in der freien mittleren Spalte (die Optionen haben drei Spalten)
   buildPreview(page, S.WIDTH / 3, S.WIDTH / 3)
   optH = math.max(optH, -PT.PREVIEW.Y + C.NAMEPLATES.HEIGHT + PT.PREVIEW.LABEL_GAP + PT.PREVIEW.LABEL_H)
@@ -640,7 +729,7 @@ end
 local PAGE_BUILDERS = {
   general = function(page) return buildOptions(page, C.OPTIONS.general) end,
   nameplates = buildNameplates,
-  view = function(page) return buildOptions(page, C.OPTIONS.view) end,
+  view = function(page) return buildOptions(page, C.OPTIONS.view) end,   -- Höhe hängt von showIf ab
 }
 
 -- Fenster ----------------------------------------------------------------------------------

@@ -113,14 +113,53 @@ function ns.toggleRole()
   ns.setRole(nextRole)
 end
 
+-- Startposition der Liste (C.WINDOW.DEFAULT_X/Y, relativ zur Bildschirmmitte)
+local function placeDefault(frame)
+  local scale = frame:GetScale()
+  frame:ClearAllPoints()
+  frame:SetPoint('TOPLEFT', UIParent, 'CENTER', W.DEFAULT_X / scale, W.DEFAULT_Y / scale)
+end
+
 function ns.resetPlace()
   local frame = ns.frame
-  frame:ClearAllPoints()
-  frame:SetPoint('CENTER', UIParent, 'CENTER', 0, 0)
+  placeDefault(frame)
   frame:SetWidth(C.DEFAULTS.width)
   ns.db.shown = true
   ns.savePlace()
   ns.refresh()
+end
+
+-- "Alles zurücksetzen" (Reiter Allgemein → Werkzeuge): nach Sicherheitsabfrage alle gespeicherten
+-- TWF-Daten löschen und das Interface neu laden → wie frisch installiert (Willkommen inklusive).
+-- Die gespeicherte Variable wird auf nil gesetzt; das alte ns.db bekommt beim Abmelden zwar noch
+-- die Fensterposition, wird aber nicht mehr gespeichert. Spiel-Optionen (CVars) bleiben unberührt.
+local resetDialog
+function ns.resetAll()
+  local R, D = C.RESET_DIALOG, C.DIALOG
+  if not resetDialog then
+    local win = ns.makeDialog(R.NAME, R.WIDTH, L.RESET_ALL_TITLE)
+    win:SetPoint('CENTER', UIParent, 'CENTER', 0, R.OFFSET_Y)
+    local text = win:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
+    text:SetPoint('TOPLEFT', D.PADDING, -(W.HEADER_H + R.TOP_GAP))
+    text:SetWidth(R.WIDTH - 2 * D.PADDING)   -- feste Breite: Höhe des Umbruchs sofort messbar
+    text:SetJustifyH('LEFT')
+    text:SetText(L.RESET_ALL_TEXT)
+    local cancel = ns.makeFlatButton(win, L.BTN_CANCEL, R.BUTTON_W)
+    cancel:SetPoint('BOTTOMRIGHT', -D.PADDING, D.PADDING)
+    cancel:SetScript('OnClick', function() win:Hide() end)
+    local yes = ns.makeFlatButton(win, L.BTN_RESET_ALL, R.BUTTON_W)
+    yes:SetPoint('RIGHT', cancel, 'LEFT', -D.BUTTON_GAP, 0)
+    yes:SetScript('OnClick', function()
+      ns.dbg('SETTING', 'Alles zurückgesetzt, Interface wird neu geladen')
+      ThreatWallForeverDB = nil
+      -- sonst stellt das Spiel die alte Position der Liste aus seinem Layout-Speicher wieder her
+      if ns.frame.SetUserPlaced then pcall(ns.frame.SetUserPlaced, ns.frame, false) end
+      ReloadUI()
+    end)
+    win:SetHeight(W.HEADER_H + R.TOP_GAP + text:GetStringHeight() + R.BUTTON_GAP_Y + D.BUTTON_H + D.PADDING)
+    resetDialog = win
+  end
+  resetDialog:Show()
 end
 
 -- Aufbau -----------------------------------------------------------------------------------
@@ -136,7 +175,7 @@ local function buildFrame()
     frame:SetSize(db.width, height)
   elseif not restored then
     frame:SetSize(db.width, height)
-    frame:SetPoint('CENTER', UIParent, 'CENTER', 0, 0)
+    placeDefault(frame)
   end
   frame:SetFrameStrata('MEDIUM')
   frame:SetClampedToScreen(true)

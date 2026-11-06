@@ -77,6 +77,22 @@ local function keepVisible(region, on)
   if region and region.SetIgnoreParentAlpha then pcall(region.SetIgnoreParentAlpha, region, on) end
 end
 
+-- Debuffleiste (I23): Blizzards AurasFrame (Listen für Buffs, Debuffs, Kontrolleffekte;
+-- getestet 2026-11-06) bleibt an TWF-Balken sichtbar. Blizzard zeigt darin nur die eigenen
+-- Effekte (allein, Gruppe und Instanz getestet 2026-11-06), daher nur Aus/An.
+local auraModeSeen               -- Debug-Hinweis pro Modus nur einmal
+local function setAuras(uf, on)
+  if on and auraModeSeen ~= ns.db.plateDebuffs then
+    auraModeSeen = ns.db.plateDebuffs
+    ns.dbg('NAMEPLATES', 'Debuffleiste ' .. auraModeSeen .. (uf.AurasFrame and '' or ': AurasFrame fehlt'))
+  end
+  keepVisible(uf and uf.AurasFrame, on)
+end
+
+local function aurasWanted()
+  return ns.db.plateDebuffs ~= 'off'
+end
+
 -- Schlachtzugsymbol (Totenkopf, Stern …): im TWF-Modus immer sichtbar lassen (Bug B1)
 local function setRaidIcon(uf, on)
   keepVisible(uf and uf.RaidTargetFrame, on)
@@ -296,6 +312,7 @@ end
 local function hidePlate(nameplate)
   if nameplate.twfPlate then nameplate.twfPlate:Hide() end
   setCastbar(nameplate.UnitFrame, false)
+  setAuras(nameplate.UnitFrame, false)
 end
 
 -- Liegt die Nameplate hinter einer Wand? Blizzard dunkelt verdeckte Nameplates ab; die
@@ -371,6 +388,7 @@ local function update(nameplate, targetPlate)
     p.name:SetShown(not ns.isOccluded(nameplate))
     p:Show()
     setCastbar(uf, false)
+    setAuras(uf, false)
     placeRaidIcon(uf, p, true)
     return
   end
@@ -388,6 +406,7 @@ local function update(nameplate, targetPlate)
   p.name:Show()
   p:Show()
   setCastbar(uf, isTarget)
+  setAuras(uf, aurasWanted())
   placeRaidIcon(uf, p, false)
 end
 
@@ -476,6 +495,10 @@ end
 local function onSettingChanged(key)
   if key == 'plateLead' or key == 'healthPct' then
     ns.dbg('NAMEPLATES', key .. ' ' .. (ns.db[key] and 'an' or 'aus'))
+    if active() then updateAll() end
+    return
+  end
+  if key == 'plateDebuffs' then
     if active() then updateAll() end
     return
   end

@@ -175,8 +175,9 @@ end
 -- Symbole ------------------------------------------------------------------------------------
 
 -- Atlas des Rollensymbols einer Einheit (ohne Gruppenrolle: du mit deiner TWF-Rolle)
+-- (auch für die Klassik-Fenster, Klassik.lua)
 local TWF_TO_GROUP = { tank = 'TANK', heal = 'HEALER', dps = 'DAMAGER' }
-local function roleAtlas(unit)
+function ns.roleAtlas(unit)
   local ok, r = pcall(UnitGroupRolesAssigned, unit)
   r = ok and ns.plain(r) or nil
   if (not r or r == 'NONE') and UnitIsUnit(unit, 'player') then r = TWF_TO_GROUP[ns.db.role] end
@@ -199,7 +200,7 @@ local function setIcon(sym, unit, onTower)
     sym.icon:SetTexCoord(unpack(CLASS_ICON_TCOORDS[class]))
   else
     sym.icon:SetTexCoord(0, 1, 0, 1)
-    sym.icon:SetAtlas(roleAtlas(unit), false)
+    sym.icon:SetAtlas(ns.roleAtlas(unit), false)
   end
   local cc = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
   sym.nameColor = cc and { cc.r, cc.g, cc.b } or C.WHITE
@@ -469,15 +470,22 @@ local SETTING = { focus = 'focusBar', target = 'targetBar' }
 local COMBAT_ONLY = { focus = 'focusBarCombat', target = 'targetBarCombat' }
 local ALPHA = { focus = 'focusBarAlpha', target = 'targetBarAlpha' }
 local GROUP_ONLY = { focus = 'focusBarGroup', target = 'targetBarGroup' }
+local STYLE = { focus = 'focusStyle', target = 'targetStyle' }   -- Mauer oder Klassisch (AI)
 
--- Soll die Leiste gerade zu sehen sein? An, dazu bei "Nur im Kampf sichtbar" nur im Kampf und
--- bei "Nur in einer Gruppe sichtbar" nur in Gruppe oder Schlachtzug.
-local function wanted(key)
+-- Soll Ziel bzw. Fokus gerade angezeigt werden (Mauer oder Klassik-Fenster)? An, dazu bei
+-- "Nur im Kampf sichtbar" nur im Kampf und bei "Nur in einer Gruppe sichtbar" nur in Gruppe
+-- oder Schlachtzug. Gilt für beide Darstellungen (Klassik.lua fragt hier nach).
+function ns.barWanted(key)
   local db = ns.db
   if not db[SETTING[key]] then return false end
   if db[COMBAT_ONLY[key]] and not UnitAffectingCombat('player') then return false end
   if db[GROUP_ONLY[key]] and not (IsInGroup() or IsInRaid()) then return false end
   return true
+end
+
+-- Die Mauer selbst nur bei Darstellung "Mauer"
+local function wanted(key)
+  return ns.barWanted(key) and ns.db[STYLE[key]] ~= 'classic'
 end
 
 local function refreshAll()
@@ -557,7 +565,7 @@ ns.RegisterModule('Leiste', {
     end
   end,
   OnSettingChanged = function(key)
-    for _, t in ipairs({ SETTING, COMBAT_ONLY, GROUP_ONLY }) do
+    for _, t in ipairs({ SETTING, COMBAT_ONLY, GROUP_ONLY, STYLE }) do
       if t.focus == key or t.target == key then refreshAll() end
     end
     if key == 'role' then refreshAll() end

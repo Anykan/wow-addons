@@ -66,6 +66,12 @@ function ns.notifyModules(hook, ...)
 end
 
 -- Gespeicherte Einstellungen laden und fehlende Werte mit Standardwerten füllen
+-- Alte gespeicherte Werte auf den aktuellen Stand bringen
+local function upgradeDB(db)
+  -- Debuffleiste: 0.6-dev hatte 'mine'/'all', jetzt nur Aus/An (Nutzer 2026-11-06)
+  if db.plateDebuffs ~= 'off' and db.plateDebuffs ~= 'on' then db.plateDebuffs = 'on' end
+end
+
 local function loadDB()
   if type(ThreatWallForeverDB) ~= 'table' then
     ThreatWallForeverDB = {}
@@ -73,6 +79,7 @@ local function loadDB()
   end
   ns.db = ThreatWallForeverDB
   for k, v in pairs(C.DEFAULTS) do if ns.db[k] == nil then ns.db[k] = v end end
+  upgradeDB(ns.db)
   ns.ensurePlates(ns.db)   -- Aussehen pro Zustand (PlateStates.lua, Anforderung V)
 end
 
@@ -94,6 +101,7 @@ driver:SetScript('OnEvent', function(self, event, arg1)
       db = ThreatWallForeverDB
       ns.db = db
       for k, v in pairs(C.DEFAULTS) do if db[k] == nil then db[k] = v end end
+      upgradeDB(db)
       ns.ensurePlates(db)
       if ns.frame then
         ns.placeFrame()

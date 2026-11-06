@@ -16,7 +16,7 @@ NAME = 'Threat Wall Forever'
 # Veröffentlichungsdatum je Version (für die Überschrift)
 DATES = {'0.1': '13.10.2026', '0.2': '17.10.2026', '0.3': '17.10.2026', '0.4': '18.10.2026',
          '0.5': '19.10.2026', '0.5.1': '19.10.2026',
-         '0.5.2': '05.11.2026'}
+         '0.5.2': '05.11.2026', '0.6': '06.11.2026'}
 LANGS = [('enUS', '🇬🇧', 'English', 'en'), ('deDE', '🇩🇪', 'Deutsch', 'de'),
          ('esES', '🇪🇸', 'Español', 'es'), ('frFR', '🇫🇷', 'Français', 'fr')]
 SECTIONS = [('NEW', '#5fd35f', '✨'), ('CHANGED', '#6cb6ff', '🔧'), ('FIXED', '#f0a040', '🐞')]

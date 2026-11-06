@@ -84,6 +84,18 @@ C.DEFAULTS = {
   plateLead = false,         -- Tank-Modus: Vorsprung vor Platz 2 statt Aggro-% im Balken (Anforderung Z)
   listLead = true,           -- Tank-Modus: Vorsprung statt Aggro-% in der Liste (Anforderung Z); Standard an seit 0.5.2
   plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
+  plateDebuffs = 'off',      -- Debuffleiste an TWF-Nameplates: 'off', 'on' (C.DEBUFF_MODES, I23)
+  -- Ziel/Fokus: Mauer oder Klassik-Fenster (Anforderung AI, Klassik.lua); je Fenster eigene Werte
+  targetStyle = 'wall',      -- 'wall' oder 'classic' (C.BAR_STYLES)
+  focusStyle = 'wall',
+  targetClassicMinRows = 1,  focusClassicMinRows = 1,     -- Nutzer 2026-11-06
+  targetClassicMaxRows = 5,  focusClassicMaxRows = 5,
+  targetClassicAlpha = 0.4,  focusClassicAlpha = 0.4,    -- Deckkraft des Hintergrunds
+  targetClassicScale = 1,    focusClassicScale = 1,
+  targetClassicThreat = true, focusClassicThreat = true,  -- Aggro-% rechts in der Zeile
+  targetClassicLead = true,  focusClassicLead = true,     -- Halter: Vorsprung statt Aggro-%
+  targetClassicPets = false, focusClassicPets = false,    -- Begleiter als eigene Zeilen
+  -- classicPos (Position/Breite je Fenster) legt Klassik.lua an
   -- plates (Aussehen pro Zustand) legt PlateStates.lua an, Standardwerte aus C.PLATE_STATES
 }
 
@@ -128,6 +140,13 @@ C.ROLE_SHORT = { tank = 'T', dps = 'D', heal = 'H' }  -- Rollen-Knopf ohne Atlas
 C.ROLE_FROM_GROUP = { TANK = 'tank', HEALER = 'heal', DAMAGER = 'dps' }
 -- Rangfolge zum Sortieren (höher = schlimmer); braun zwischen grün und gelb
 C.RANK = { red = 2, yellow = 1, brown = 0.5, green = 0 }
+-- Debuffleiste an TWF-Nameplates (I23). Reihenfolge = Knöpfe im Reiter Nameplates.
+-- Nur Aus/An (Nutzer 2026-11-06): Blizzards Liste zeigt nur eigene Effekte, "Alle" ging nicht.
+C.DEBUFF_MODES = { 'off', 'on' }
+C.DEBUFF_MODE_LABEL = { off = 'DEBUFFS_OFF', on = 'DEBUFFS_ON' }
+-- Darstellung Ziel/Fokus (Anforderung AI). Reihenfolge = Knöpfe im Reiter Ansicht.
+C.BAR_STYLES = { 'wall', 'classic' }
+C.BAR_STYLE_LABEL = { wall = 'STYLE_WALL', classic = 'STYLE_CLASSIC' }
 
 -- Textfarben im Zeilen-Tooltip (R, G, B)
 C.TOOLTIP_COLOR = {
@@ -188,6 +207,10 @@ C.RAID_ICONS = {
 
 C.WINDOW = {
   NAME = 'ThreatWallForeverFrame',
+  -- Startposition (Neuinstallation, "Alles zurücksetzen", /twf reset): obere linke Ecke relativ
+  -- zur Bildschirmmitte. Vom Nutzer 2026-11-06 festgelegt (Liste, Ziel, Fokus nebeneinander auf
+  -- einer Höhe; gemessen bei 2100 x 1181), siehe C.CLASSIC.DEFAULT_POS.
+  DEFAULT_X = -433, DEFAULT_Y = -134,
   MIN_W = 160, MAX_W = 500,         -- kleinste/größte Breite beim Aufziehen (die Höhe folgt den Zeilen, W)
   MIN_H = 0, MAX_H = 4000,          -- Höhe beim Aufziehen nicht begrenzen (wird nicht von Hand gezogen)
   HEIGHT_TOLERANCE = 0.5,           -- Abweichung in px, ab der die Fensterhöhe neu gesetzt wird (Rundung)
@@ -408,7 +431,8 @@ C.NEWS = {
   WIDTH = 440, HEIGHT = 380,
   OFFSET_Y = 60,                  -- über der Bildschirmmitte
   -- Versionen mit Kurzfassung (Texte NEWS_<Version> in den Locales), neueste zuerst
-  VERSIONS = { '0.5.2', '0.5.1', '0.5', '0.4', '0.3', '0.2', '0.1' },
+  VERSIONS = { '0.6', '0.5.2', '0.5.1', '0.5', '0.4', '0.3', '0.2', '0.1' },
+  NOTE_COLOR = { 1, 0.45, 0.2 },  -- Hinweis einer Version (NEWS_<Version>_NOTE), z. B. "Spiel neu starten"
   DELAY = 2,                      -- Sekunden nach dem Login
   RETRY = 2,                      -- im Kampf / bei offenem Hinweis-Popup: erneut prüfen nach … s
   TOP_GAP = 10,                   -- Abstand unter der Kopfleiste
@@ -482,6 +506,7 @@ C.SETTINGS = {
   CHECK_BG = { 0, 0, 0, 0.6 }, -- Innenfarbe des Kästchens
   LINE_ALPHA = 0.15,           -- Trennlinie unter Abschnitts-Überschriften
   ROLE_BUTTON_W = 54,          -- Breite der Rollen-Knöpfe (drei nebeneinander)
+  CHOICE_SHIFT = 8,            -- Auswahl-Knöpfe ('choice') so weit nach rechts in den Rand (Platz zum Text)
   TEXT_GAP = 8,                -- Abstand Kästchen → Text
   SLIDER_ROW_H = 38,           -- Höhe einer Schieberegler-Zeile (Text oben, Regler unten)
   SLIDER_H = 6,                -- Höhe der Bahn
@@ -579,6 +604,8 @@ C.ALPHA_POPUP = {
 -- Optionen je Reiter (Reihenfolge = Anzeige-Reihenfolge). Reiter "Nameplates": diese Optionen
 -- stehen oben, darunter die Farbtabelle(n).
 -- type:   'section' Überschrift · 'role' drei Rollen-Knöpfe · 'check' Checkbox ·
+--         'choice' Knöpfe wie bei der Rolle (choices = Werte, choiceLabels = Wert → Text) ·
+--         'spacer' leerer Platz in Höhe einer Optionszeile ·
 --         'color' Farbfeld (öffnet den Farbwähler) ·
 --         'slider' Schieberegler · 'button' Knopf · 'column' beginnt eine neue Spalte
 --         (Spalten teilen die Fensterbreite gleich auf)
@@ -606,7 +633,7 @@ C.OPTIONS = {
 
     { type = 'column' },
     { type = 'section', label = 'SEC_TOOLS' },
-    { type = 'button', action = 'resetPlace', label = 'MENU_RESET', tip = 'TIP_RESET' },
+    { type = 'button', action = 'resetAll', label = 'MENU_RESET_ALL', tip = 'TIP_RESET_ALL' },
   },
 
   -- Reiter "Nameplates": Schalter und Deckkraft (darunter die Farbtabelle)
@@ -615,6 +642,8 @@ C.OPTIONS = {
     { type = 'check', key = 'healthPct', label = 'OPT_HEALTH_PCT', tip = 'TIP_HEALTH_PCT' },
     { type = 'check', key = 'plateLead', label = 'OPT_PLATE_LEAD', tip = 'TIP_PLATE_LEAD' },
     { type = 'check', key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' },
+    { type = 'choice', key = 'plateDebuffs', label = 'OPT_PLATE_DEBUFFS', tip = 'TIP_PLATE_DEBUFFS',
+      choices = C.DEBUFF_MODES, choiceLabels = C.DEBUFF_MODE_LABEL },
 
     { type = 'column' },   -- Mitte: Vorschau-Balken (Settings.lua, Anforderung AE)
     { type = 'column' },
@@ -627,6 +656,8 @@ C.OPTIONS = {
   view = {
     { type = 'section', label = 'SEC_LIST' },
     { type = 'check', key = 'shown', label = 'OPT_SHOW_LIST', tip = 'TIP_SHOW_LIST' },
+    -- Platz der Zeile "Darstellung" bei Ziel/Fokus: "Nur im Kampf" steht in allen drei Spalten gleich hoch
+    { type = 'spacer' },
     -- blenden nur die Liste aus (List.lua), nicht Nameplates oder Leisten
     { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
     { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
@@ -641,20 +672,88 @@ C.OPTIONS = {
     { type = 'slider', key = 'alpha', label = 'MENU_BACKGROUND', tip = 'TIP_BACKGROUND', min = 0, max = 1, step = 0.1 },
     { type = 'slider', key = 'scale', label = 'MENU_SCALE', tip = 'TIP_SCALE', min = 0.8, max = 1.5, step = 0.1 },
     { type = 'check', state = 'testMode', label = 'MENU_TEST', tip = 'TIP_TEST' },
+    -- Spalten Ziel und Fokus hängt barColumn unten an
+  },
+}
 
+-- Spalte Ziel bzw. Fokus im Reiter Ansicht (key = 'target'/'focus'): Mauer oder Klassik-Fenster.
+-- "Nur im Kampf" und "Nur in Gruppe" gelten für beide; die Fenster-Einstellungen
+-- erscheinen nur bei "Klassisch" (showIf, Anforderung AI). Reihenfolge wie bei der Liste:
+-- Checkboxen, darunter die Schieberegler, zuletzt die Testzeilen.
+local function barColumn(key, section, barLabel, barTip)
+  local p = key .. 'Classic'
+  local classic = { key = key .. 'Style', value = 'classic' }
+  return {
     { type = 'column' },
-    { type = 'section', label = 'SEC_TARGET' },
-    { type = 'check', key = 'targetBar', label = 'OPT_TARGET_BAR', tip = 'TIP_TARGET_BAR' },
-    { type = 'check', key = 'targetBarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
-    { type = 'check', key = 'targetBarGroup', label = 'OPT_BAR_GROUP', tip = 'TIP_BAR_GROUP' },
-    { type = 'slider', key = 'targetBarAlpha', label = 'OPT_BAR_ALPHA', tip = 'TIP_BAR_ALPHA', min = 0.1, max = 1, step = 0.1 },
+    { type = 'section', label = section },
+    { type = 'check', key = key .. 'Bar', label = barLabel, tip = barTip },
+    { type = 'choice', key = key .. 'Style', label = 'OPT_BAR_STYLE', tip = 'TIP_BAR_STYLE',
+      choices = C.BAR_STYLES, choiceLabels = C.BAR_STYLE_LABEL },
+    { type = 'check', key = key .. 'BarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
+    { type = 'check', key = key .. 'BarGroup', label = 'OPT_BAR_GROUP', tip = 'TIP_BAR_GROUP' },
+    { type = 'check', key = p .. 'Threat', label = 'OPT_CLASSIC_THREAT', tip = 'TIP_CLASSIC_THREAT', showIf = classic },
+    { type = 'check', key = p .. 'Lead', label = 'OPT_CLASSIC_LEAD', tip = 'TIP_CLASSIC_LEAD', showIf = classic },
+    { type = 'check', key = p .. 'Pets', label = 'OPT_CLASSIC_PETS', tip = 'TIP_CLASSIC_PETS', showIf = classic },
+    -- Platz der Zeile "Rahmenfarbe" der Liste: "Min. Zeilen" steht auf derselben Höhe wie dort
+    { type = 'spacer', showIf = classic },
+    -- Schieberegler in der Reihenfolge der Liste (Min./Max. Zeilen, Deckkraft, Skalierung)
+    { type = 'slider', key = p .. 'MinRows', label = 'OPT_MIN_ROWS', tip = 'TIP_CLASSIC_MIN_ROWS', min = 1, max = 15, step = 1,
+      count = true, keepBelow = p .. 'MaxRows', showIf = classic },
+    { type = 'slider', key = p .. 'MaxRows', label = 'OPT_MAX_ROWS', tip = 'TIP_CLASSIC_MAX_ROWS', min = 1, max = 15, step = 1,
+      count = true, keepAbove = p .. 'MinRows', showIf = classic },
+    { type = 'slider', key = p .. 'Alpha', label = 'MENU_BACKGROUND', tip = 'TIP_CLASSIC_BG', min = 0, max = 1, step = 0.1, showIf = classic },
+    { type = 'slider', key = p .. 'Scale', label = 'MENU_SCALE', tip = 'TIP_CLASSIC_SCALE', min = 0.8, max = 1.5, step = 0.1, showIf = classic },
+    -- Deckkraft der Mauer; bei "Klassisch" gilt stattdessen die Deckkraft des Fensters (oben)
+    { type = 'slider', key = key .. 'BarAlpha', label = 'OPT_BAR_ALPHA', tip = 'TIP_BAR_ALPHA', min = 0.1, max = 1, step = 0.1,
+      showIf = { key = key .. 'Style', value = 'wall' } },
+    -- Testzeilen: Laufzeit-Zustand wie bei der Liste (nicht gespeichert)
+    { type = 'check', state = p .. 'Test', label = 'MENU_TEST', tip = 'TIP_TEST', showIf = classic },
+  }
+end
+for _, k in ipairs({ { 'target', 'SEC_TARGET', 'OPT_TARGET_BAR', 'TIP_TARGET_BAR' },
+                     { 'focus', 'SEC_FOCUS', 'OPT_FOCUS_BAR', 'TIP_FOCUS_BAR' } }) do
+  for _, opt in ipairs(barColumn(k[1], k[2], k[3], k[4])) do table.insert(C.OPTIONS.view, opt) end
+end
 
-    { type = 'column' },
-    { type = 'section', label = 'SEC_FOCUS' },
-    { type = 'check', key = 'focusBar', label = 'OPT_FOCUS_BAR', tip = 'TIP_FOCUS_BAR' },
-    { type = 'check', key = 'focusBarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
-    { type = 'check', key = 'focusBarGroup', label = 'OPT_BAR_GROUP', tip = 'TIP_BAR_GROUP' },
-    { type = 'slider', key = 'focusBarAlpha', label = 'OPT_BAR_ALPHA', tip = 'TIP_BAR_ALPHA', min = 0.1, max = 1, step = 0.1 },
+-- Sicherheitsabfrage "Alles zurücksetzen" (Window.lua, ns.resetAll) ------------------------
+C.RESET_DIALOG = {
+  NAME = 'ThreatWallForeverResetDialog',
+  WIDTH = 360,
+  OFFSET_Y = 100,                 -- über der Bildschirmmitte
+  TOP_GAP = 12,                   -- Abstand unter der Kopfleiste
+  BUTTON_W = 130,
+  BUTTON_GAP_Y = 14,              -- Abstand Text → Knöpfe
+}
+
+-- Klassik-Fenster für Ziel und Fokus (Klassik.lua, Anforderung AI) --------------------------
+C.CLASSIC = {
+  NAME = { target = 'ThreatWallForeverTargetClassic', focus = 'ThreatWallForeverFocusClassic' },
+  TITLE = { target = 'SEC_TARGET', focus = 'SEC_FOCUS' },   -- Text vor dem Gegnernamen im Kopf
+  WIDTH = 220,                       -- Startbreite (danach per Ziehen, gespeichert)
+  -- Startposition: obere linke Ecke relativ zur Bildschirmmitte (rechts neben der Liste, gleiche
+  -- Höhe; Nutzer 2026-11-06, siehe C.WINDOW.DEFAULT_X/Y)
+  DEFAULT_POS = { target = { -107, -134 }, focus = { 190, -134 } },
+  MARK_SIZE = 16,                    -- Schlachtzugsymbol im Kopf
+  MARK_GAP = 4,                      -- Abstand Titel → Symbol → Gegnername
+  NAME_COLOR = { 1, 1, 1 },          -- Gegnername im Kopf
+  BAR_COLOR = { 0.45, 0.45, 0.5 },   -- Aggro-Balken (Name steht in Klassenfarbe darauf)
+  HOLDER_COLOR = { 0.82, 0.14, 0.14 },  -- Balken des Aggro-Halters
+  PET_COLOR = { 0.8, 0.8, 0.8 },     -- Name ohne Klassenfarbe (Begleiter)
+  ICON_PAD = 2,                      -- Rollensymbol: so viel kleiner als die Zeile (oben + unten)
+  PCT_W = 44,                        -- Breite der Prozentanzeige rechts
+  PCT_RIGHT = -4,
+  ROLE_ORDER = { TANK = 1, HEALER = 2, DAMAGER = 3, NONE = 4 },  -- feste Reihenfolge bei geheimen Werten
+  -- Markierung des Aggro-Halters (ns.createGlow)
+  HOLDER_GLOW = { COLOR = { 1, 0.82, 0.2 }, EDGE = 2, INSET = 0, ALPHA_FROM = 1, ALPHA_TO = 0.5, DURATION = 0.8 },
+  -- Testzeilen (Checkbox "Testzeilen"): Name, Klasse, Rolle (C.SYMBOLS), Aggro-%, Halter, Vorsprung, Begleiter.
+  -- Wiederholen sich bis "Max. Zeilen"; Begleiter-Zeilen nur mit "Begleiter auflisten".
+  TEST_ROWS = {
+    { 'Tankadin', 'PALADIN', 'TANK', 100, true, 135 },
+    { 'Wildwut', 'WARRIOR', 'DAMAGER', 92 },
+    { 'Feuerfaust', 'MAGE', 'DAMAGER', 78 },
+    { 'Wuffi', nil, 'NONE', 61, false, nil, true },
+    { 'Lichtblick', 'PRIEST', 'HEALER', 55 },
+    { 'Schattenpfeil', 'HUNTER', 'DAMAGER', 40 },
   },
 }
 
