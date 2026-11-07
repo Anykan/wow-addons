@@ -1,0 +1,6 @@
+## Interface: 16001
+## Title: WaffenFaehigkeit
+## Notes: Zeigt die Waffenfähigkeit der Hauptwaffe in der Titan-Panel-Leiste
+## Version: 0.2.0
+## Dependencies: Titan
+WaffenFaehigkeit.lua
