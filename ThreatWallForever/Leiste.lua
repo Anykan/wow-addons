@@ -470,16 +470,19 @@ local SETTING = { focus = 'focusBar', target = 'targetBar' }
 local COMBAT_ONLY = { focus = 'focusBarCombat', target = 'targetBarCombat' }
 local ALPHA = { focus = 'focusBarAlpha', target = 'targetBarAlpha' }
 local GROUP_ONLY = { focus = 'focusBarGroup', target = 'targetBarGroup' }
+local INSTANCE_ONLY = { focus = 'focusBarInstance', target = 'targetBarInstance' }   -- I11
 local STYLE = { focus = 'focusStyle', target = 'targetStyle' }   -- Mauer oder Klassisch (AI)
 
 -- Soll Ziel bzw. Fokus gerade angezeigt werden (Mauer oder Klassik-Fenster)? An, dazu bei
--- "Nur im Kampf sichtbar" nur im Kampf und bei "Nur in einer Gruppe sichtbar" nur in Gruppe
--- oder Schlachtzug. Gilt für beide Darstellungen (Klassik.lua fragt hier nach).
+-- "Nur im Kampf sichtbar" nur im Kampf, bei "Nur in einer Gruppe sichtbar" nur in Gruppe
+-- oder Schlachtzug, bei "Nur in Instanzen sichtbar" nur in Dungeon/Schlachtzug. Mehrere Haken
+-- gelten zusammen (alle müssen erfüllt sein). Gilt für beide Darstellungen (Klassik.lua fragt hier nach).
 function ns.barWanted(key)
   local db = ns.db
   if not db[SETTING[key]] then return false end
   if db[COMBAT_ONLY[key]] and not UnitAffectingCombat('player') then return false end
   if db[GROUP_ONLY[key]] and not (IsInGroup() or IsInRaid()) then return false end
+  if db[INSTANCE_ONLY[key]] and not ns.inInstance() then return false end
   return true
 end
 
@@ -565,7 +568,7 @@ ns.RegisterModule('Leiste', {
     end
   end,
   OnSettingChanged = function(key)
-    for _, t in ipairs({ SETTING, COMBAT_ONLY, GROUP_ONLY, STYLE }) do
+    for _, t in ipairs({ SETTING, COMBAT_ONLY, GROUP_ONLY, INSTANCE_ONLY, STYLE }) do
       if t.focus == key or t.target == key then refreshAll() end
     end
     if key == 'role' then refreshAll() end

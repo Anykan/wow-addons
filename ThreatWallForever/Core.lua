@@ -70,6 +70,8 @@ end
 local function upgradeDB(db)
   -- Debuffleiste: 0.6-dev hatte 'mine'/'all', jetzt nur Aus/An (Nutzer 2026-11-06)
   if db.plateDebuffs ~= 'off' and db.plateDebuffs ~= 'on' then db.plateDebuffs = 'on' end
+  -- Segen der Rettung gibt es auf Forever nicht mehr (2.11.), Eintrag ausgebaut 2026-11-08
+  db.paladinSalv = nil
 end
 
 local function loadDB()

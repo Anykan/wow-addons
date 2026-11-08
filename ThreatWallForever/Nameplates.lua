@@ -81,12 +81,50 @@ end
 -- getestet 2026-11-06) bleibt an TWF-Balken sichtbar. Blizzard zeigt darin nur die eigenen
 -- Effekte (allein, Gruppe und Instanz getestet 2026-11-06), daher nur Aus/An.
 local auraModeSeen               -- Debug-Hinweis pro Modus nur einmal
-local function setAuras(uf, on)
+local DB = C.DEBUFF_BAR
+
+-- Debuffleiste linksbündig am Balken (Nutzer 2026-11-08): unter dem Balken oder über dem Namen.
+-- Abstände in der Skalierung der Leiste (Versatz wird mit ihrer Größe multipliziert).
+local function anchorDebuffs(region, p, below, scale)
+  if below then
+    region:SetPoint('TOPLEFT', p, 'BOTTOMLEFT', 0, -(DB.GAP + DB.BELOW_Y) / scale)
+  else
+    local nameH = (p.name:GetStringHeight() or 0) + N.NAME_Y
+    region:SetPoint('BOTTOMLEFT', p, 'TOPLEFT', 0, (nameH + DB.GAP) / scale)
+  end
+end
+
+-- Position und Größe der Debuffleiste (I25). Blizzard setzt beides nach dem Kampf zurück
+-- (Test 2026-11-08), deshalb in jedem Takt neu. Bei "Über" und 100 % bleibt Blizzards Leiste
+-- unberührt; hat TWF sie einmal angefasst (twfTouched), setzt es sie selbst über den Namen
+-- (linksbündig, anchorDebuffs).
+local function placeDebuffs(uf, p, on)
+  local d = uf and uf.AurasFrame and uf.AurasFrame.DebuffListFrame
+  if not d then return end
+  local db = ns.db
+  local scale = on and db.plateDebuffScale or 1
+  local below = on and db.plateDebuffPos == 'below'
+  if not (below or scale ~= 1 or d.twfTouched) then return end
+  local ok, err = pcall(function()
+    d:SetScale(scale)
+    d:ClearAllPoints()
+    anchorDebuffs(d, p, below, scale)
+  end)
+  if not ok and not d.twfWarned then
+    d.twfWarned = true
+    ns.dbg('NAMEPLATES', 'Debuffleiste lässt sich nicht verschieben: ' .. tostring(err))
+  end
+  -- wieder Standard (aus bzw. "Über" + 100 %): ab jetzt Blizzard überlassen
+  d.twfTouched = (below or scale ~= 1) or nil
+end
+
+local function setAuras(uf, on, p)
   if on and auraModeSeen ~= ns.db.plateDebuffs then
     auraModeSeen = ns.db.plateDebuffs
     ns.dbg('NAMEPLATES', 'Debuffleiste ' .. auraModeSeen .. (uf.AurasFrame and '' or ': AurasFrame fehlt'))
   end
   keepVisible(uf and uf.AurasFrame, on)
+  if p then placeDebuffs(uf, p, on) end
 end
 
 local function aurasWanted()
@@ -267,7 +305,39 @@ end
 function ns.createPreviewPlate(parent)
   local p = createPlate(parent)
   p:SetSize(N.WIDTH, N.HEIGHT)
+  -- Beispiel-Debuffs (I25): zeigen Position und Größe der Debuffleiste live
+  local n = #DB.PREVIEW_ICONS
+  p.debuffs = CreateFrame('Frame', nil, p)
+  p.debuffs:SetSize(n * DB.PREVIEW_SIZE + (n - 1) * DB.PREVIEW_SPACING, DB.PREVIEW_SIZE)
+  for i, file in ipairs(DB.PREVIEW_ICONS) do
+    local t = p.debuffs:CreateTexture(nil, 'ARTWORK')
+    t:SetSize(DB.PREVIEW_SIZE, DB.PREVIEW_SIZE)
+    t:SetPoint('LEFT', (i - 1) * (DB.PREVIEW_SIZE + DB.PREVIEW_SPACING), 0)
+    t:SetTexture(file)
+    t:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  end
   return p
+end
+
+-- Vorschau-Debuffs: an, wenn die Debuffleiste an ist und der Balken gezeigt wird
+local function paintPreviewDebuffs(p, barShown)
+  local db = ns.db
+  local on = barShown and db.plateDebuffs == 'on'
+  p.debuffs:SetShown(on)
+  if not on then return end
+  local scale = db.plateDebuffScale or 1
+  p.debuffs:SetScale(scale)
+  p.debuffs:ClearAllPoints()
+  anchorDebuffs(p.debuffs, p, db.plateDebuffPos == 'below', scale)
+end
+
+-- Platz, den die Vorschau-Debuffs über bzw. unter dem Balken brauchen (Settings.lua)
+function ns.previewDebuffRoom()
+  local db = ns.db
+  if db.plateDebuffs ~= 'on' then return 0, 0 end
+  local h = (DB.PREVIEW_SIZE + DB.GAP) * (db.plateDebuffScale or 1)
+  if db.plateDebuffPos == 'below' then return 0, h + DB.BELOW_Y end
+  return h, 0
 end
 
 function ns.paintPreviewPlate(p, cfg, stateKey)
@@ -278,6 +348,7 @@ function ns.paintPreviewPlate(p, cfg, stateKey)
     p:SetAlpha(1)
     placeName(p, true)
     p.name:SetTextColor(unpack(PV.NAME_COLOR))
+    paintPreviewDebuffs(p, false)
     return
   end
   p.bar:Show()
@@ -307,12 +378,13 @@ function ns.paintPreviewPlate(p, cfg, stateKey)
   placeName(p, false)
   p.name:SetTextColor(unpack(C.WHITE))
   p.name:Show()
+  paintPreviewDebuffs(p, true)
 end
 
 local function hidePlate(nameplate)
   if nameplate.twfPlate then nameplate.twfPlate:Hide() end
   setCastbar(nameplate.UnitFrame, false)
-  setAuras(nameplate.UnitFrame, false)
+  setAuras(nameplate.UnitFrame, false, nameplate.twfPlate)
 end
 
 -- Liegt die Nameplate hinter einer Wand? Blizzard dunkelt verdeckte Nameplates ab; die
@@ -388,7 +460,7 @@ local function update(nameplate, targetPlate)
     p.name:SetShown(not ns.isOccluded(nameplate))
     p:Show()
     setCastbar(uf, false)
-    setAuras(uf, false)
+    setAuras(uf, false, p)
     placeRaidIcon(uf, p, true)
     return
   end
@@ -406,7 +478,7 @@ local function update(nameplate, targetPlate)
   p.name:Show()
   p:Show()
   setCastbar(uf, isTarget)
-  setAuras(uf, aurasWanted())
+  setAuras(uf, aurasWanted(), p)
   placeRaidIcon(uf, p, false)
 end
 
@@ -498,7 +570,7 @@ local function onSettingChanged(key)
     if active() then updateAll() end
     return
   end
-  if key == 'plateDebuffs' then
+  if key == 'plateDebuffs' or key == 'plateDebuffPos' or key == 'plateDebuffScale' then
     if active() then updateAll() end
     return
   end

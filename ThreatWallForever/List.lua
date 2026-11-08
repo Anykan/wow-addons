@@ -208,6 +208,7 @@ function ns.refresh()
   if not testMode and not frame.moving then
     if db.combatOnly and not UnitAffectingCombat('player') then hide = true end
     if db.groupOnly and not IsInGroup() and not IsInRaid() then hide = true end
+    if db.instanceOnly and not ns.inInstance() then hide = true end
   end
   if hide then frame:Hide() return end
   frame:Show()

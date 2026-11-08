@@ -45,11 +45,20 @@ local function afterChange(opt, v)
   ns.updateMinimap()
   ns.refresh()
   ns.notifyModules('OnSettingChanged', opt.key or opt.state)
+  -- Warnung live vorführen (Nutzer 2026-11-08): Kanal oder Ton an → Ton einmal,
+  -- Randfarbe/Deckkraft oder Rand an → Rand zeigen
+  local k = opt.key
+  if k == 'soundChannel' or (k == 'sound' and v) then
+    ns.playAlert(true)
+  elseif k == 'edgeColor' or k == 'edgeAlpha' or (k == 'edgeFlash' and v) then
+    ns.previewEdge()
+  end
 end
 
 local function showTip(owner, opt)
   if not opt.tip then return end
-  ns.showTooltip(owner, L[opt.label], L[opt.tip])
+  -- tipTitle: eigene Überschrift (Klassenfähigkeiten: Name des Buffs statt der Klasse, Nutzer 2026-11-08)
+  ns.showTooltip(owner, L[opt.tipTitle or opt.label], L[opt.tip])
 end
 
 local function hideTip() GameTooltip:Hide() end
@@ -220,6 +229,24 @@ local function buildChoice(parent, opt, y)
   local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
   label:SetPoint('LEFT')
   label:SetText(L[opt.label])
+  -- opt.class (z. B. 'PALADIN'): Text in der Klassenfarbe (Klassenfähigkeiten, Nutzer 2026-11-08)
+  local cc = opt.class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[opt.class]
+  if cc then label:SetTextColor(cc.r, cc.g, cc.b) end
+  -- opt.spell: Symbol des Zaubers hinter dem Text (z. B. Zorn der Gerechtigkeit)
+  if opt.spell then
+    local ok, tex = pcall(function()
+      if C_Spell and C_Spell.GetSpellTexture then return C_Spell.GetSpellTexture(opt.spell) end
+      return GetSpellTexture(opt.spell)
+    end)
+    if not (ok and tex) then tex = opt.icon end   -- Zauber unbekannt: festes Ersatzbild
+    if tex then
+      local icon = row:CreateTexture(nil, 'OVERLAY')
+      icon:SetSize(S.SPELL_ICON, S.SPELL_ICON)
+      icon:SetPoint('LEFT', label, 'RIGHT', S.TEXT_GAP / 2, 0)
+      icon:SetTexture(tex)
+      icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)   -- Blizzards Rand am Symbol abschneiden
+    end
+  end
 
   local buttons, prev = {}, nil
   for i = #opt.choices, 1, -1 do
@@ -228,7 +255,7 @@ local function buildChoice(parent, opt, y)
     if prev then
       btn:SetPoint('RIGHT', prev, 'LEFT', -D.BUTTON_GAP, 0)
     else
-      btn:SetPoint('RIGHT', row, 'RIGHT', S.CHOICE_SHIFT, 0)
+      btn:SetPoint('RIGHT', row, 'RIGHT', opt.shift or S.CHOICE_SHIFT, 0)
     end
     prev = btn
     buttons[value] = btn
@@ -304,6 +331,48 @@ local function buildButton(parent, opt, y)
   return y - S.ROW_H
 end
 
+-- Ton-Auswahl (C.ALERT_SOUNDS): Name zwischen < und >. Blättern spielt den neuen Ton gleich an
+-- (auch wenn der Warnton aus ist); gemeinsamer Test-Knopf für Ton + Rand darunter (Config).
+local function buildSound(parent, opt, y)
+  local P = C.SOUND_PICKER
+  local list = C.ALERT_SOUNDS
+  local row = newRow(parent, y, S.ROW_H)
+  local label = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  label:SetPoint('LEFT')
+  label:SetText(L[opt.label])
+
+  local nextBtn = ns.makeFlatButton(row, '>', P.ARROW_W)
+  nextBtn:SetPoint('RIGHT', row, 'RIGHT', S.CHOICE_SHIFT, 0)
+  local name = row:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+  name:SetPoint('RIGHT', nextBtn, 'LEFT', 0, 0)
+  name:SetWidth(P.NAME_W)
+  name:SetJustifyH('CENTER')
+  name:SetWordWrap(false)
+  local prevBtn = ns.makeFlatButton(row, '<', P.ARROW_W)
+  prevBtn:SetPoint('RIGHT', name, 'LEFT', 0, 0)
+
+  local function index()
+    for i, s in ipairs(list) do if s.id == getValue(opt) then return i end end
+    return 1
+  end
+  local function update() name:SetText(L[list[index()].label]) end
+  local function step(d)
+    local v = list[(index() - 1 + d) % #list + 1].id
+    setValue(opt, v)
+    update()
+    afterChange(opt, v)
+    ns.playAlert(true)
+  end
+  prevBtn:SetScript('OnClick', function() step(-1) end)
+  nextBtn:SetScript('OnClick', function() step(1) end)
+  for _, f in ipairs({ row, prevBtn, nextBtn }) do
+    f:SetScript('OnEnter', function(self) showTip(self, opt) end)
+    f:SetScript('OnLeave', hideTip)
+  end
+  updaters[#updaters + 1] = update
+  return y - S.ROW_H
+end
+
 -- Leerer Platz, damit gleiche Optionen in mehreren Spalten auf einer Höhe stehen
 local function buildSpacer(_, _, y)
   return y - S.ROW_H
@@ -315,6 +384,7 @@ local BUILDERS = {
   check = buildCheck,
   role = buildRole,
   choice = buildChoice,
+  sound = buildSound,
   slider = buildSlider,
   button = buildButton,
 }
@@ -517,6 +587,13 @@ local function paintPreview()
   if not (ns.db.plates[set] and ns.db.plates[set][key]) then set = ns.plateSet() end
   local cfg = ns.db.plates[set][key]
   ns.paintPreviewPlate(preview.plate, cfg, key)
+  -- Debuffs über dem Namen bzw. unter dem Balken (I25): Balken und Zustandsname rücken mit
+  local above, below = ns.previewDebuffRoom()
+  if not cfg.show then above, below = 0, 0 end
+  preview.plate:ClearAllPoints()
+  preview.plate:SetPoint('TOP', preview.col, 'TOP', 0, PT.PREVIEW.Y - above)
+  preview.label:ClearAllPoints()
+  preview.label:SetPoint('TOP', preview.plate, 'BOTTOM', 0, -(PT.PREVIEW.LABEL_GAP + below))
   local st
   for _, s in ipairs(C.PLATE_STATES) do if s.key == key then st = s end end
   local text = st and L[st.label] or key
@@ -538,6 +615,7 @@ local function buildPreview(page, x, w)
   col:SetPoint('TOPLEFT', x, 0)
   col:SetSize(w, 1)
   buildSection(col, { label = 'SEC_PREVIEW' }, 0)
+  preview.col = col
   preview.plate = ns.createPreviewPlate(col)
   preview.plate:SetPoint('TOP', col, 'TOP', 0, PT.PREVIEW.Y)
   preview.label = col:CreateFontString(nil, 'OVERLAY', 'GameFontDisableSmall')
@@ -696,7 +774,9 @@ local function buildNameplates(page)
   local optH = buildOptions(page, C.OPTIONS.nameplates)() + PT.OPTIONS_GAP
   -- Vorschau in der freien mittleren Spalte (die Optionen haben drei Spalten)
   buildPreview(page, S.WIDTH / 3, S.WIDTH / 3)
-  optH = math.max(optH, -PT.PREVIEW.Y + C.NAMEPLATES.HEIGHT + PT.PREVIEW.LABEL_GAP + PT.PREVIEW.LABEL_H)
+  -- + Platz für die größten Vorschau-Debuffs (200 %, I25)
+  local debuffRoom = (C.DEBUFF_BAR.PREVIEW_SIZE + C.DEBUFF_BAR.GAP) * 2 + C.DEBUFF_BAR.BELOW_Y
+  optH = math.max(optH, -PT.PREVIEW.Y + C.NAMEPLATES.HEIGHT + PT.PREVIEW.LABEL_GAP + PT.PREVIEW.LABEL_H + debuffRoom)
 
   local reset = ns.makeFlatButton(page, L.BTN_RESET_COLORS, PT.RESET_W)
   reset:SetPoint('TOPRIGHT', -D.PADDING, -optH)

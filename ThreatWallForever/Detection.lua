@@ -193,8 +193,87 @@ function ns.worse(a, b)
   return (C.RANK[a] or 0) > (C.RANK[b] or 0)
 end
 
-local function playAlert()
-  if ns.db.sound then pcall(PlaySound, C.ALERT_SOUND, C.ALERT_CHANNEL) end
+-- Gewählten Warnton spielen (auch für den Test-Knopf in den Einstellungen: force = true)
+function ns.playAlert(force)
+  local db = ns.db
+  if not (force or db.sound) then return end
+  pcall(PlaySound, db.soundId or C.ALERT_SOUNDS[1].id, db.soundChannel or C.SOUND_CHANNELS[1])
+end
+
+-- Bildschirmrand (I10): vier Farbverläufe an den Kanten (außen Farbe, nach innen durchsichtig),
+-- blitzt einmal auf. Wird beim ersten Mal gebaut. force = true: auch wenn ausgeschaltet (Test).
+local EF = C.EDGE_FLASH
+local edge
+local function buildEdge()
+  edge = CreateFrame('Frame', nil, UIParent)
+  edge:SetAllPoints(UIParent)
+  edge:SetFrameStrata(EF.STRATA)
+  edge:Hide()
+  edge.parts = {}
+  -- p1/p2 = Kante, outerFirst = erste Verlaufsfarbe (links bzw. unten) liegt außen
+  for _, e in ipairs({
+    { 'TOPLEFT', 'BOTTOMLEFT', 'HORIZONTAL', true, true },
+    { 'TOPRIGHT', 'BOTTOMRIGHT', 'HORIZONTAL', false, true },
+    { 'TOPLEFT', 'TOPRIGHT', 'VERTICAL', false, false },
+    { 'BOTTOMLEFT', 'BOTTOMRIGHT', 'VERTICAL', true, false },
+  }) do
+    local t = edge:CreateTexture(nil, 'BACKGROUND')
+    t:SetPoint(e[1])
+    t:SetPoint(e[2])
+    if e[5] then t:SetWidth(EF.WIDTH) else t:SetHeight(EF.WIDTH) end
+    t:SetTexture(C.TEXTURE.FLAT)
+    t.dir, t.outerFirst = e[3], e[4]
+    edge.parts[#edge.parts + 1] = t
+  end
+  edge:SetScript('OnUpdate', function(self)
+    local t = GetTime() - self.start
+    if t >= EF.DURATION then self:Hide() return end
+    self:SetAlpha(math.sin(math.pi * t / EF.DURATION) * self.maxAlpha)
+  end)
+end
+
+function ns.flashEdge(force)
+  local db = ns.db
+  if not (force or db.edgeFlash) then return end
+  if not edge then buildEdge() end
+  local c = db.edgeColor or C.DEFAULTS.edgeColor
+  local ok = pcall(function()
+    local solid, clear = CreateColor(c[1], c[2], c[3], 1), CreateColor(c[1], c[2], c[3], 0)
+    for _, t in ipairs(edge.parts) do
+      if t.outerFirst then t:SetGradient(t.dir, solid, clear) else t:SetGradient(t.dir, clear, solid) end
+    end
+  end)
+  if not ok then return end
+  edge.maxAlpha = db.edgeAlpha or C.DEFAULTS.edgeAlpha
+  edge.start = GetTime()
+  edge:SetAlpha(0)
+  edge:Show()
+end
+
+-- Vorschau beim Ändern in den Einstellungen: läuft der Rand schon, bleibt er voll sichtbar
+-- (Start auf die Mitte gesetzt) und blendet erst nach der letzten Änderung aus – so kann man
+-- Regler und Farbwähler live verfolgen
+function ns.previewEdge()
+  if edge and edge:IsShown() then
+    edge.maxAlpha = ns.db.edgeAlpha or C.DEFAULTS.edgeAlpha
+    local c = ns.db.edgeColor or C.DEFAULTS.edgeColor
+    pcall(function()
+      local solid, clear = CreateColor(c[1], c[2], c[3], 1), CreateColor(c[1], c[2], c[3], 0)
+      for _, t in ipairs(edge.parts) do
+        if t.outerFirst then t:SetGradient(t.dir, solid, clear) else t:SetGradient(t.dir, clear, solid) end
+      end
+    end)
+    edge.start = GetTime() - EF.DURATION / 2
+    return
+  end
+  ns.flashEdge(true)
+end
+
+-- Gemeinsamer Test-Knopf in den Einstellungen: zeigt die Warnung so, wie sie im Kampf käme –
+-- nur was eingeschaltet ist (Nutzer 2026-11-08: Rand aus = beim Testen kein Rand)
+function ns.testAlert()
+  ns.playAlert()
+  ns.flashEdge()
 end
 
 -- Durchsucht alle Kandidaten und aktualisiert ns.tracked. Gibt nichts zurück:
@@ -309,13 +388,18 @@ function ns.collect()
           else
             -- "Alle Kämpfe zeigen": jeder Gegner im Kampf (auch grün) bleibt,
             -- bis er aus candidateUnits() verschwindet. Nur eine Verschlechterung
-            -- zu Rot/Gelb löst den Warnton aus – grün werden ist eine gute Nachricht.
-            if color ~= 'green' and ns.worse(color, t.shownColor) then
+            -- zu Rot/Gelb löst den Warnton aus – grün werden ist eine gute Nachricht,
+            -- braun (anderer Tank hält ihn, Anforderung T) ist kein Problem.
+            if color ~= 'green' and color ~= 'brown' and ns.worse(color, t.shownColor) then
               if not isNew then
                 ns.dbg('WORSENED', (not IsSecret(t.name) and t.name or unit) .. ' verschlechtert '
                   .. tostring(t.shownColor) .. ' -> ' .. color)
               end
-              playAlert()
+              -- "Nur in einer Gruppe": solo keine Warnung (der Test-Knopf zeigt sie trotzdem)
+              if not ns.db.alertGroupOnly or IsInGroup() or IsInRaid() then
+                ns.playAlert()
+                ns.flashEdge()
+              end
             end
             t.shownColor = color
             t.removeAt = nil
@@ -347,3 +431,135 @@ function ns.collect()
     end
   end
 end
+
+-- Klassenfähigkeiten (I24): Paladin-Tank, Zorn der Gerechtigkeit ------------------------------
+-- Im Kampf sind die eigenen Auren für Addons gesperrt (getestet 2026-11-08). Deshalb: außerhalb
+-- des Kampfs lesen und die Ablaufzeit merken; im Kampf nach der Uhr weiterzählen.
+-- Meldungen in der Bildschirmmitte bei 20, 10, 5, 4, 3, 2, 1 Min. Rest (je einmal), bei 0 "fehlt".
+-- Neu gebufft (Ablaufzeit springt) → alles zurücksetzen. Nur Paladin + TWF-Rolle Tank.
+local CA = C.CLASS_ABILITIES
+local L = ns.L
+local rf = { exp = nil, done = {}, missingShown = false }
+local rfNext = 0
+
+-- Meldung in der Bildschirmmitte; sound = Ton-ID dazu (über den Kanal des Warntons)
+local function rfShow(text, sound)
+  pcall(RaidNotice_AddMessage, RaidWarningFrame, text, CA.COLOR)
+  ns.dbg('SETTING', 'Klassenfähigkeit: ' .. text)
+  if sound then pcall(PlaySound, sound, ns.db.soundChannel or C.SOUND_CHANNELS[1]) end
+end
+
+local function rfName()
+  local ok, name = pcall(function()
+    if C_Spell and C_Spell.GetSpellName then return C_Spell.GetSpellName(CA.RF_IDS[1]) end
+    return (GetSpellInfo(CA.RF_IDS[1]))
+  end)
+  return ok and name or L.RF_FALLBACK
+end
+
+-- Außerhalb des Kampfs: Ablaufzeit lesen. Rückgabe: Zeitpunkt, false (fehlt) oder nil (unlesbar)
+local function rfRead()
+  for _, id in ipairs(CA.RF_IDS) do
+    local ok, aura = pcall(C_UnitAuras.GetPlayerAuraBySpellID, id)
+    if not ok then return nil end
+    if aura then
+      local okE, exp = pcall(function() return aura.expirationTime + 0 end)
+      if not okE then return nil end
+      return exp
+    end
+  end
+  return false
+end
+
+-- Kennt der Charakter Zorn der Gerechtigkeit? (Nutzer 2026-11-08: auf Stufe 1 hat man ihn
+-- noch nicht; auf Forever ab Stufe 10 beim Lehrer.) Prüft das Zauberbuch statt der Stufe –
+-- so zählt auch ein Paladin über 10, der ihn noch nicht gelernt hat.
+local function rfKnown()
+  for _, id in ipairs(CA.RF_IDS) do
+    local ok, known = pcall(function()
+      if IsPlayerSpell then return IsPlayerSpell(id) end
+      if C_SpellBook and C_SpellBook.IsSpellKnown then return C_SpellBook.IsSpellKnown(id) end
+      return IsSpellKnown(id)
+    end)
+    if ok and known == true then return true end
+  end
+  return false
+end
+
+local function rfActive()
+  local _, class = UnitClass('player')
+  return ns.db.paladinRF == 'on' and ns.db.role == 'tank' and class == 'PALADIN' and rfKnown()
+end
+
+local function rfCheck()
+  if not rfActive() then
+    rf.exp, rf.done, rf.missingShown = nil, {}, false
+    return
+  end
+  local now = GetTime()
+  local inCombat = InCombatLockdown() or UnitAffectingCombat('player')
+  if not inCombat then
+    local exp = rfRead()
+    if exp == nil then return end                 -- unlesbar: nichts tun
+    if exp == false then
+      rf.exp = nil
+      if not rf.missingShown then
+        rf.missingShown = true
+        rfShow(string.format(L.RF_MISSING, rfName()), CA.RF_SOUND)
+      end
+      return
+    end
+    if not rf.exp or math.abs(exp - rf.exp) > CA.REBUFF_TOLERANCE then
+      -- (neu) gebufft: Stufen über dem aktuellen Rest gelten als erledigt, damit nach dem Buffen
+      -- oder einem Ladebildschirm kein Meldungs-Gewitter kommt
+      rf.done, rf.missingShown = {}, false
+      local rest = exp - now
+      for _, m in ipairs(CA.MARKS) do
+        if m * 60 < rest then break end
+        rf.done[m] = true
+      end
+      -- schon unter 5 Min.: einmal sofort melden (Nutzer: beim Verlassen des Kampfs prüfen)
+      if rest <= 5 * 60 then
+        rfShow(string.format(L.RF_REMAINING, rfName(), math.ceil(rest / 60)), CA.RF_SOUND)
+      end
+      rf.exp = exp
+    end
+  end
+  if not rf.exp then return end
+  local rest = rf.exp - now
+  if rest <= 0 then
+    if not rf.missingShown then
+      rf.missingShown = true
+      rfShow(string.format(L.RF_MISSING, rfName()), CA.RF_SOUND)
+    end
+    return
+  end
+  for _, m in ipairs(CA.MARKS) do
+    if not rf.done[m] and rest <= m * 60 then
+      -- alle größeren Stufen mit erledigen, nur die aktuelle melden
+      for _, m2 in ipairs(CA.MARKS) do if m2 >= m then rf.done[m2] = true end end
+      rfShow(string.format(L.RF_REMAINING, rfName(), m), CA.RF_SOUND)
+      break
+    end
+  end
+end
+
+local rfEvents = CreateFrame('Frame')
+rfEvents:RegisterEvent('PLAYER_REGEN_ENABLED')
+rfEvents:SetScript('OnEvent', function()
+  -- Kampf vorbei: fehlt Zorn noch, erneut melden
+  rf.missingShown = false
+  rfNext = 0
+end)
+
+ns.RegisterModule('Klassenfaehigkeiten', {
+  OnTick = function()
+    local now = GetTime()
+    if now < rfNext then return end
+    rfNext = now + CA.INTERVAL
+    rfCheck()
+  end,
+  OnSettingChanged = function(key)
+    if key == 'paladinRF' or key == 'role' then rf.exp, rf.done, rf.missingShown = nil, {}, false end
+  end,
+})

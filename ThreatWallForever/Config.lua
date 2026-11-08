@@ -53,6 +53,8 @@ C.DEFAULTS = {
   targetBarCombat = false,   -- Ziel-Mauer nur im Kampf sichtbar
   focusBarGroup = false,     -- Fokus-Mauer nur in Gruppe/Schlachtzug sichtbar
   targetBarGroup = false,    -- Ziel-Mauer nur in Gruppe/Schlachtzug sichtbar
+  focusBarInstance = false,  -- Fokus (Mauer/Klassik) nur in Instanzen (I11)
+  targetBarInstance = false, -- Ziel (Mauer/Klassik) nur in Instanzen (I11)
   highlightColor = { 0.55, 0.85, 1 },  -- Farbe des pulsierenden Rahmens um die Zeile deines Ziels
   focusBarAlpha = 1,         -- Deckkraft der Fokus-Mauer
   targetBarAlpha = 1,        -- Deckkraft der Ziel-Mauer
@@ -67,10 +69,18 @@ C.DEFAULTS = {
   textScale = 1,
   role = 'tank',             -- 'tank', 'dps' oder 'heal' (C.ROLES)
   combatOnly = false,
+  instanceOnly = false,      -- Liste nur in Instanzen (Dungeon/Schlachtzug, I11)
   groupOnly = false,         -- aus: Liste nach Neuinstallation auch solo sichtbar (0.5.2)
   showAll = false,
   highlightTarget = true,    -- pulsierender Rahmen um die Zeile deines aktuellen Ziels
   sound = true,
+  soundId = 8959,            -- Warnton (eine Nummer aus C.ALERT_SOUNDS)
+  soundChannel = 'SFX',      -- Kanal des Warntons: 'SFX' (Effekte) oder 'Master' (C.SOUND_CHANNELS)
+  edgeFlash = false,         -- Bildschirmrand blitzt einmal auf, zusammen mit dem Warnton (I10)
+  edgeColor = { 1, 0.1, 0.1 },
+  edgeAlpha = 0.8,
+  alertGroupOnly = false,    -- Warnton und Bildschirmrand nur in einer Gruppe (I10, Nutzer 2026-11-08)
+  paladinRF = 'on',          -- Paladin im Tank-Modus: Zorn der Gerechtigkeit überwachen (I24): 'on'/'off'
   minimap = true,
   minimapAngle = 200,        -- Position des Minimap-Buttons in Grad
   debug = false,
@@ -85,6 +95,8 @@ C.DEFAULTS = {
   listLead = true,           -- Tank-Modus: Vorsprung statt Aggro-% in der Liste (Anforderung Z); Standard an seit 0.5.2
   plateShared = true,        -- an = eine Tabelle für alle Modi, aus = je eine für Tank/DD/Heal (Anforderung V)
   plateDebuffs = 'off',      -- Debuffleiste an TWF-Nameplates: 'off', 'on' (C.DEBUFF_MODES, I23)
+  plateDebuffPos = 'above',  -- Debuffleiste über oder unter dem Balken: 'above', 'below' (I25)
+  plateDebuffScale = 1,      -- Größe der Debuff-Symbole (I25)
   -- Ziel/Fokus: Mauer oder Klassik-Fenster (Anforderung AI, Klassik.lua); je Fenster eigene Werte
   targetStyle = 'wall',      -- 'wall' oder 'classic' (C.BAR_STYLES)
   focusStyle = 'wall',
@@ -117,9 +129,38 @@ C.THREAT_STATUS = {
   HIGH = 1,                  -- du tankst nicht, hast aber mehr Bedrohung als der Tank
 }
 
--- Warnton bei Verschlechterung
-C.ALERT_SOUND = 8959         -- Sound-ID
-C.ALERT_CHANNEL = 'Master'
+-- Warnton bei Verschlechterung: Auswahl im Reiter Allgemein (Nutzer 2026-11-08, im Spiel
+-- probegehört). Reihenfolge = Blättern mit < >; label = Name in Locales.
+C.ALERT_SOUNDS = {
+  { id = 8959, label = 'SOUND_RAID_WARNING' },
+  { id = 12867, label = 'SOUND_ALARM_1' },
+  { id = 12889, label = 'SOUND_ALARM_2' },
+  { id = 12197, label = 'SOUND_BOSS_EMOTE' },
+  { id = 15273, label = 'SOUND_GM' },
+  { id = 44292, label = 'SOUND_HORN' },
+  { id = 73280, label = 'SOUND_FANFARE_1' },
+  { id = 73281, label = 'SOUND_FANFARE_2' },
+}
+C.SOUND_CHANNELS = { 'SFX', 'Master' }
+C.SOUND_CHANNEL_LABEL = { SFX = 'CHANNEL_SFX', Master = 'CHANNEL_MASTER' }
+C.SOUND_PICKER = { ARROW_W = 20, NAME_W = 112 }
+-- Bildschirmrand (I10, Nutzer 2026-11-08 im Test-Addon ausgesucht): vier Farbverläufe an den
+-- Kanten, blitzt einmal auf (ein- und ausblenden in DURATION Sekunden)
+C.EDGE_FLASH = { WIDTH = 120, DURATION = 1, STRATA = 'FULLSCREEN' }
+
+-- Klassenfähigkeiten (I24, Nutzer 2026-11-08): Paladin-Tank, Zorn der Gerechtigkeit.
+-- Im Kampf sind die eigenen Auren für Addons gesperrt (getestet 2026-11-08) → außerhalb des
+-- Kampfs lesen, Ablaufzeit merken, im Kampf nach der Uhr weiterzählen.
+C.ONOFF = { 'off', 'on' }
+C.ONOFF_LABEL = { off = 'DEBUFFS_OFF', on = 'DEBUFFS_ON' }   -- "Aus" / "An"
+C.CLASS_ABILITIES = {
+  RF_IDS = { 25780 },            -- Zorn der Gerechtigkeit (Forever, Test 2026-11-08)
+  MARKS = { 20, 10, 5, 4, 3, 2, 1 },   -- Meldung bei so vielen Minuten Rest (je einmal)
+  INTERVAL = 1,                  -- Sekunden zwischen zwei Prüfungen
+  REBUFF_TOLERANCE = 5,          -- Ablaufzeit springt um mehr als so viele Sekunden → neu gebufft
+  COLOR = { r = 1, g = 0.6, b = 0.1 },   -- Farbe der Meldung in der Bildschirmmitte
+  RF_SOUND = 36609,              -- Ton zu jeder Zorn-Meldung (PvP-Alarm, vom Nutzer gewählt 2026-11-08)
+}
 
 -- Farben ----------------------------------------------------------------------------
 
@@ -144,6 +185,23 @@ C.RANK = { red = 2, yellow = 1, brown = 0.5, green = 0 }
 -- Nur Aus/An (Nutzer 2026-11-06): Blizzards Liste zeigt nur eigene Effekte, "Alle" ging nicht.
 C.DEBUFF_MODES = { 'off', 'on' }
 C.DEBUFF_MODE_LABEL = { off = 'DEBUFFS_OFF', on = 'DEBUFFS_ON' }
+-- Position der Debuffleiste (I25, Spieler-Anfrage 2026-11-08)
+C.DEBUFF_POS = { 'above', 'below' }
+C.DEBUFF_POS_LABEL = { above = 'DEBUFF_POS_ABOVE', below = 'DEBUFF_POS_BELOW' }
+-- Blizzard setzt Position und Größe seiner Leiste nach dem Kampf zurück (Test 2026-11-08) →
+-- TWF setzt beides in jedem Takt neu. GetPoint ist auf Nameplates gesperrt, deshalb kann TWF
+-- Blizzards Platz nicht auslesen; "Über" nach einem Verschieben = über dem Namen (wie Blizzard).
+C.DEBUFF_BAR = {
+  GAP = 2,                     -- Abstand zum Balken bzw. Namen
+  BELOW_Y = 8,                 -- "Unter": so viel tiefer, damit Blizzards Zauberleiste des Gegners frei bleibt (Nutzer 2026-11-08)
+  PREVIEW_ICONS = {            -- Beispiel-Symbole in der Vorschau (Rüstung zerreißen, Richturteil, Fluch)
+    'Interface/Icons/Ability_Warrior_Sunder',
+    'Interface/Icons/Spell_Holy_HolySmite',
+    'Interface/Icons/Spell_Shadow_CurseOfSargeras',
+  },
+  PREVIEW_SIZE = 18,           -- Symbolgröße in der Vorschau bei 100 %
+  PREVIEW_SPACING = 2,         -- Abstand zwischen den Symbolen
+}
 -- Darstellung Ziel/Fokus (Anforderung AI). Reihenfolge = Knöpfe im Reiter Ansicht.
 C.BAR_STYLES = { 'wall', 'classic' }
 C.BAR_STYLE_LABEL = { wall = 'STYLE_WALL', classic = 'STYLE_CLASSIC' }
@@ -431,7 +489,9 @@ C.NEWS = {
   WIDTH = 440, HEIGHT = 380,
   OFFSET_Y = 60,                  -- über der Bildschirmmitte
   -- Versionen mit Kurzfassung (Texte NEWS_<Version> in den Locales), neueste zuerst
-  VERSIONS = { '0.6', '0.5.2', '0.5.1', '0.5', '0.4', '0.3', '0.2', '0.1' },
+  HELP_ICON = 'Interface/Common/help-i',   -- Info-Symbol (blaues i) oben rechts (Tooltip: Entwickler)
+  HELP_SIZE = 22, HELP_GAP = 0,
+  VERSIONS = { '0.7', '0.6', '0.5.2', '0.5.1', '0.5', '0.4', '0.3', '0.2', '0.1' },
   NOTE_COLOR = { 1, 0.45, 0.2 },  -- Hinweis einer Version (NEWS_<Version>_NOTE), z. B. "Spiel neu starten"
   DELAY = 2,                      -- Sekunden nach dem Login
   RETRY = 2,                      -- im Kampf / bei offenem Hinweis-Popup: erneut prüfen nach … s
@@ -508,6 +568,7 @@ C.SETTINGS = {
   ROLE_BUTTON_W = 54,          -- Breite der Rollen-Knöpfe (drei nebeneinander)
   CHOICE_SHIFT = 8,            -- Auswahl-Knöpfe ('choice') so weit nach rechts in den Rand (Platz zum Text)
   TEXT_GAP = 8,                -- Abstand Kästchen → Text
+  SPELL_ICON = 16,             -- Zaubersymbol hinter dem Text (Klassenfähigkeiten)
   SLIDER_ROW_H = 38,           -- Höhe einer Schieberegler-Zeile (Text oben, Regler unten)
   SLIDER_H = 6,                -- Höhe der Bahn
   THUMB_W = 10, THUMB_H = 16,  -- Griff des Schiebereglers
@@ -623,7 +684,15 @@ C.OPTIONS = {
     -- "Alles fixieren": sperrt das TWF-Fenster (später auch Fokus-/Ziel-Leiste, Anforderung AC)
     { type = 'check', key = 'locked', label = 'MENU_LOCK', tip = 'TIP_LOCK' },
     { type = 'section', label = 'SEC_ALERT' },
+    { type = 'check', key = 'alertGroupOnly', label = 'OPT_ALERT_GROUP_ONLY', tip = 'TIP_ALERT_GROUP_ONLY' },
     { type = 'check', key = 'sound', label = 'MENU_SOUND', tip = 'TIP_SOUND' },
+    { type = 'sound', key = 'soundId', label = 'OPT_SOUND_PICK', tip = 'TIP_SOUND_PICK' },
+    { type = 'choice', key = 'soundChannel', label = 'OPT_SOUND_CHANNEL', tip = 'TIP_SOUND_CHANNEL',
+      choices = C.SOUND_CHANNELS, choiceLabels = C.SOUND_CHANNEL_LABEL },
+    { type = 'check', key = 'edgeFlash', label = 'OPT_EDGE_FLASH', tip = 'TIP_EDGE_FLASH' },
+    { type = 'color', key = 'edgeColor', label = 'OPT_EDGE_COLOR', tip = 'TIP_EDGE_COLOR' },
+    { type = 'slider', key = 'edgeAlpha', label = 'MENU_BACKGROUND', tip = 'TIP_EDGE_ALPHA', min = 0.1, max = 1, step = 0.05 },
+    { type = 'button', action = 'testAlert', label = 'BTN_ALERT_TEST', tip = 'TIP_ALERT_TEST' },
 
     { type = 'column' },
     { type = 'section', label = 'SEC_DISPLAY' },
@@ -634,6 +703,12 @@ C.OPTIONS = {
     { type = 'column' },
     { type = 'section', label = 'SEC_TOOLS' },
     { type = 'button', action = 'resetAll', label = 'MENU_RESET_ALL', tip = 'TIP_RESET_ALL' },
+    { type = 'section', label = 'SEC_CLASS' },
+    -- shift = 0: letzte Spalte, sonst ragen die Knöpfe bis an den Fensterrand (Nutzer 2026-11-08);
+    -- class: Name in der Klassenfarbe – so auch für spätere Klassen
+    { type = 'choice', key = 'paladinRF', label = 'OPT_PALADIN_RF', tip = 'TIP_PALADIN_RF',
+      choices = C.ONOFF, choiceLabels = C.ONOFF_LABEL, shift = 0, class = 'PALADIN', spell = 25780,
+      tipTitle = 'RF_FALLBACK' },
   },
 
   -- Reiter "Nameplates": Schalter und Deckkraft (darunter die Farbtabelle)
@@ -644,6 +719,10 @@ C.OPTIONS = {
     { type = 'check', key = 'plateShared', label = 'OPT_PLATE_SHARED', tip = 'TIP_PLATE_SHARED' },
     { type = 'choice', key = 'plateDebuffs', label = 'OPT_PLATE_DEBUFFS', tip = 'TIP_PLATE_DEBUFFS',
       choices = C.DEBUFF_MODES, choiceLabels = C.DEBUFF_MODE_LABEL },
+    { type = 'choice', key = 'plateDebuffPos', label = 'OPT_DEBUFF_POS', tip = 'TIP_DEBUFF_POS',
+      choices = C.DEBUFF_POS, choiceLabels = C.DEBUFF_POS_LABEL },
+    { type = 'slider', key = 'plateDebuffScale', label = 'OPT_DEBUFF_SCALE', tip = 'TIP_DEBUFF_SCALE',
+      min = 0.5, max = 2, step = 0.1 },
 
     { type = 'column' },   -- Mitte: Vorschau-Balken (Settings.lua, Anforderung AE)
     { type = 'column' },
@@ -661,6 +740,7 @@ C.OPTIONS = {
     -- blenden nur die Liste aus (List.lua), nicht Nameplates oder Leisten
     { type = 'check', key = 'combatOnly', label = 'MENU_COMBAT_ONLY', tip = 'TIP_COMBAT_ONLY' },
     { type = 'check', key = 'groupOnly', label = 'MENU_GROUP_ONLY', tip = 'TIP_GROUP_ONLY' },
+    { type = 'check', key = 'instanceOnly', label = 'MENU_INSTANCE_ONLY', tip = 'TIP_INSTANCE_ONLY' },
     { type = 'check', key = 'listThreat', label = 'OPT_LIST_THREAT', tip = 'TIP_LIST_THREAT' },
     { type = 'check', key = 'listLead', label = 'OPT_LIST_LEAD', tip = 'TIP_LIST_LEAD' },
     { type = 'check', key = 'highlightTarget', label = 'MENU_HIGHLIGHT', tip = 'TIP_HIGHLIGHT' },
@@ -691,6 +771,7 @@ local function barColumn(key, section, barLabel, barTip)
       choices = C.BAR_STYLES, choiceLabels = C.BAR_STYLE_LABEL },
     { type = 'check', key = key .. 'BarCombat', label = 'OPT_BAR_COMBAT', tip = 'TIP_BAR_COMBAT' },
     { type = 'check', key = key .. 'BarGroup', label = 'OPT_BAR_GROUP', tip = 'TIP_BAR_GROUP' },
+    { type = 'check', key = key .. 'BarInstance', label = 'OPT_BAR_INSTANCE', tip = 'TIP_BAR_INSTANCE' },
     { type = 'check', key = p .. 'Threat', label = 'OPT_CLASSIC_THREAT', tip = 'TIP_CLASSIC_THREAT', showIf = classic },
     { type = 'check', key = p .. 'Lead', label = 'OPT_CLASSIC_LEAD', tip = 'TIP_CLASSIC_LEAD', showIf = classic },
     { type = 'check', key = p .. 'Pets', label = 'OPT_CLASSIC_PETS', tip = 'TIP_CLASSIC_PETS', showIf = classic },
@@ -728,7 +809,7 @@ C.RESET_DIALOG = {
 -- Klassik-Fenster für Ziel und Fokus (Klassik.lua, Anforderung AI) --------------------------
 C.CLASSIC = {
   NAME = { target = 'ThreatWallForeverTargetClassic', focus = 'ThreatWallForeverFocusClassic' },
-  TITLE = { target = 'SEC_TARGET', focus = 'SEC_FOCUS' },   -- Text vor dem Gegnernamen im Kopf
+  TITLE = { target = 'CLASSIC_TITLE_TARGET', focus = 'CLASSIC_TITLE_FOCUS' },   -- Text vor dem Gegnernamen im Kopf (Nutzer 2026-11-08)
   WIDTH = 220,                       -- Startbreite (danach per Ziehen, gespeichert)
   -- Startposition: obere linke Ecke relativ zur Bildschirmmitte (rechts neben der Liste, gleiche
   -- Höhe; Nutzer 2026-11-06, siehe C.WINDOW.DEFAULT_X/Y)

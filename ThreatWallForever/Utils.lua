@@ -6,6 +6,12 @@ local L = ns.L
 
 -- Atlas / Rückfall --------------------------------------------------------------------
 
+-- Bist du in einer Instanz (Dungeon oder Schlachtzug)? Für "Nur in Instanzen" (I11)
+function ns.inInstance()
+  local ok, inside, kind = pcall(IsInInstance)
+  return ok and inside and (kind == 'party' or kind == 'raid') or false
+end
+
 function ns.hasAtlas(name)
   return C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name) ~= nil
 end
@@ -192,6 +198,7 @@ function ns.makeDialog(name, width, titleText)
   close:SetSize(D.CLOSE_SIZE, D.CLOSE_SIZE)
   close:SetPoint('RIGHT', header, 'RIGHT', D.CLOSE_X, 0)
   close:SetScript('OnClick', function() win:Hide() end)
+  win.closeButton = close
 
   win:Hide()
   return win, header

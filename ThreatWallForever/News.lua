@@ -115,7 +115,8 @@ local function markSeen()
 end
 
 local function build()
-  win = ns.makeDialog(NW.NAME, NW.WIDTH, L.NEWS_TITLE)
+  local header
+  win, header = ns.makeDialog(NW.NAME, NW.WIDTH, L.NEWS_TITLE)
   win:SetPoint('CENTER', 0, NW.OFFSET_Y)
   win:SetHeight(NW.HEIGHT)
   win:SetScript('OnHide', markSeen)   -- OK und X zählen gleich
@@ -138,6 +139,20 @@ local function build()
   scroll:SetScrollChild(content)
   win.scroll = scroll
   win.padTop, win.padBottom = top, bottom
+
+  -- Info-Symbol oben rechts neben dem X: Tooltip mit dem Entwickler (Nutzer 2026-11-08)
+  local help = CreateFrame('Button', nil, header)
+  help:SetSize(NW.HELP_SIZE, NW.HELP_SIZE)
+  help:SetPoint('RIGHT', win.closeButton, 'LEFT', -NW.HELP_GAP, 0)
+  local icon = help:CreateTexture(nil, 'ARTWORK')
+  icon:SetAllPoints()
+  icon:SetTexture(NW.HELP_ICON)
+  local hl = help:CreateTexture(nil, 'HIGHLIGHT')
+  hl:SetAllPoints()
+  hl:SetTexture(NW.HELP_ICON)
+  hl:SetBlendMode('ADD')
+  help:SetScript('OnEnter', function(self) ns.showTooltip(self, L.NEWS_HELP_TITLE, L.NEWS_HELP_TEXT) end)
+  help:SetScript('OnLeave', function() GameTooltip:Hide() end)
 
   local ok = ns.makeFlatButton(win, L.NEWS_OK, NW.OK_W)
   ok:SetPoint('BOTTOM', 0, D.PADDING)
